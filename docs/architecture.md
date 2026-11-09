@@ -2,7 +2,7 @@
 
 Soul Search is an installable phone web app (PWA) for iPhone and Android backed by a FastAPI service and Supabase. The PWA talks to FastAPI for everything except keeping its session fresh, which supabase-js does directly with Supabase Auth. FastAPI is the only part that reads and writes data and talks to the Claude vision API.
 
-Most of this is planned rather than built. Each issue that lands updates this page.
+Sign-in, the database schema and both deploys are built; photo capture, verification, scoring and the weekly close-out are still planned. Each issue that lands updates this page.
 
 ## System
 
@@ -13,16 +13,16 @@ flowchart TB
     claude["Claude vision API"]
     email["Resend<br/>(custom SMTP for Supabase Auth;<br/>Mailpit locally)"]
     inbox["Player's inbox"]
-    cron["Supabase pg_cron + pg_net<br/>(weekly schedule)"]
 
     subgraph supabase["Supabase"]
         auth["Auth"]
         db[("Postgres")]
         storage[("Storage<br/>private photos bucket")]
+        cron["pg_cron + pg_net<br/>(weekly schedule)"]
     end
 
     phone -- "HTTPS, session token" --> api
-    phone -- "store and refresh session" --> auth
+    phone -- "check and refresh session" --> auth
     api -- "check photo" --> claude
     api -- "codes and tokens" --> auth
     api -- "data" --> db
@@ -46,18 +46,31 @@ sequenceDiagram
 
     player->>pwa: Enter email
     pwa->>api: POST /auth/send-code
-    api->>api: Check the email is on the allowlist
+    api->>api: Check the email is on the allowlist and not locked out
+    api->>auth: Create the account on first sign-in (public signups are off)
     api->>auth: Send a one-time code
     auth->>mail: Send email
     mail-->>player: 6-digit code, valid for 10 minutes
     player->>pwa: Enter code
     pwa->>api: POST /auth/verify-code
-    api->>api: Count tries per email (5 wrong locks sign-in for 15 minutes)
+    api->>api: Check the allowlist and refuse while locked out
     api->>auth: Verify the code
-    auth-->>api: Session
-    api-->>pwa: Session
-    pwa->>auth: Store the session (supabase-js), refreshed automatically from then on
-    Note over pwa,api: Every later request sends the session token, which FastAPI validates
+    alt Code accepted
+        auth-->>api: Session
+        api->>api: Reset the wrong-try count
+        api-->>pwa: Session
+    else Wrong or expired code
+        api->>api: Count the wrong try (the 5th locks sign-in for 15 minutes)
+        api-->>pwa: Tries left, expired, or locked until
+    end
+    pwa->>pwa: Keep the session on the phone (supabase-js)
+    pwa->>auth: Check the session, then refresh it before it expires
+    pwa->>api: GET /me
+    opt First sign-in, no display name yet
+        player->>pwa: Choose a name
+        pwa->>api: PUT /me/display-name
+    end
+    Note over pwa,api: Every later request sends the session token. FastAPI validates it and checks the email is still on the allowlist
 ```
 
 ### Photo send
