@@ -17,6 +17,7 @@ export default defineConfig({
         short_name: 'Soul Search',
         description:
           'Spot Kia Souls, snap a photo, top the weekly leaderboard.',
+        id: '/',
         start_url: '/',
         scope: '/',
         display: 'standalone',
