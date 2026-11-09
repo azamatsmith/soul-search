@@ -8,7 +8,7 @@ Set up the soul-search monorepo so that `web/` and `api/` each run locally with 
 
 - **Layout:** two plain app folders plus a root Makefile. No npm workspaces, Turborepo or Nx.
 - **web:** React + Vite + TypeScript, npm, Node 26 (pinned in `.nvmrc`).
-- **api:** FastAPI on Python 3.12, managed by uv (installed with Homebrew). uv downloads and pins Python 3.12 via `api/.python-version`.
+- **api:** FastAPI on Python 3.12, managed by uv (installed with the standalone installer). uv downloads and pins Python 3.12 via `api/.python-version`.
 - **web quality:** ESLint (typescript-eslint, react-hooks, `@typescript-eslint/no-explicit-any` as an error), Prettier, `tsc` type check, Vitest + Testing Library.
 - **api quality:** Ruff for lint and format, pytest.
 - **CI:** GitHub Actions, two jobs, no path filters.
@@ -88,7 +88,7 @@ Only variables the code uses today. Later issues add their own.
 
 ## README
 
-Prerequisites (Homebrew, nvm or Node 26, `brew install uv`), first-time setup (`make install`, copying the env files), the Makefile targets, and the repo layout.
+Prerequisites (nvm or Node 26, uv via `curl -LsSf https://astral.sh/uv/install.sh | sh`), first-time setup (`make install`, copying the env files), the Makefile targets, and the repo layout.
 
 ## Out of scope
 
