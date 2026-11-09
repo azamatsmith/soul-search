@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_cors_origins
+from app.errors import register_error_handler
 
 
 def create_app() -> FastAPI:
@@ -9,9 +10,10 @@ def create_app() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=get_cors_origins(),
-        allow_methods=["GET"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT"],
+        allow_headers=["Authorization", "Content-Type"],
     )
+    register_error_handler(app)
 
     @app.get("/health")
     def health() -> dict[str, str]:

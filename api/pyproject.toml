@@ -5,6 +5,9 @@ description = "Soul Search API"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "fastapi[standard]>=0.162.2",
+    "httpx>=0.28.1",
+    "psycopg[binary]>=3.3.8",
+    "pyjwt[crypto]>=2.15.1",
 ]
 
 [tool.ruff]
@@ -15,6 +18,8 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["db: needs the local Supabase database"]
+addopts = "-m 'not db'"
 
 [dependency-groups]
 dev = [
