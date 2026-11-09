@@ -159,6 +159,23 @@ The body size is 19px on purpose (larger than typical) for legibility. **Large-t
 
 **Behavior:** Filter toggles between all players and the current user. Tapping a card should open a detail view (not designed) where the owner marks the claim as Regular or Special and picks a category: Alien Green, Racing stripes, Exterior graphics, Brown paint. The review flow for false calls is undecided.
 
+### 05 · Photo flow (`Soul Search Photo Flow.dc.html`)
+**Trigger:** the Home camera button or the "Take photo" tab. This flow **replaces** the Home success toast ("Photo saved. Mark it in Sightings."): classification happens inline, right after capture.
+
+Screens, in order:
+1. **01 Camera**: full-screen, background `#16110D`. Top hint pill: "Fit the whole car in the frame" (rgba(255,252,245,.12) bg, Figtree 700 16). Viewfinder fills the space (margin 0 12, radius 22) with four gold corner brackets (40×40, 4px `#C9A35A`, inset 22% top/bottom, 9% sides). Bottom bar is a 3-column grid: **Cancel** (min 56×96, 2px rgba(255,252,245,.4) border) · **shutter** (96px circle, orange fill, 6px cream border, outer ring) · empty. Cancel returns Home.
+2. **02 Check the photo**: kicker "STEP 1 OF 2", title "Can you see the Soul?". Photo preview fills remaining height (radius 22, 2px gold-soft border). Helper "Make sure the whole car is in the photo and not blurry." Primary **"Use this photo"** (72px) → 03; secondary **"Take it again"** (56px) → 01.
+3. **03 What did you find?**: header row with 64px thumbnail + kicker "STEP 2 OF 2" + serif `--t-h2` title. Two radio cards (min-height 88, radius 22, padding 14×16): **Regular Soul** "Any color not listed below" with forest **+1** badge, and **Special Soul** "Alien Green, racing stripes, graphics or brown" with ink/gold-soft **+2** badge. Selected: 3px forest border, forest-tint bg, filled radio. Unselected: 2px gold-soft border, surface bg.
+   - If Special: "What makes it special? Pick any" + multi-select chips (Alien Green, Racing stripes, Exterior graphics, Brown paint; min-height 56, pill; selected = forest fill/cream text) + note "Brown means brown: champagne, pale gold and beige don't count." A car in several categories still earns +2 total.
+   - "Where" row: auto-filled place from location (e.g. "Trader Joe's lot, Elm St") + **Change** link (56px target).
+   - Sticky footer (surface bg, 2px gold top rule): primary button. Disabled (`--c-cream-deep` bg, ink-muted text) with label "Pick what makes it special" until valid; enabled label "Send · +1 point" / "Send · +2 points". Footnote: "Not a Soul after all? Wrong calls cost 1 point."
+   - Valid = Regular selected, OR Special + at least one category. No default selection in production (the mock preselects Special + Alien Green to demonstrate).
+4. **04 Sending**: centered 200px photo, "Sending your photo…" (serif `--t-h1`), 14px progress bar (forest on cream-deep), "Keep the app open. This usually takes a few seconds."
+5. **05a Saved**: full forest background. 96px cream circle with forest check (8px gold halo), kicker "SPECIAL SOUL SAVED" / "SOUL SAVED", points in serif 72px ("+2"), "You have {n} points this week." Buttons: orange **"Snap another Soul"** → 01; gold-outline **"Done"** → Home.
+6. **05b Didn't send**: orange 96px "!" circle, "Your photo didn't send", "Don't worry, it's saved on this phone. We'll send it on our own when you have signal." Buttons: **"Try again now"** (primary) · **"OK, send it later"** (secondary → Home; the claim appears in Sightings as "Waiting to send").
+
+**Behavior notes:** Request camera permission on first use with a plain-language explanation. Keep the captured photo locally until the server confirms receipt. Points shown are placeholders (+1/+2/−1).
+
 ## State Management
 - `auth`: `{ status: 'signedOut' | 'linkSent' | 'signedIn', email, user }`
 - `week`: `{ start, end, daysLeft }`, server-driven, resets Monday
@@ -166,6 +183,7 @@ The body size is 19px on purpose (larger than typical) for legibility. **Large-t
 - `leaderboard`: `{ period: 'week' | 'all', rows: [{ userId, name, score, count }] }`
 - `sightings`: `{ filter: 'all' | 'mine', items: [{ id, userId, photoUrl, takenAt, place, category, status }] }`
 - `uploadQueue`: pending photos with retry for offline/failure
+- `capture`: `{ step: 'camera' | 'review' | 'classify' | 'sending' | 'saved' | 'failed', photo, kind: 'regular' | 'special' | null, categories: Set, place }`
 - `settings.textSize`: `'standard' | 'large'`
 
 ## Assets
@@ -176,6 +194,7 @@ The body size is 19px on purpose (larger than typical) for legibility. **Large-t
 
 ## Files
 - `Soul Search Weekly.dc.html`: **the four screens to build** (sign in, home, leaderboard, sightings). The source of truth.
+- `Soul Search Photo Flow.dc.html`: the photo capture flow (camera → check → classify → sending → saved / didn't send).
 - `Soul Hunt Design System.dc.html`: tokens, type scale, and base components (buttons, score badges, category chips, photo upload tile with all four states, tally stepper, alerts, text field, toggles, leaderboard row) and the app icon at all sizes.
 - `support.js`: preview runtime only. Not part of the design.
 

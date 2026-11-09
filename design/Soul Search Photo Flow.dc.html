@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+--c-cream:#FAF4E8;--c-surface:#FFFCF5;--c-cream-deep:#F1E7D3;
+--c-forest:#1F4A33;--c-forest-deep:#143424;--c-forest-tint:#E3EBE2;
+--c-orange:#B9501C;--c-orange-deep:#943E13;--c-orange-tint:#F8E2D2;
+--c-ink:#3A2618;--c-ink-muted:#6B5443;--c-gold:#C9A35A;--c-gold-soft:#E6D5AC;
+--c-on-dark:#FFFCF5;--c-camera:#16110D;
+--f-display:"Young Serif",Georgia,serif;--f-body:"Figtree",system-ui,sans-serif;--f-mono:"JetBrains Mono",ui-monospace,monospace;
+--t-display:48px;--t-h1:34px;--t-h2:26px;--t-h3:21px;--t-body:19px;--t-small:16px;--t-label:13px;
+--r-sm:8px;--r-md:14px;--r-lg:22px;--r-pill:999px;
+--tap-min:56px;--tap-lg:72px;
+--rule:2px solid var(--c-gold);--rule-thin:1px solid var(--c-gold-soft);
+--shadow-card:0 1px 0 var(--c-gold-soft),0 6px 18px rgba(58,38,24,.07);
+--stripes:repeating-linear-gradient(135deg,var(--c-cream-deep) 0 8px,var(--c-gold-soft) 8px 9px);
+--stripes-dark:repeating-linear-gradient(135deg,#231A14 0 8px,#2E241C 8px 9px);
+}
+[data-text="large"]{--t-display:54px;--t-h1:38px;--t-h2:29px;--t-h3:24px;--t-body:22px;--t-small:18px;--t-label:15px;--tap-min:64px;--tap-lg:80px}
+body{margin:0;background:#E9E1D0;color:var(--c-ink);font-family:var(--f-body);-webkit-font-smoothing:antialiased}
+a{color:var(--c-forest);text-decoration-color:var(--c-gold)}a:hover{color:var(--c-orange)}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<div data-text="{{ textSize }}" style="padding:56px 64px 80px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font:700 13px/1 var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-orange)">Soul Search / Photo flow</div>
+<h1 style="margin:0;font:400 40px/1.1 var(--f-display);color:var(--c-forest)">Taking a photo of a Soul</h1>
+<p style="margin:0;max-width:76ch;font:400 17px/1.5 var(--f-body);color:var(--c-ink-muted);text-wrap:pretty">Starts when you tap "Snap a Soul" or the "Take photo" tab. One decision per screen. Screen 03 works: pick Regular or Special, then the special categories. 05a and 05b are the two possible results after sending. Points still use the placeholder +1 / +2 scoring.</p>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start">
+
+<div data-screen-label="01 Camera" style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;gap:8px;align-items:baseline"><span style="font:600 11px var(--f-mono);padding:3px 7px;background:var(--c-ink);color:var(--c-on-dark);border-radius:4px">01</span><span style="font:600 14px var(--f-body)">Camera</span></div>
+<div style="width:390px;height:844px;border-radius:52px;border:10px solid #22170F;background:var(--c-camera);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(58,38,24,.25);color:var(--c-on-dark)">
+<div style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 15px var(--f-body)"><span>9:41</span><span style="width:24px;height:11px;border:1.5px solid var(--c-on-dark);border-radius:3px"></span></div>
+<div style="flex:none;padding:8px 20px 14px;display:flex;justify-content:center"><span style="padding:10px 18px;border-radius:999px;background:rgba(255,252,245,.12);font:700 var(--t-small) var(--f-body)">Fit the whole car in the frame</span></div>
+<div style="flex:1;margin:0 12px;border-radius:var(--r-lg);background:var(--stripes-dark);position:relative;display:flex;align-items:center;justify-content:center">
+<span style="font:500 12px var(--f-mono);color:#8C7B6B">live camera view</span>
+<span style="position:absolute;top:22%;left:9%;width:40px;height:40px;border-top:4px solid var(--c-gold);border-left:4px solid var(--c-gold);border-radius:8px 0 0 0"></span>
+<span style="position:absolute;top:22%;right:9%;width:40px;height:40px;border-top:4px solid var(--c-gold);border-right:4px solid var(--c-gold);border-radius:0 8px 0 0"></span>
+<span style="position:absolute;bottom:22%;left:9%;width:40px;height:40px;border-bottom:4px solid var(--c-gold);border-left:4px solid var(--c-gold);border-radius:0 0 0 8px"></span>
+<span style="position:absolute;bottom:22%;right:9%;width:40px;height:40px;border-bottom:4px solid var(--c-gold);border-right:4px solid var(--c-gold);border-radius:0 0 8px 0"></span>
+</div>
+<div style="flex:none;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:24px 20px 36px">
+<button style="justify-self:start;min-height:var(--tap-min);min-width:96px;padding:0 16px;border-radius:var(--r-md);border:2px solid rgba(255,252,245,.4);background:transparent;color:var(--c-on-dark);font:700 var(--t-small) var(--f-body);cursor:pointer">Cancel</button>
+<button aria-label="Take photo" style="width:96px;height:96px;border-radius:999px;border:6px solid var(--c-on-dark);background:var(--c-orange);cursor:pointer;box-shadow:0 0 0 4px var(--c-camera),0 0 0 6px rgba(255,252,245,.3)" style-active="transform:scale(.95)"></button>
+<span></span>
+</div>
+</div>
+</div>
+
+<div data-screen-label="02 Review photo" style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;gap:8px;align-items:baseline"><span style="font:600 11px var(--f-mono);padding:3px 7px;background:var(--c-ink);color:var(--c-on-dark);border-radius:4px">02</span><span style="font:600 14px var(--f-body)">Check the photo</span></div>
+<div style="width:390px;height:844px;border-radius:52px;border:10px solid #22170F;background:var(--c-cream);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(58,38,24,.25)">
+<div style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 15px var(--f-body)"><span>9:41</span><span style="width:24px;height:11px;border:1.5px solid var(--c-ink);border-radius:3px"></span></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:18px;padding:12px 20px 32px">
+<div style="display:flex;flex-direction:column;gap:6px;padding:0 4px"><span style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-orange)">Step 1 of 2</span><h2 style="margin:0;font:400 var(--t-h1)/1.1 var(--f-display);color:var(--c-forest)">Can you see the Soul?</h2></div>
+<div style="flex:1;border-radius:var(--r-lg);background:var(--stripes);border:2px solid var(--c-gold-soft);display:flex;align-items:center;justify-content:center"><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">photo just taken</span></div>
+<span style="font:500 var(--t-small)/1.45 var(--f-body);color:var(--c-ink-muted);padding:0 4px">Make sure the whole car is in the photo and not blurry.</span>
+<button style="min-height:var(--tap-lg);border:0;border-radius:var(--r-md);background:var(--c-forest);color:var(--c-on-dark);font:700 var(--t-h3) var(--f-body);cursor:pointer;box-shadow:inset 0 -3px 0 var(--c-forest-deep)">Use this photo</button>
+<button style="min-height:var(--tap-min);border:2px solid var(--c-forest);border-radius:var(--r-md);background:transparent;color:var(--c-forest);font:700 var(--t-body) var(--f-body);cursor:pointer">Take it again</button>
+</div>
+</div>
+</div>
+
+<div data-screen-label="03 What did you find" style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;gap:8px;align-items:baseline"><span style="font:600 11px var(--f-mono);padding:3px 7px;background:var(--c-ink);color:var(--c-on-dark);border-radius:4px">03</span><span style="font:600 14px var(--f-body)">What did you find? · interactive</span></div>
+<div style="width:390px;height:844px;border-radius:52px;border:10px solid #22170F;background:var(--c-cream);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(58,38,24,.25)">
+<div style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 15px var(--f-body)"><span>9:41</span><span style="width:24px;height:11px;border:1.5px solid var(--c-ink);border-radius:3px"></span></div>
+<div style="flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:14px;padding:12px 20px 16px">
+<div style="display:flex;gap:14px;align-items:center;padding:0 4px">
+<div style="flex:none;width:64px;height:64px;border-radius:var(--r-sm);background:var(--stripes);display:flex;align-items:center;justify-content:center;font:500 9px var(--f-mono);color:var(--c-ink-muted)">photo</div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-orange)">Step 2 of 2</span><h2 style="margin:0;font:400 var(--t-h2)/1.1 var(--f-display);color:var(--c-forest)">What did you find?</h2></div>
+</div>
+<sc-for list="{{ kinds }}" as="k" hint-placeholder-count="2">
+<button onClick="{{ k.pick }}" role="radio" aria-checked="{{ k.on }}" style="min-height:88px;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:var(--r-lg);border:{{ k.border }};background:{{ k.bg }};cursor:pointer;text-align:left;font-family:var(--f-body);color:var(--c-ink)">
+<span style="flex:none;width:28px;height:28px;border-radius:999px;border:3px solid {{ k.ring }};display:flex;align-items:center;justify-content:center"><span style="width:12px;height:12px;border-radius:999px;background:{{ k.dot }}"></span></span>
+<span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font:700 var(--t-body) var(--f-body)">{{ k.label }}</span><span style="font:500 var(--t-small)/1.35 var(--f-body);color:var(--c-ink-muted)">{{ k.sub }}</span></span>
+<span style="flex:none;min-width:48px;height:40px;padding:0 10px;border-radius:999px;background:{{ k.badgeBg }};color:{{ k.badgeFg }};font:400 20px/40px var(--f-display);text-align:center">{{ k.pts }}</span>
+</button>
+</sc-for>
+<sc-if value="{{ isSpecial }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:10px;padding:4px 4px 0">
+<span style="font:700 var(--t-small) var(--f-body)">What makes it special? <span style="font-weight:500;color:var(--c-ink-muted)">Pick any</span></span>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<sc-for list="{{ cats }}" as="c" hint-placeholder-count="4">
+<button onClick="{{ c.toggle }}" aria-pressed="{{ c.on }}" style="min-height:var(--tap-min);padding:0 14px;border-radius:999px;border:2px solid {{ c.border }};background:{{ c.bg }};color:{{ c.fg }};font:600 var(--t-small) var(--f-body);cursor:pointer;display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:999px;background:{{ c.dot }};border:1px solid rgba(58,38,24,.25)"></span>{{ c.label }}</button>
+</sc-for>
+</div>
+<span style="font:500 14px/1.4 var(--f-body);color:var(--c-ink-muted)">Brown means brown: champagne, pale gold and beige don't count.</span>
+</div>
+</sc-if>
+<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--r-md);background:var(--c-surface);border:var(--rule-thin)">
+<span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font:500 14px var(--f-body);color:var(--c-ink-muted)">Where</span><span style="font:700 var(--t-small) var(--f-body)">Trader Joe's lot, Elm St</span></span>
+<button style="min-height:var(--tap-min);padding:0 14px;border:0;background:transparent;color:var(--c-forest);font:700 var(--t-small) var(--f-body);text-decoration:underline;text-decoration-color:var(--c-gold);text-underline-offset:4px;cursor:pointer">Change</button>
+</div>
+</div>
+<div style="flex:none;padding:14px 20px 32px;border-top:var(--rule);background:var(--c-surface);display:flex;flex-direction:column;gap:8px">
+<button disabled="{{ cantSubmit }}" style="min-height:var(--tap-lg);border:0;border-radius:var(--r-md);background:{{ submitBg }};color:{{ submitFg }};font:700 var(--t-h3) var(--f-body);cursor:pointer;box-shadow:{{ submitShadow }}">{{ submitLabel }}</button>
+<span style="font:500 14px/1.4 var(--f-body);color:var(--c-ink-muted);text-align:center">Not a Soul after all? Wrong calls cost 1 point.</span>
+</div>
+</div>
+</div>
+
+<div data-screen-label="04 Sending" style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;gap:8px;align-items:baseline"><span style="font:600 11px var(--f-mono);padding:3px 7px;background:var(--c-ink);color:var(--c-on-dark);border-radius:4px">04</span><span style="font:600 14px var(--f-body)">Sending</span></div>
+<div style="width:390px;height:844px;border-radius:52px;border:10px solid #22170F;background:var(--c-cream);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(58,38,24,.25)">
+<div style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 15px var(--f-body)"><span>9:41</span><span style="width:24px;height:11px;border:1.5px solid var(--c-ink);border-radius:3px"></span></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px 32px 80px;text-align:center">
+<div style="width:200px;height:200px;border-radius:var(--r-lg);background:var(--stripes);border:3px solid var(--c-gold-soft);display:flex;align-items:center;justify-content:center;font:500 11px var(--f-mono);color:var(--c-ink-muted)">photo</div>
+<h2 style="margin:0;font:400 var(--t-h1)/1.1 var(--f-display);color:var(--c-forest)">Sending your photo…</h2>
+<span style="width:100%;height:14px;border-radius:999px;background:var(--c-cream-deep);overflow:hidden"><span style="display:block;height:100%;width:{{ sendPct }};background:var(--c-forest);border-radius:999px;transition:width .3s linear"></span></span>
+<span style="font:500 var(--t-body)/1.45 var(--f-body);color:var(--c-ink-muted)">Keep the app open. This usually takes a few seconds.</span>
+</div>
+</div>
+</div>
+
+<div data-screen-label="05a Saved" style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;gap:8px;align-items:baseline"><span style="font:600 11px var(--f-mono);padding:3px 7px;background:var(--c-ink);color:var(--c-on-dark);border-radius:4px">05a</span><span style="font:600 14px var(--f-body)">Saved</span></div>
+<div style="width:390px;height:844px;border-radius:52px;border:10px solid #22170F;background:var(--c-forest);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(58,38,24,.25);color:var(--c-on-dark)">
+<div style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 15px var(--f-body)"><span>9:41</span><span style="width:24px;height:11px;border:1.5px solid var(--c-on-dark);border-radius:3px"></span></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px 28px;text-align:center">
+<span style="width:96px;height:96px;border-radius:999px;background:var(--c-on-dark);color:var(--c-forest);display:flex;align-items:center;justify-content:center;font:800 48px/1 var(--f-body);box-shadow:0 0 0 8px rgba(201,163,90,.35)">✓</span>
+<span style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-gold-soft)">{{ savedKicker }}</span>
+<span style="font:400 72px/1 var(--f-display)">{{ savedPts }}</span>
+<span style="font:500 var(--t-body)/1.45 var(--f-body);color:var(--c-gold-soft)">{{ savedTotal }}</span>
+</div>
+<div style="flex:none;padding:0 20px 36px;display:flex;flex-direction:column;gap:12px">
+<button style="min-height:var(--tap-lg);border:0;border-radius:var(--r-md);background:var(--c-orange);color:var(--c-on-dark);font:700 var(--t-h3) var(--f-body);cursor:pointer;box-shadow:inset 0 -3px 0 var(--c-orange-deep)">Snap another Soul</button>
+<button style="min-height:var(--tap-min);border:2px solid var(--c-gold);border-radius:var(--r-md);background:transparent;color:var(--c-on-dark);font:700 var(--t-body) var(--f-body);cursor:pointer">Done</button>
+</div>
+</div>
+</div>
+
+<div data-screen-label="05b Didn't send" style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;gap:8px;align-items:baseline"><span style="font:600 11px var(--f-mono);padding:3px 7px;background:var(--c-ink);color:var(--c-on-dark);border-radius:4px">05b</span><span style="font:600 14px var(--f-body)">Didn't send</span></div>
+<div style="width:390px;height:844px;border-radius:52px;border:10px solid #22170F;background:var(--c-cream);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(58,38,24,.25)">
+<div style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 15px var(--f-body)"><span>9:41</span><span style="width:24px;height:11px;border:1.5px solid var(--c-ink);border-radius:3px"></span></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px 28px;text-align:center">
+<span style="width:96px;height:96px;border-radius:999px;background:var(--c-orange);color:var(--c-on-dark);display:flex;align-items:center;justify-content:center;font:800 48px/1 var(--f-body);box-shadow:0 0 0 8px var(--c-orange-tint)">!</span>
+<h2 style="margin:0;font:400 var(--t-h1)/1.1 var(--f-display);color:var(--c-ink)">Your photo didn't send</h2>
+<span style="font:500 var(--t-body)/1.45 var(--f-body);color:var(--c-ink-muted);text-wrap:pretty">Don't worry, it's saved on this phone. We'll send it on our own when you have signal.</span>
+</div>
+<div style="flex:none;padding:0 20px 36px;display:flex;flex-direction:column;gap:12px">
+<button style="min-height:var(--tap-lg);border:0;border-radius:var(--r-md);background:var(--c-forest);color:var(--c-on-dark);font:700 var(--t-h3) var(--f-body);cursor:pointer;box-shadow:inset 0 -3px 0 var(--c-forest-deep)">Try again now</button>
+<button style="min-height:var(--tap-min);border:2px solid var(--c-forest);border-radius:var(--r-md);background:transparent;color:var(--c-forest);font:700 var(--t-body) var(--f-body);cursor:pointer">OK, send it later</button>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;textSize&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;standard&quot;,&quot;large&quot;],&quot;default&quot;:&quot;standard&quot;,&quot;tsType&quot;:&quot;'standard' | 'large'&quot;}}">
+class Component extends DCLogic {
+  state = { kind: 'special', cats: { alien: true }, pct: 20 };
+  componentDidMount() { this.t = setInterval(() => this.setState(s => ({ pct: s.pct >= 100 ? 10 : s.pct + 6 })), 300); }
+  componentWillUnmount() { clearInterval(this.t); }
+  renderVals() {
+    const s = this.state;
+    const kinds = [['regular', 'Regular Soul', 'Any color not listed below', '+1'], ['special', 'Special Soul', 'Alien Green, racing stripes, graphics or brown', '+2']].map(([k, label, sub, pts]) => {
+      const on = s.kind === k;
+      return { label, sub, pts, on: String(on), pick: () => this.setState({ kind: k }),
+        border: on ? '3px solid var(--c-forest)' : '2px solid var(--c-gold-soft)', bg: on ? 'var(--c-forest-tint)' : 'var(--c-surface)',
+        ring: on ? 'var(--c-forest)' : 'var(--c-gold)', dot: on ? 'var(--c-forest)' : 'transparent',
+        badgeBg: k === 'special' ? 'var(--c-ink)' : 'var(--c-forest)', badgeFg: k === 'special' ? 'var(--c-gold-soft)' : 'var(--c-on-dark)' };
+    });
+    const cats = [['alien', 'Alien Green', '#9BC53D'], ['stripes', 'Racing stripes', '#FFFCF5'], ['graphics', 'Exterior graphics', '#C9A35A'], ['brown', 'Brown paint', '#6E4B30']].map(([k, label, dot]) => {
+      const on = !!s.cats[k];
+      return { label, dot, on: String(on), toggle: () => this.setState(st => ({ cats: { ...st.cats, [k]: !st.cats[k] } })),
+        bg: on ? 'var(--c-forest)' : 'var(--c-surface)', fg: on ? 'var(--c-on-dark)' : 'var(--c-ink)', border: on ? 'var(--c-forest)' : 'var(--c-gold)' };
+    });
+    const isSpecial = s.kind === 'special';
+    const anyCat = Object.values(s.cats).some(Boolean);
+    const ready = s.kind === 'regular' || (isSpecial && anyCat);
+    const pts = isSpecial ? 2 : 1;
+    return {
+      textSize: this.props.textSize ?? 'standard',
+      kinds, cats, isSpecial,
+      cantSubmit: !ready,
+      submitLabel: !ready ? 'Pick what makes it special' : `Send · +${pts} point${pts > 1 ? 's' : ''}`,
+      submitBg: ready ? 'var(--c-forest)' : 'var(--c-cream-deep)', submitFg: ready ? 'var(--c-on-dark)' : 'var(--c-ink-muted)',
+      submitShadow: ready ? 'inset 0 -3px 0 var(--c-forest-deep)' : 'none',
+      sendPct: `${Math.min(s.pct, 100)}%`,
+      savedKicker: isSpecial ? 'Special Soul saved' : 'Soul saved',
+      savedPts: `+${pts}`,
+      savedTotal: `You have ${12 + pts} points this week.`
+    };
+  }
+}
+</script>
+</body>
+</html>
