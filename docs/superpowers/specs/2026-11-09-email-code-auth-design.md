@@ -64,13 +64,15 @@ Body `{email, code}`. `code` must be 6 digits (422 otherwise).
 | Locked | 423 | `locked`, `locked_until` |
 | Supabase down or 5xx | 502 | `auth_unavailable`, not counted |
 | Supabase accepts | 200 | `access_token`, `refresh_token`, `expires_in`, `expires_at` |
-| Rejected and `code_sent_at` older than 600 s | 410 | `expired` |
+| Rejected and `code_sent_at` older than 600 s | 410 | `expired` (counted as a wrong try) |
 | Rejected, fewer than 5 wrong | 401 | `wrong_code`, `tries_left` |
 | Rejected, 5th wrong | 423 | `locked`, `locked_until` |
 
-Success resets `failed_count` and `locked_until`. A wrong code sets `last_failed_at = now()`, and starts the count over at 1 if the previous wrong code was more than 15 minutes ago. A lockout sets `locked_until = now() + 15 min` and resets `failed_count` to 0. The 15 minutes start when the lockout starts and never move: any send or verify during the lockout gets 423 and is not counted, and `locked_until` is left unchanged. Once `locked_until` passes, the player can ask for a code and try again with a fresh count of 0. Expired codes don't count as wrong tries.
+Success resets `failed_count` and `locked_until`. A wrong code sets `last_failed_at = now()`, and starts the count over at 1 if the previous wrong code was more than 15 minutes ago. A lockout sets `locked_until = now() + 15 min` and resets `failed_count` to 0. The 15 minutes start when the lockout starts and never move: any send or verify during the lockout gets 423 and is not counted, and `locked_until` is left unchanged. Once `locked_until` passes, the player can ask for a code and try again with a fresh count of 0. Expired codes count as wrong tries, so a gap between our clock and Supabase's can't hand out uncounted guesses. The player still sees the expired message, unless that try was the 5th, which returns 423.
 
 Supabase returns the same `otp_expired` error for a wrong code and an expired one, which is why FastAPI uses `code_sent_at` to tell them apart.
+
+The per-email lockout covers the FastAPI path only. Supabase's own `/auth/v1/verify` is reachable with the public browser key, so the backstop there is Supabase's per-IP limit on code checks. With a 6-digit code and a 10-minute expiry that is an accepted risk for this app.
 
 Lock checks and counter updates happen in one transaction with `select ... for update` on the email row, so parallel guesses can't exceed 5.
 
