@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from app.auth.lockout import AttemptState
+from app.auth.supabase_auth import AuthSession
 
 
 class FakeAttemptsRepo:
@@ -16,3 +17,22 @@ class FakeAttemptsRepo:
 
     def save(self, email: str, state: AttemptState, now: datetime) -> None:
         self.states[email] = state
+
+
+class FakeSupabaseAuth:
+    def __init__(self) -> None:
+        self.sent: list[str] = []
+        self.verified: list[tuple[str, str]] = []
+        self.next_send: Exception | None = None
+        self.next_verify: AuthSession | None | Exception = None
+
+    def send_code(self, email: str) -> None:
+        if self.next_send is not None:
+            raise self.next_send
+        self.sent.append(email)
+
+    def verify_code(self, email: str, code: str) -> AuthSession | None:
+        self.verified.append((email, code))
+        if isinstance(self.next_verify, Exception):
+            raise self.next_verify
+        return self.next_verify

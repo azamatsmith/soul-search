@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.auth.routes import router as auth_router
 from app.config import get_cors_origins
 from app.errors import register_error_handler
 
@@ -14,6 +15,7 @@ def create_app() -> FastAPI:
         allow_headers=["Authorization", "Content-Type"],
     )
     register_error_handler(app)
+    app.include_router(auth_router)
 
     @app.get("/health")
     def health() -> dict[str, str]:

@@ -1,8 +1,19 @@
 import os
 from collections.abc import Iterator
+from dataclasses import dataclass
+from datetime import UTC, datetime
 
 import psycopg
 import pytest
+from fastapi.testclient import TestClient
+
+from app.auth.attempts_repo import get_attempts_repo
+from app.auth.supabase_auth import get_supabase_auth
+from app.clock import get_now
+from app.main import create_app
+from tests.fakes import FakeAttemptsRepo, FakeSupabaseAuth
+
+T0 = datetime(2026, 11, 9, 10, tzinfo=UTC)
 
 
 @pytest.fixture(autouse=True)
@@ -26,3 +37,21 @@ def db_conn() -> Iterator[psycopg.Connection]:
     finally:
         conn.rollback()
         conn.close()
+
+
+@dataclass
+class AuthHarness:
+    client: TestClient
+    attempts: FakeAttemptsRepo
+    supabase: FakeSupabaseAuth
+
+
+@pytest.fixture
+def auth_harness() -> AuthHarness:
+    attempts = FakeAttemptsRepo(allowed={"bob@example.test"})
+    supabase = FakeSupabaseAuth()
+    app = create_app()
+    app.dependency_overrides[get_attempts_repo] = lambda: attempts
+    app.dependency_overrides[get_supabase_auth] = lambda: supabase
+    app.dependency_overrides[get_now] = lambda: T0
+    return AuthHarness(TestClient(app), attempts, supabase)
