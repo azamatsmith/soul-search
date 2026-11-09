@@ -13,6 +13,34 @@ export interface CodeInputProps {
 
 const BOX_INDEXES = Array.from({ length: CODE_LENGTH }, (_, index) => index)
 
+const sharedPrefixLength = (a: string, b: string) => {
+  let length = 0
+  while (length < a.length && a[length] === b[length]) length += 1
+  return length
+}
+
+const insertedDigits = (previous: string, digits: string) => {
+  const prefix = sharedPrefixLength(previous, digits)
+  let suffix = 0
+  while (
+    prefix + suffix < previous.length &&
+    previous[previous.length - 1 - suffix] ===
+      digits[digits.length - 1 - suffix]
+  ) {
+    suffix += 1
+  }
+  return digits.slice(prefix, digits.length - suffix)
+}
+
+const nextCode = (previous: string, raw: string) => {
+  const digits = raw.replace(/\D/g, '')
+  const inserted = insertedDigits(previous, digits)
+  if (previous && inserted.length >= CODE_LENGTH) {
+    return inserted.slice(0, CODE_LENGTH)
+  }
+  return digits.slice(0, CODE_LENGTH)
+}
+
 export const CodeInput = ({
   value,
   onChange,
@@ -21,7 +49,7 @@ export const CodeInput = ({
   invalid = false,
 }: CodeInputProps) => {
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const next = event.target.value.replace(/\D/g, '').slice(0, CODE_LENGTH)
+    const next = nextCode(value, event.target.value)
     if (next === value) return
     onChange(next)
     if (next.length === CODE_LENGTH) onComplete(next)

@@ -100,4 +100,31 @@ describe('CodeInput', () => {
       'true',
     )
   })
+
+  it('replaces a full code when a new one is pasted after it', () => {
+    const onComplete = vi.fn()
+    render(<Harness onComplete={onComplete} />)
+    fireEvent.change(input(), { target: { value: '482931' } })
+    fireEvent.change(input(), { target: { value: '482931482913' } })
+    expect(input()).toHaveValue('482913')
+    expect(onComplete).toHaveBeenLastCalledWith('482913')
+  })
+
+  it('uses the pasted code instead of mixing it with digits already typed', () => {
+    const onComplete = vi.fn()
+    render(<Harness onComplete={onComplete} />)
+    fireEvent.change(input(), { target: { value: '123' } })
+    fireEvent.change(input(), { target: { value: '12 654-321' } })
+    expect(input()).toHaveValue('654321')
+    expect(onComplete).toHaveBeenCalledWith('654321')
+  })
+
+  it('ignores one extra digit typed into a full code', () => {
+    const onComplete = vi.fn()
+    render(<Harness onComplete={onComplete} />)
+    fireEvent.change(input(), { target: { value: '482913' } })
+    fireEvent.change(input(), { target: { value: '4829137' } })
+    expect(input()).toHaveValue('482913')
+    expect(onComplete).toHaveBeenCalledTimes(1)
+  })
 })
