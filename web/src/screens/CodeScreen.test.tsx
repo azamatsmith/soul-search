@@ -53,10 +53,19 @@ describe('CodeScreen', () => {
     expect(onSubmitCode).toHaveBeenCalledWith('482913')
   })
 
-  it('shows checking and disables the code', () => {
+  it('shows checking and locks the code without closing the keyboard', () => {
     renderScreen(stateWith('checking'))
     expect(screen.getByRole('status')).toHaveTextContent('Checking your code…')
-    expect(screen.getByLabelText('6-digit code')).toBeDisabled()
+    const input = screen.getByLabelText('6-digit code')
+    expect(input).toBeEnabled()
+    expect(input).toHaveAttribute('readonly')
+  })
+
+  it('keeps the code field enabled while a new code is sent', () => {
+    renderScreen(stateWith('sending'))
+    const input = screen.getByLabelText('6-digit code')
+    expect(input).toBeEnabled()
+    expect(input).toHaveAttribute('readonly')
   })
 
   it('shows a wrong code with tries left', () => {

@@ -8,6 +8,7 @@ export interface CodeInputProps {
   onChange: (value: string) => void
   onComplete: (code: string) => void
   disabled?: boolean
+  readOnly?: boolean
   invalid?: boolean
 }
 
@@ -46,6 +47,7 @@ export const CodeInput = ({
   onChange,
   onComplete,
   disabled = false,
+  readOnly = false,
   invalid = false,
 }: CodeInputProps) => {
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -65,6 +67,7 @@ export const CodeInput = ({
         autoFocus
         value={value}
         disabled={disabled}
+        readOnly={readOnly}
         onChange={handleChange}
       />
       <div

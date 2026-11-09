@@ -19,7 +19,8 @@ const TITLES: Partial<Record<CodeStatus, string>> = {
   locked: 'Too many tries',
 }
 
-const LOCKED_INPUT: CodeStatus[] = ['checking', 'sending', 'expired', 'locked']
+const DISABLED_INPUT: CodeStatus[] = ['expired', 'locked']
+const READ_ONLY_INPUT: CodeStatus[] = ['checking', 'sending']
 const WITH_RESEND: CodeStatus[] = ['wrong', 'too_soon', 'unavailable']
 
 const clearsCode = (previous: CodeStatus, next: CodeStatus) =>
@@ -57,7 +58,8 @@ export const CodeScreen = ({
         value={code}
         onChange={setCode}
         onComplete={onSubmitCode}
-        disabled={LOCKED_INPUT.includes(status)}
+        disabled={DISABLED_INPUT.includes(status)}
+        readOnly={READ_ONLY_INPUT.includes(status)}
         invalid={invalid}
       />
       {(status === 'idle' || sending) && (
