@@ -6,8 +6,8 @@ services:
     region: oregon
     branch: main
     rootDir: api
-    dockerfilePath: ./api/Dockerfile
-    dockerContext: ./api
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /health
     autoDeployTrigger: checksPass
     envVars:
