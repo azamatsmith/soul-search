@@ -23,11 +23,18 @@ Issue: 3. Email code auth (#5).
 | failed_count | integer | default 0, `>= 0` |
 | locked_until | timestamptz | nullable |
 | code_sent_at | timestamptz | nullable, when the latest code was sent |
+| last_failed_at | timestamptz | nullable, when the latest wrong code was entered |
 | updated_at | timestamptz | default now() |
 
 RLS enabled with no policies, like every other table.
 
-`failed_count` counts wrong codes since the last successful sign-in or the last lockout. Sending a new code does not reset it, so asking for fresh codes can't dodge the lockout.
+`failed_count` counts wrong codes within a 15-minute window, the same length as the lockout. It goes back to 0 when any of these happen:
+
+- a successful sign-in
+- a lockout starts
+- the next wrong code comes more than 15 minutes after `last_failed_at`, so that guess counts as the first of a new window
+
+Sending a new code does not reset it, so asking for fresh codes can't dodge the lockout.
 
 ## API (PR A)
 
@@ -58,7 +65,7 @@ Body `{email, code}`. `code` must be 6 digits (422 otherwise).
 | Rejected, fewer than 5 wrong | 401 | `wrong_code`, `tries_left` |
 | Rejected, 5th wrong | 423 | `locked`, `locked_until` |
 
-Success resets `failed_count` and `locked_until`. A lockout sets `locked_until = now() + 15 min` and resets `failed_count` to 0. Expired codes don't count as wrong tries.
+Success resets `failed_count` and `locked_until`. A wrong code sets `last_failed_at = now()`, and starts the count over at 1 if the previous wrong code was more than 15 minutes ago. A lockout sets `locked_until = now() + 15 min` and resets `failed_count` to 0. Expired codes don't count as wrong tries.
 
 Supabase returns the same `otp_expired` error for a wrong code and an expired one, which is why FastAPI uses `code_sent_at` to tell them apart.
 
@@ -124,6 +131,6 @@ Body `{text_size}`, `standard` or `large`. Returns the `/me` body. 404 `no_playe
 ## Tests
 
 - pgTAP: `sign_in_attempts` constraints, and that `anon` and `authenticated` can't read or write it.
-- pytest unit tests with Supabase Auth faked and a controllable clock: allowlist, lockout after 5, expiry vs wrong code, reset on success, JWT validation (good, expired, wrong audience, bad signature).
+- pytest unit tests with Supabase Auth faked and a controllable clock: allowlist, lockout after 5, count starting over after 15 quiet minutes, expiry vs wrong code, reset on success, JWT validation (good, expired, wrong audience, bad signature).
 - pytest DB tests marked `db` for the SQL in the attempts and players repositories, run in the CI `db` job against local Supabase. The `api` job skips them.
 - Vitest and Testing Library: `CodeInput` (typing, paste, autofill, auto-submit), each sign-in error state against a mocked `api`, `RequireAuth` redirects, `validateDisplayName`, Settings toggles and admin row visibility.
