@@ -31,6 +31,7 @@ const ERROR_CODES = [
   'too_short',
   'invalid',
   'name_taken',
+  'no_player',
   'invalid_request',
   'network',
   'unknown',
@@ -160,3 +161,6 @@ export const getMe = () => request<Me>('/me', 'GET', undefined, true)
 
 export const putDisplayName = (displayName: string) =>
   request<Me>('/me/display-name', 'PUT', { display_name: displayName }, true)
+
+export const putTextSize = (textSize: TextSize) =>
+  request<Me>('/me/text-size', 'PUT', { text_size: textSize }, true)

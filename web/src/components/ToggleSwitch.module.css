@@ -1,0 +1,29 @@
+.track {
+  display: flex;
+  flex: none;
+  justify-content: flex-start;
+  width: var(--switch-w);
+  height: var(--switch-h);
+  padding: var(--s-1);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--c-gold-soft);
+  cursor: pointer;
+}
+
+.track[aria-checked='true'] {
+  justify-content: flex-end;
+  background: var(--c-forest);
+}
+
+.track:disabled {
+  cursor: default;
+}
+
+.knob {
+  width: var(--switch-knob);
+  height: var(--switch-knob);
+  border-radius: var(--r-pill);
+  background: var(--c-on-dark);
+  box-shadow: var(--shadow-knob);
+}

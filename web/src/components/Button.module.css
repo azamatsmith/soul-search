@@ -56,3 +56,16 @@
 .link:disabled {
   color: var(--c-ink-muted);
 }
+
+.danger {
+  width: 100%;
+  min-height: var(--tap-min);
+  border: 2px solid var(--c-orange);
+  background: transparent;
+  color: var(--c-orange-deep);
+  font-size: var(--t-body);
+}
+
+.danger:hover:not(:disabled) {
+  background: var(--c-orange-tint);
+}

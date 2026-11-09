@@ -1,0 +1,39 @@
+.card {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.avatar {
+  flex: none;
+  width: var(--avatar-lg);
+  height: var(--avatar-lg);
+  border-radius: var(--r-pill);
+  background: var(--c-forest);
+  color: var(--c-on-dark);
+  font: 400 var(--t-h2) / var(--avatar-lg) var(--f-display);
+  text-align: center;
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+}
+
+.name {
+  color: var(--c-forest);
+  font: 400 var(--t-h2) / 1.1 var(--f-display);
+}
+
+.email {
+  color: var(--c-ink-muted);
+  font: 500 var(--t-small) var(--f-body);
+  overflow-wrap: anywhere;
+}

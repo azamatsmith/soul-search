@@ -1,0 +1,45 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.admin {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.label {
+  margin: 0;
+  color: var(--c-ink-muted);
+  font: 700 var(--t-label) / 1.2 var(--f-body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.badge {
+  flex: none;
+  min-width: var(--badge);
+  height: var(--badge);
+  padding: 0 var(--s-2);
+  border-radius: var(--r-pill);
+  background: var(--c-orange);
+  color: var(--c-on-dark);
+  font: 700 var(--t-small) / var(--badge) var(--f-body);
+  text-align: center;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.version {
+  margin: 0;
+  color: var(--c-ink-muted);
+  font: 500 var(--t-small) / 1.45 var(--f-body);
+  text-align: center;
+}
