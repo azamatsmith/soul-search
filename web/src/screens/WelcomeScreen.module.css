@@ -1,0 +1,17 @@
+.form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.lead {
+  margin: 0;
+  color: var(--c-ink-muted);
+  font: 500 var(--t-body) / 1.45 var(--f-body);
+  text-wrap: pretty;
+}
+
+.spacer {
+  flex: 1;
+}
