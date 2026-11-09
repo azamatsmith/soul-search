@@ -19,6 +19,15 @@ Local settings live in the committed `web/.env.development` and `api/.env.develo
 
 Run `make api` and `make web` in separate terminals, then open http://localhost:5173, which should show `API: ok`.
 
+## Environments
+
+| Variable | App | Local (`.env.development`) | Staging and production |
+| --- | --- | --- | --- |
+| `VITE_API_URL` | web | `http://localhost:8000` | Set in the Netlify dashboard |
+| `CORS_ORIGINS` | api | `http://localhost:5173` | Set in the API host dashboard |
+
+Staging and production values are configured on each host, never committed.
+
 ## Make targets
 
 | Target | What it does |
