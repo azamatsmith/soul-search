@@ -1,5 +1,5 @@
 Soul Search MVP – GitHub Issues
-Stack: React + Vite PWA on Netlify, FastAPI (Python) backend on Render or Fly, Supabase for auth, Postgres and photo storage, Claude vision API for verification. Weekly reset Sunday night, America/Los_Angeles. Twilio/SMS is out of scope for the MVP.
+Stack: React + Vite PWA on Netlify, FastAPI (Python) backend on Render or Fly, Supabase for auth, Postgres and photo storage, Claude vision API for verification. Weekly reset Monday 00:00, America/Los_Angeles. Twilio/SMS is out of scope for the MVP.
 Each section below is one issue: title, description, acceptance criteria, dependencies. Create them in order.
 
 1. Repo and project scaffolding
@@ -75,6 +75,7 @@ Each section below is one issue: title, description, acceptance criteria, depend
    [ ] 05a: points awarded, weekly total, and the "We'll double-check the photo" note; 05b: "Try again now" and "OK, send it later"
    [ ] Home: week, days left, points, rank, summary card, and the avatar button that opens Settings
    [ ] Home empty ("No Souls yet this week", rank shown as a dash) and loading states; the camera button works while scores load
+   [ ] Point values in copy (e.g. "Regular Souls are +1, special ones +2") come from settings, never hard-coded
    [ ] Sighting is tagged with active challenge_id if a challenge is running, otherwise week_id Depends on: 3, 4
 7. Background photo verification
    FastAPI worker or background task that sends new sightings to the Claude vision API after the player taps Send. Points count as soon as the photo is sent; verification adjusts them afterwards.
@@ -87,7 +88,7 @@ Each section below is one issue: title, description, acceptance criteria, depend
    [ ] Retries on API failure Depends on: 2, 5, 6
 8. Sightings log and weekly leaderboard
    Build the Leaderboard (screen 03) and Sightings log (screen 04) from the Weekly design file, the sighting photo viewer (Settings - History file, 05 to 05c) and their empty, loading and error states.
-   [ ] Leaderboard toggles This week and All time; All time adds up weekly points only, never challenge points
+   [ ] Leaderboard toggles This week and All time; This week never includes challenge points, All time includes weekly and challenge points
    [ ] Leaderboard excludes challenge sightings
    [ ] Current player's row is highlighted; 1st place has its own style
    [ ] "See past weeks" button after the list
@@ -98,7 +99,7 @@ Each section below is one issue: title, description, acceptance criteria, depend
    [ ] Scores and statuses update without manual refresh, or on pull-to-refresh Depends on: 6, 7
 9. Weekly close-out scheduled job
    Supabase pg_cron (via pg_net) calls a protected FastAPI endpoint. The endpoint works out the Pacific-time week boundary in code, handling daylight saving, closes the week, saves results to weeks.results and opens the next week. It must be idempotent.
-   [ ] Runs every Sunday night Pacific, across DST changes
+   [ ] Each week runs Monday 00:00 to the next Monday 00:00 Pacific, across DST changes; the job runs just after that boundary
    [ ] Safe to run twice
    [ ] Endpoint protected by a shared secret
    [ ] Saves full final standings, so Past weeks can show every player's rank and points
@@ -118,13 +119,13 @@ Each section below is one issue: title, description, acceptance criteria, depend
     [ ] A6: adjust a player's score with a required reason
     [ ] A7: change history, newest first, filterable to scores only, recording who, what and when Depends on: 3, 7
 12. Admin: special challenges
-    Timed challenges from the Challenges design file (e.g. a 4-hour Thanksgiving challenge). Each has an exact start and end time, plus rules jsonb (point values and per-category bonuses). While a challenge runs, new photos count toward the challenge instead of the week. Each challenge has its own leaderboard.
-    The design currently uses whole days only; C2 needs time pickers from the designer.
-    [ ] C1: admin list with + New challenge, Coming up and Finished ("Won by ...")
-    [ ] C2: create and edit with name, start and end date and time, rule steppers starting from the weekly rules, and per-category bonuses
+    Timed challenges from the Challenges design file (e.g. a 4-hour Thanksgiving challenge). Each has an exact start and end time, plus rules jsonb (point values and per-category bonuses). While a challenge runs, new photos count toward the challenge instead of the week. Each challenge has its own leaderboard. Challenge points count toward All time, never toward the week.
+    [ ] C1: admin list with + New challenge, Running now, Coming up and Finished ("Won by ..."); cards show the exact time range
+    [ ] C2: create and edit with name, start and end each as a date picker plus a time picker (Pacific, stored as UTC), a live duration line ("Runs 4 hours"), validation that the end is after the start, rule steppers starting from the weekly rules, and per-category bonuses
+    [ ] Time-left copy follows the design rule everywhere (Home header, C1 chips, leaderboard kicker): days left over 24 h, hours left from 1 to 24 h, minutes under 1 h; weekday only when the end isn't today
     [ ] Admin can delete a challenge
     [ ] Rules are config-driven, not hard-coded
-    [ ] C3: Home shows challenge kicker, time left, challenge points and rank, and the orange banner
+    [ ] C3 and C3b: Home shows challenge kicker, time left, challenge points and rank, and the orange banner, including the short-challenge version
     [ ] C4 and C5: photo flow shows "Counts toward {challenge}" and challenge point values, including bonus chips
     [ ] C6: challenge leaderboard replaces This week while it runs, with a rules strip
     [ ] C7: Sightings day headers and challenge tags show the challenge name Depends on: 7, 11
