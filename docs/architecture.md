@@ -1,6 +1,6 @@
 # Architecture
 
-Soul Search is an installable phone web app (PWA) for iPhone and Android backed by a FastAPI service and Supabase. The PWA talks only to FastAPI; FastAPI is the only part that talks to Supabase and the Claude vision API.
+Soul Search is an installable phone web app (PWA) for iPhone and Android backed by a FastAPI service and Supabase. The PWA talks to FastAPI for everything except keeping its session fresh, which supabase-js does directly with Supabase Auth. FastAPI is the only part that reads and writes data and talks to the Claude vision API.
 
 Most of this is planned rather than built. Each issue that lands updates this page.
 
@@ -22,6 +22,7 @@ flowchart TB
     end
 
     phone -- "HTTPS, session token" --> api
+    phone -- "store and refresh session" --> auth
     api -- "check photo" --> claude
     api -- "codes and tokens" --> auth
     api -- "data" --> db
@@ -55,6 +56,7 @@ sequenceDiagram
     api->>auth: Verify the code
     auth-->>api: Session
     api-->>pwa: Session
+    pwa->>auth: Store the session (supabase-js), refreshed automatically from then on
     Note over pwa,api: Every later request sends the session token, which FastAPI validates
 ```
 
