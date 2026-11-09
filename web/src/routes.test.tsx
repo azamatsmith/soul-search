@@ -1,7 +1,13 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { useSession } from './hooks/useSession'
+import { getMe } from './lib/api'
 import { routes } from './routes'
+
+vi.mock('./hooks/useSession', () => ({ useSession: vi.fn() }))
+vi.mock('./lib/api', () => ({ getMe: vi.fn() }))
+vi.mock('./lib/supabase', () => ({ supabase: { auth: {} } }))
 
 const renderAt = (path: string) =>
   render(
@@ -13,6 +19,21 @@ const renderAt = (path: string) =>
 describe('routes', () => {
   beforeEach(() => {
     vi.stubEnv('VITE_API_URL', '')
+    vi.mocked(useSession).mockReturnValue({
+      status: 'signed_in',
+      session: { user: { id: 'user-1' } } as never,
+    })
+    vi.mocked(getMe).mockResolvedValue({
+      ok: true,
+      data: {
+        id: 'user-1',
+        email: 'bob@example.test',
+        display_name: 'Bob',
+        is_admin: false,
+        text_size: 'standard',
+        flagged_count: null,
+      },
+    })
   })
 
   afterEach(() => {
@@ -23,15 +44,17 @@ describe('routes', () => {
     ['/', 'Take photo'],
     ['/sightings', 'Sightings'],
     ['/scores', 'Scores'],
-  ])('shows the %s screen with the tab bar', (path, title) => {
+  ])('shows the %s screen with the tab bar', async (path, title) => {
     renderAt(path)
-    expect(screen.getByRole('heading', { name: title })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: title }),
+    ).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument()
   })
 
   it('switches screens when a tab is tapped', async () => {
     renderAt('/')
-    fireEvent.click(screen.getByRole('link', { name: 'Scores' }))
+    fireEvent.click(await screen.findByRole('link', { name: 'Scores' }))
     expect(
       await screen.findByRole('heading', { name: 'Scores' }),
     ).toBeInTheDocument()

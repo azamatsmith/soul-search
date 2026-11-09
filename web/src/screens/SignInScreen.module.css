@@ -1,0 +1,65 @@
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-3) 0 var(--s-4);
+  border-bottom: var(--rule);
+}
+
+.logo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-lg);
+  height: var(--tap-lg);
+  border-radius: var(--r-lg);
+  background: var(--c-forest);
+  outline: var(--rule);
+  outline-offset: calc(-1 * var(--s-2));
+  color: var(--c-cream);
+  font: 400 var(--t-h1) / 1 var(--f-display);
+}
+
+.logoDot {
+  position: absolute;
+  top: var(--s-3);
+  right: var(--s-3);
+  width: var(--s-2);
+  height: var(--s-2);
+  border-radius: var(--r-pill);
+  background: var(--c-orange);
+}
+
+.name {
+  margin: 0;
+  color: var(--c-forest);
+  font: 400 var(--t-display) / 1.05 var(--f-display);
+  text-align: center;
+}
+
+.tagline {
+  margin: 0;
+  color: var(--c-ink-muted);
+  font: 500 var(--t-body) / 1.4 var(--f-body);
+  text-align: center;
+}
+
+.form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.footnote {
+  margin: 0;
+  color: var(--c-ink-muted);
+  font: 500 var(--t-small) / 1.45 var(--f-body);
+  text-align: center;
+}

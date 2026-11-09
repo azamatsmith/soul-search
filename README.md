@@ -46,6 +46,8 @@ Sign in with a seeded email such as `bob@example.test`, then read the 6-digit co
 | Variable | App | Local (`.env.development`) | Staging and production |
 | --- | --- | --- | --- |
 | `VITE_API_URL` | web | `http://localhost:8000` | Set in the Netlify dashboard |
+| `VITE_SUPABASE_URL` | web | `http://127.0.0.1:54321` | Set in the Netlify dashboard |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | web | local stack's publishable key | Set in the Netlify dashboard (the project's publishable key, safe for browsers) |
 | `CORS_ORIGINS` | api | `http://localhost:5173` | Set in the Render dashboard |
 | `SUPABASE_URL` | api | `http://127.0.0.1:54321` | Set in the Render dashboard |
 | `SUPABASE_SECRET_KEY` | api | `api/.env.local` | Set in the Render dashboard |
@@ -56,7 +58,7 @@ Staging and production values are configured on each host, never committed.
 
 ## Deployment
 
-The web app runs on Netlify, configured by `netlify.toml`. Netlify builds `web/` and deploys `main` to production, and builds a preview for every pull request. Previews don't call the production API. `VITE_API_URL` is set in the Netlify dashboard.
+The web app runs on Netlify, configured by `netlify.toml`. Netlify builds `web/` and deploys `main` to production, and builds a preview for every pull request. Previews don't call the production API. `VITE_API_URL`, `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are set in the Netlify dashboard.
 
 The web app installs to the home screen on iPhone (Safari) and Android (Chrome) as a PWA. Its icon is `web/public/icon.svg`. After changing it, run `npm run icons` in `web/` to regenerate the PNG sizes.
 
