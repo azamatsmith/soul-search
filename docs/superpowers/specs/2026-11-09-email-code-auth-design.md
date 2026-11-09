@@ -52,7 +52,7 @@ Body `{email}`. The email is trimmed and lowercased.
 | Supabase down or 5xx | 502 | `auth_unavailable` |
 | Sent | 204 | |
 
-On success it upserts `sign_in_attempts.code_sent_at = now()`. Supabase is asked to create the auth user if missing, since the allowlist was already checked.
+On success it upserts `sign_in_attempts.code_sent_at = now()`. Public signups are disabled in Supabase (`enable_signup = false`), so nobody can create an account with the browser key. FastAPI creates the auth user itself through the admin API (`POST /auth/v1/admin/users`, email confirmed) after the allowlist check, treating `email_exists` as fine, then sends the code with `create_user: false`.
 
 ### POST /auth/verify-code
 
@@ -77,6 +77,10 @@ Lock checks and counter updates happen in one transaction with `select ... for u
 ### Auth dependency
 
 `get_current_player` reads `Authorization: Bearer <jwt>` and validates it with PyJWT: signature against the project's JWKS (`/auth/v1/.well-known/jwks.json`, cached), with an HS256 fallback using `SUPABASE_JWT_SECRET` when the project still signs with the legacy shared secret. Checks `exp` and `aud = authenticated`. Missing or bad token: 401 `unauthenticated`.
+
+### Allowlist on every signed-in request
+
+Endpoints for signed-in players use `get_allowed_user`, which checks the token's email (lowercased) against `allowed_emails` and returns 403 `not_allowed` otherwise. Removing an email from the allowlist cuts off access on the next request, even though refresh tokens never expire.
 
 ### GET /me
 

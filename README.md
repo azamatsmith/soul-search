@@ -68,8 +68,9 @@ Production sign-in codes are sent through [Resend](https://resend.com) as custom
 
 1. In Resend, verify the sending domain and create an SMTP API key.
 2. Under Authentication, SMTP Settings, enable custom SMTP with host `smtp.resend.com`, port `465`, user `resend` and the API key as the password.
-3. Under Authentication, Providers, Email, set the email OTP expiry to `600` seconds and the OTP length to `6`.
-4. Under Authentication, Email Templates, set both "Magic Link" and "Confirm signup" to the contents of `supabase/templates/code.html`, with the subject "Your Soul Search code". The template shows the code (`{{ .Token }}`), not a link.
+3. Under Authentication, Sign In / Providers, turn off "Allow new users to sign up". The API creates users itself after checking the allowlist, so direct signups must stay off.
+4. Under Authentication, Providers, Email, set the email OTP expiry to `600` seconds and the OTP length to `6`.
+5. Under Authentication, Email Templates, set both "Magic Link" and "Confirm signup" to the contents of `supabase/templates/code.html`, with the subject "Your Soul Search code". The template shows the code (`{{ .Token }}`), not a link.
 
 Production web app: https://soulsearchapp.netlify.app
 
