@@ -1,6 +1,30 @@
 import { render, screen } from '@testing-library/react'
+import { createMemoryRouter, Outlet, RouterProvider } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Me } from '../lib/api'
 import { TakePhotoScreen } from './TakePhotoScreen'
+
+const ME: Me = {
+  id: '1',
+  email: 'heathyr@example.com',
+  display_name: 'heathyr',
+  is_admin: false,
+  text_size: 'standard',
+  flagged_count: null,
+}
+
+const renderTakePhoto = () => {
+  const router = createMemoryRouter(
+    [
+      {
+        element: <Outlet context={{ me: ME, setMe: vi.fn() }} />,
+        children: [{ path: '/', element: <TakePhotoScreen /> }],
+      },
+    ],
+    { initialEntries: ['/'] },
+  )
+  render(<RouterProvider router={router} />)
+}
 
 const stubFetch = (impl: () => Promise<unknown>) => {
   const fetchMock = vi.fn(impl)
@@ -20,33 +44,41 @@ describe('TakePhotoScreen', () => {
 
   it('shows the screen title', () => {
     stubFetch(() => new Promise(() => {}))
-    render(<TakePhotoScreen />)
+    renderTakePhoto()
     expect(
       screen.getByRole('heading', { name: 'Take photo' }),
     ).toBeInTheDocument()
   })
 
+  it('opens settings from the avatar', () => {
+    stubFetch(() => new Promise(() => {}))
+    renderTakePhoto()
+    const avatar = screen.getByRole('link', { name: 'Settings' })
+    expect(avatar).toHaveAttribute('href', '/settings')
+    expect(avatar).toHaveTextContent('H')
+  })
+
   it('shows checking while the request is pending', () => {
     stubFetch(() => new Promise(() => {}))
-    render(<TakePhotoScreen />)
+    renderTakePhoto()
     expect(screen.getByText('API: checking...')).toBeInTheDocument()
   })
 
   it('shows ok when /health responds 200', async () => {
     stubFetch(() => Promise.resolve({ ok: true, status: 200 }))
-    render(<TakePhotoScreen />)
+    renderTakePhoto()
     expect(await screen.findByText('API: ok')).toBeInTheDocument()
   })
 
   it('shows unreachable when fetch rejects', async () => {
     stubFetch(() => Promise.reject(new Error('network down')))
-    render(<TakePhotoScreen />)
+    renderTakePhoto()
     expect(await screen.findByText('API: unreachable')).toBeInTheDocument()
   })
 
   it('shows unreachable on a non-200 response', async () => {
     stubFetch(() => Promise.resolve({ ok: false, status: 500 }))
-    render(<TakePhotoScreen />)
+    renderTakePhoto()
     expect(await screen.findByText('API: unreachable')).toBeInTheDocument()
   })
 
@@ -55,7 +87,7 @@ describe('TakePhotoScreen', () => {
     const fetchMock = stubFetch(() =>
       Promise.resolve({ ok: true, status: 200 }),
     )
-    render(<TakePhotoScreen />)
+    renderTakePhoto()
     await screen.findByText('API: ok')
     expect(fetchMock).toHaveBeenCalledWith(
       'http://localhost:8000/health',
@@ -68,7 +100,7 @@ describe('TakePhotoScreen', () => {
     const fetchMock = stubFetch(() =>
       Promise.resolve({ ok: true, status: 200 }),
     )
-    render(<TakePhotoScreen />)
+    renderTakePhoto()
     expect(screen.getByText('API: unreachable')).toBeInTheDocument()
     expect(fetchMock).not.toHaveBeenCalled()
   })

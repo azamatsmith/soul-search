@@ -1,0 +1,19 @@
+.button {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  text-decoration: none;
+}
+
+.avatar {
+  width: var(--badge);
+  height: var(--badge);
+  border-radius: var(--r-pill);
+  background: var(--c-forest);
+  color: var(--c-on-dark);
+  font: 400 var(--t-small) / var(--badge) var(--f-display);
+  text-align: center;
+}

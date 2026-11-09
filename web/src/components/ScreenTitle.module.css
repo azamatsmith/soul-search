@@ -1,6 +1,14 @@
 .header {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
   padding: var(--s-3) 20px 14px;
   border-bottom: var(--rule);
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
 }
 
 .kicker {
