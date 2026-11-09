@@ -28,7 +28,7 @@ With your Docker runtime running, `make db-start` starts the local Supabase stac
 - Studio (database UI): http://localhost:54323
 - Mail catcher for auth emails: http://localhost:54324
 
-`make db-reset` rebuilds the local database from the migrations and seed data in `supabase/`. `make db-stop` stops the stack.
+`make db-reset` rebuilds the local database from the migrations and seed data in `supabase/`. The seed adds three test players: Alice (an admin), Bob and Carol, with the emails `alice@example.test`, `bob@example.test` and `carol@example.test`. `make db-test` runs the database tests. `make db-stop` stops the stack.
 
 ## Environments
 
@@ -49,6 +49,7 @@ Staging and production values are configured on each host, never committed.
 | `make db-start` | Start the local Supabase stack |
 | `make db-stop` | Stop the local Supabase stack |
 | `make db-reset` | Rebuild the local database from migrations and seed data |
+| `make db-test` | Run the database tests against the local stack |
 | `make lint` | Lint, format check and typecheck both apps |
 | `make fmt` | Auto-format both apps |
 | `make test` | Run web and api tests |
