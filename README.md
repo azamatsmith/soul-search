@@ -59,4 +59,4 @@ Staging and production values are configured on each host, never committed.
 - `api/`: FastAPI backend
 - `supabase/`: local Supabase config, and later migrations and seed data
 - `design/`: design documents
-- `docs/`: plans and specs
+- `docs/`: plans, specs and the [architecture overview](docs/architecture.md)
