@@ -23,7 +23,7 @@ insert into public.players (id, display_name, is_admin) values
   ('00000000-0000-0000-0000-000000000001', 'Admin', true),
   ('00000000-0000-0000-0000-000000000002', 'Player', false);
 insert into public.weeks (id, starts_at, ends_at)
-  values ('10000000-0000-0000-0000-000000000001', '2026-11-09 08:00+00', '2026-11-16 08:00+00');
+  values ('10000000-0000-0000-0000-000000000001', '2030-01-07 08:00+00', '2030-01-14 08:00+00');
 
 select lives_ok(
   $$insert into public.score_adjustments (player_id, admin_id, week_id, change, reason)

@@ -18,17 +18,17 @@ select is(
 select fk_ok('public', 'challenges', 'created_by', 'public', 'players', 'id', 'created_by references players');
 
 select lives_ok(
-  $$insert into public.weeks (starts_at, ends_at) values ('2026-11-09 08:00+00', '2026-11-16 08:00+00')$$,
+  $$insert into public.weeks (starts_at, ends_at) values ('2030-01-07 08:00+00', '2030-01-14 08:00+00')$$,
   'a valid week is accepted'
 );
 select throws_ok(
-  $$insert into public.weeks (starts_at, ends_at) values ('2026-11-09 08:00+00', '2026-11-23 08:00+00')$$,
+  $$insert into public.weeks (starts_at, ends_at) values ('2030-01-07 08:00+00', '2030-01-21 08:00+00')$$,
   '23505',
   null,
   'two weeks cannot start at the same time'
 );
 select throws_ok(
-  $$insert into public.weeks (starts_at, ends_at) values ('2026-11-23 08:00+00', '2026-11-16 08:00+00')$$,
+  $$insert into public.weeks (starts_at, ends_at) values ('2030-01-21 08:00+00', '2030-01-14 08:00+00')$$,
   '23514',
   null,
   'a week must end after it starts'

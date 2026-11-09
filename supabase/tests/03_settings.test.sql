@@ -10,6 +10,7 @@ select is(
   'RLS is enabled'
 );
 
+delete from public.settings;
 insert into public.settings default values;
 
 select is((select regular_points from public.settings), 1, 'regular points default to 1');

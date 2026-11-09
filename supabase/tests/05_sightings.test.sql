@@ -15,7 +15,7 @@ select col_default_is('public', 'sightings', 'flagged', 'false', 'flagged defaul
 insert into auth.users (id, email) values ('00000000-0000-0000-0000-000000000001', 'one@example.test');
 insert into public.players (id, display_name) values ('00000000-0000-0000-0000-000000000001', 'Mom');
 insert into public.weeks (id, starts_at, ends_at)
-  values ('10000000-0000-0000-0000-000000000001', '2026-11-09 08:00+00', '2026-11-16 08:00+00');
+  values ('10000000-0000-0000-0000-000000000001', '2030-01-07 08:00+00', '2030-01-14 08:00+00');
 insert into public.challenges (id, name, starts_at, ends_at, rules)
   values ('20000000-0000-0000-0000-000000000001', 'Brown Week', '2026-11-20 16:00+00', '2026-11-20 20:00+00', '{}');
 
