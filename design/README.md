@@ -1,22 +1,30 @@
 # Handoff: Soul Search (weekly Kia Soul spotting app)
 
 ## Overview
-Soul Search is a mobile app for an open group of players who spot Kia Souls anywhere during the week, photograph them, and compete on a live leaderboard that resets every Monday. This handoff covers four screens: **Sign in (magic link)**, **Home (take photo)**, **Leaderboard**, and **Sightings log**, plus the design tokens and base components.
+Soul Search is a mobile app (installed to the iOS home screen) for an **invite-only** group of players. Only emails on an admin-managed allowlist can sign in. Players spot Kia Souls anywhere during the week, photograph them, and compete on a live leaderboard that resets every Monday. Admins can also run time-boxed **challenges** with their own rules.
 
-One audience consideration drives many decisions: **an older, less tech-confident player** (the designer's mom) must be able to use it. Large tap targets, high contrast, plain-English labels, and icon + text navigation are requirements, not nice-to-haves.
+One audience consideration drives many decisions: **an older, less tech-confident player** must be able to use it. Large tap targets, high contrast, plain-English labels, and icon + text navigation are requirements, not nice-to-haves.
+
+## Product decisions (Nov 8, 2026)
+- **Sign-in uses a 6-digit email code**, not a magic link. On iOS a tapped link opens Safari, not the home-screen app, and the two don't share a login. Code expiry: **10 minutes** (Supabase OTP expiry = 600 s). Lockout after 5 wrong codes, for 15 minutes.
+- **Invite-only.** Allowlist owners named in error copy: "Matthew or Heathyr".
+- **Scoring is confirmed:** Regular **+1**, Special **+2** (a car in several categories still earns +2 total), False call **−1**. Admins can edit these values.
+- **Hybrid verification.** Points count the moment a photo is sent. A background photo check (Claude) then reviews it:
+  - Not a Soul → becomes a −1 false call (it appears in the admin "Auto false calls" list, where it can be overturned).
+  - Unsure → still counts, flagged.
+  - Doubtful Special → keeps +2, flagged for an admin.
+  - **Players can see flags.** A false call changes the sighting's chip only; there's no notice or push.
+- **Where/place is deferred** for the MVP. Save GPS if allowed; show no place name anywhere.
+- **Challenges:** while a challenge runs, new photos count toward the challenge **instead of** the week. *Assumption to confirm:* the weekly board is paused for the challenge dates.
 
 ## About the Design Files
-The files in this bundle are **design references created in HTML**. They are prototypes that show the intended look and behavior, not production code to copy. Recreate these designs in the target codebase's environment (React Native, SwiftUI, Expo, a PWA in React, etc.) using its patterns and libraries. If no codebase exists yet, pick the most appropriate framework. A cross-platform mobile stack (e.g. Expo / React Native) or a mobile-first PWA both fit, since the core features are camera, auth and a list UI.
-
-Open the `.dc.html` files directly in a browser to view them. The `support.js` file is only the preview runtime; ignore it for implementation.
+The files in this bundle are **design references created in HTML**. They are prototypes that show the intended look and behavior, not production code to copy. Recreate them in the target codebase using its patterns and libraries. Open the `.dc.html` files directly in a browser. `support.js` is only the preview runtime; ignore it for implementation.
 
 ## Fidelity
-**High-fidelity.** Colors, typography, spacing, radii, and copy are final unless noted. Recreate pixel-accurately. Mock data (player names, places, counts) is placeholder.
-
-**Open item:** the weekly scoring rules are not final. The UI currently shows +1 Regular / +2 Special color / −1 False call as **placeholder** values. Keep scoring values configurable.
+**High-fidelity.** Colors, typography, spacing, radii and copy are final unless noted. Mock data (names, counts, dates) is placeholder.
 
 ## Design Tokens
-Defined once as CSS variables in both HTML files (`:root`). Implement them as a theme object or tokens file and reference them everywhere; don't hard-code values.
+Defined once as CSS variables in every HTML file (`:root`). Implement them as a theme object or tokens file and reference them everywhere; don't hard-code values.
 
 ### Color
 | Token | Hex | Use |
@@ -37,6 +45,8 @@ Defined once as CSS variables in both HTML files (`:root`). Implement them as a 
 | `--c-on-dark` | `#FFFCF5` | Text/icons on forest or orange |
 
 Contrast: cream on forest 9.6:1; cream on orange 4.9:1; ink on cream 12.6:1.
+
+Extra tokens: `--c-camera` `#16110D` (camera and photo viewer background), `--stripes-dark` (dark image placeholder).
 
 Special-color swatch dots (category chips in design system): Alien Green `#9BC53D`, Brown `#6E4B30`.
 
@@ -91,45 +101,34 @@ The body size is 19px on purpose (larger than typical) for legibility. **Large-t
 
 ## Screens
 
-### 01 · Sign in (magic link)
-**Purpose:** Authenticate with email only. Every user must be authenticated; there are no passwords.
+### Sign in: `Soul Search Sign In.dc.html` (#5)
+- **01 Enter email**: brand block, email input (72px, `type=email`, `autocomplete=email`), helper "We'll email you a 6-digit code. Type it in here to sign in. No password to remember.", primary **"Email me a code"**, footnote "Soul Search is invite-only."
+- **01b Email not on the list**: input in the error style (orange border + orange-tint ring) and an error alert: "This email isn't on the list." / "Ask Matthew or Heathyr to add you, then try again." Check the allowlist **before** sending a code.
+- **02 Enter code**: kicker "STEP 2 OF 2", title "Check your email", "We sent a 6-digit code to **{email}**." Code field = **6 boxes (flex, gap 8, 68px tall, radius 14, serif 34px digits) drawn over ONE hidden `<input inputmode="numeric" autocomplete="one-time-code" maxlength="6">`**, so iOS QuickType autofill ("From Mail") and paste both work. The active box has a 3px forest border, focus ring and caret; filled boxes have a forest border. **It submits on its own after the 6th digit**, so there's no Sign in button. Helper: "The code works for 10 minutes. Check spam if you don't see it." Text link "Use another email". The "Open email app" button was removed.
+- **02b Checking**: boxes muted (cream-deep, read-only), status bar "Checking your code…" with spinner on forest-tint.
+- **02c Wrong code**: boxes with orange borders, alert "That code isn't right." / "Check the email and try again. 3 tries left." Buttons: Send a new code · Use another email. Clear the boxes on the next keypress.
+- **02d Code expired**: title "That code expired", alert "Codes only work for 10 minutes.", primary **"Email me a new code"**.
+- **02e Too many tries**: title "Too many tries", alert "Please wait 15 minutes. For safety, sign-in is paused after 5 wrong codes.", disabled button with a live countdown "Try again in mm:ss".
+- **03 Display name** (first sign-in only): kicker "Welcome!", "What should we call you?", "This is how other players see you on the leaderboard.", input + helper "2 to 20 characters. You can change it later in Settings.", primary **"Let's go"**.
+  - Validation: trim; 2–20 characters; letters, numbers, spaces and `. ' -`; **unique, ignoring case**. Errors: 03b "Someone already goes by “Mom”. Try adding a last initial, like “Mom K.”"; 03c "Names need at least 2 characters." (button disabled).
 
-**Layout:** Column, padding 24px 24px 32px, gap 18px.
-1. Brand block (centered, gap 12): app icon 84×84 (see Assets), "Soul Search" (serif `--t-display`, forest), tagline "A new Kia Soul challenge every week." (`--t-body` 500, ink-muted).
-2. 2px gold rule.
-3. **State A: enter email**
-   - Label "Your email" (`--t-h3` sans 700).
-   - Email input: min-height 72, padding 0 18, radius 14, 2px gold border, surface bg, `--t-body` 500. Focus: border forest + `0 0 0 4px #E3EBE2` ring. Use `type="email"`, `autocomplete="email"`, `inputmode="email"`.
-   - Helper: "We'll email you a link. Tap it to sign in. No password to remember." (`--t-small`, ink-muted).
-   - Flexible spacer, then primary button **"Send my sign-in link"** pinned to bottom.
-4. **State B: link sent** (after Send)
-   - Confirmation card: forest-tint bg, radius 22, padding 18px 16px, centered, gap 10. 72px forest circle with envelope glyph; "Check your email" (serif `--t-h2` forest); "We sent a link to **{email}**. Open it on this phone." (`--t-body`, wraps anywhere); "The link works for 15 minutes. Check spam if it's not there." (`--t-small` ink-muted).
-   - Spacer, then primary **"Open email app"**, then row of two secondary buttons (gap 12): **"Send again"** (forest border) · **"Change email"** (gold border; returns to State A).
-
-**Behavior:**
-- Validate email format before sending; show inline error in an orange-tint alert style if invalid.
-- "Send again": rate-limit (e.g. 60s cooldown; show countdown in the button label).
-- Deep link from email opens the app and signs the user in → Home. Expired link → back to Sign in with an alert: "That link expired. Send a new one."
-- 15-minute expiry is an assumption; confirm with the auth provider config.
-- First sign-in may need a display-name step (not designed yet).
-
-### 02 · Home (Take photo)
+### Home: `Soul Search Weekly.dc.html` (screen 02)
 **Purpose:** The one big action: photograph a Soul. Also shows this week's standing.
 
 **Layout:**
-- **Forest header** (bg `--c-forest`, status bar included, 3px gold bottom border, padding 8px 24px 22px):
-  - Row: kicker "WEEK OF NOV 9–15" (`--t-label`, gold-soft) · "3 days left" (`--t-small` 600, gold-soft), space-between.
+- **Forest header** (bg `--c-forest`, status bar included, 3px gold bottom border, padding 4px 24px 22px):
+  - Row: left column kicker "WEEK OF NOV 9–15" over "3 days left"; right: **avatar button** (56px circle, forest-deep fill, 2px gold border, serif initial). It opens **Settings**. Accessible label "Settings and profile".
   - Row (align end): left: "Your points" (`--t-small`, gold-soft) over the number (serif 56px, lh 1.1, gap 6). Right: "Rank" over "4th" (serif `--t-h1`) + " of 23" (`--t-small` gold-soft).
 - **Center** (flex:1, centered, gap 20):
   - **Camera button**: 250×250 circle, orange bg, cream content. Box-shadow: `0 0 0 10px #F8E2D2, 0 0 0 12px #E6D5AC, inset 0 -6px 0 #943E13, 0 14px 30px rgba(148,62,19,.35)`. Contents: camera glyph (64×48, 4px stroke) + "Snap a Soul" (serif 30px). Pressed: `scale(.97)`. Accessible label "Take photo of a Soul".
   - Helper "Spotted one? Tap the big button, point, and shoot." (`--t-small`, ink-muted, centered).
-  - After capture: success toast (forest-tint bg, radius 14, 28px forest check circle, Figtree 700 16, forest): "Photo saved. Mark it in Sightings." Auto-dismiss after ~2.2s.
 - **Summary card** (margin 0 20px 16px, surface, radius 22, card shadow, padding 14px 16px): 64×64 last-photo thumbnail (radius 8) · "{n} Souls this week" (`--t-body` 700) over "2 pts behind 3rd place" (`--t-small` ink-muted).
 - Tab bar, **Take photo** active.
 
-**Behavior:** Camera button opens the device camera directly (not a picker sheet). On capture, upload the photo with timestamp and (if permitted) location, then show the toast. Upload states from the design system apply: uploading (progress bar), saved, failed ("Didn't send. Tap to try again", with the photo kept locally and retried automatically).
+**Behavior:** The camera button (and the Take photo tab) starts the **Photo flow** below. The old "Photo saved" toast and inline upload states are replaced by that flow.
 
-### 03 · Leaderboard (live)
+
+### Leaderboard: `Soul Search Weekly.dc.html` (screen 03)
 **Purpose:** See live rankings for this week or all time.
 
 **Layout:**
@@ -140,51 +139,85 @@ The body size is 19px on purpose (larger than typical) for legibility. **Large-t
   - 1st place: gold-soft bg, 2px gold border.
   - Current user ("Name (you)"): forest-tint bg, 2px forest border. Takes priority over 1st-place styling.
   - Others: surface bg, transparent border.
+- After the list: secondary button **"See past weeks ›"** (56px) → Past weeks.
 - Tab bar, **Scores** active.
 
 **Behavior:** Scores are live (subscribe to updates or refresh on focus). Weekly board resets Monday. Consider pinning the current user's row when it scrolls out of view.
 
-### 04 · Sightings log
-**Purpose:** Browse photo claims and their review status.
 
-**Layout:**
-- Title row: "Sightings" (serif `--t-h1`) · "{n} this week" (`--t-small` 600 ink-muted), then segmented control **Everyone** | **Just mine**. Bottom 2px gold rule.
-- Scrollable list grouped by day. Day header: kicker (`--t-label`, orange), e.g. "TODAY · THU", "YESTERDAY · WED", followed by a 1px gold-soft line filling the row.
-- Card: surface, radius 14, card shadow, padding 10, gap 12. 76×76 photo (radius 8) · name (`--t-small` 700) + time (13px ink-muted) on one row · description, e.g. "Alien Green · Trader Joe's lot" (14px ink-muted) · status chip (pill, padding 4px 10px, Figtree 700 13):
+### Sightings log: `Soul Search Weekly.dc.html` (screen 04) (#10)
+- Title row "Sightings" + "{n} this week", segmented **Everyone | Just mine**, list grouped by day (orange kicker "TODAY · THU" + thin gold line).
+- Card: 76px photo · name + time · description ("Special · Alien Green", "Regular", "Photo check: not a Kia Soul") · status chip (pill, 3px 10px padding, 2px border, Figtree 700 13):
   - **+1 Counted**: forest-tint bg, forest text
   - **+2 Special**: gold-soft bg, ink text
-  - **−1 False call**: orange-tint bg, orange-deep text
-  - **Waiting for review**: cream-deep bg, ink-muted text
-- Tab bar, **Sightings** active.
+  - **+2 · Flagged for a second look** (or +1 · …): surface bg, **2px orange border**, orange-deep text. Visible to players.
+  - **−1 False call**: orange-tint bg, orange-deep text. A sighting changes to this silently if the photo check decides it's not a Soul.
+  - **Waiting to send**: cream bg, **2px dashed ink-muted border**, ink-muted text. The photo is still on the phone.
+  - **Challenge tag** (e.g. "Brown Week"): orange bg, cream text, shown next to the points chip.
+- **Tapping a card opens the photo full screen** (see Sighting photo). There are no edit actions.
 
-**Behavior:** Filter toggles between all players and the current user. Tapping a card should open a detail view (not designed) where the owner marks the claim as Regular or Special and picks a category: Alien Green, Racing stripes, Exterior graphics, Brown paint. The review flow for false calls is undecided.
-
-### 05 · Photo flow (`Soul Search Photo Flow.dc.html`)
-**Trigger:** the Home camera button or the "Take photo" tab. This flow **replaces** the Home success toast ("Photo saved. Mark it in Sightings."): classification happens inline, right after capture.
-
+### Photo flow: `Soul Search Photo Flow.dc.html` (#8, #9)
+- **00a Camera access (first time only)**: shown before iOS asks. Camera glyph, "Soul Search needs your camera", "So you can take photos of the Souls you spot. We only use it when you tap Take photo.", "Next, your iPhone will ask. Tap **Allow**." Primary **Continue** (triggers the iOS prompt), text button "Not now".
+- **00b Camera is turned off** (permission denied): numbered steps "Open the Settings app" → "Tap Apps, then Safari" → "Tap Camera and choose Allow" → "Come back here and try again". (Verify the path for the iOS version you target; home-screen web apps inherit Safari's camera setting.) Primary **"Use the iPhone camera instead"** opens the native camera (`<input type="file" accept="image/*" capture="environment">`) and continues at step 02. It needs no design of its own. Secondary "I turned it on. Try again".
 Screens, in order:
 1. **01 Camera**: full-screen, background `#16110D`. Top hint pill: "Fit the whole car in the frame" (rgba(255,252,245,.12) bg, Figtree 700 16). Viewfinder fills the space (margin 0 12, radius 22) with four gold corner brackets (40×40, 4px `#C9A35A`, inset 22% top/bottom, 9% sides). Bottom bar is a 3-column grid: **Cancel** (min 56×96, 2px rgba(255,252,245,.4) border) · **shutter** (96px circle, orange fill, 6px cream border, outer ring) · empty. Cancel returns Home.
 2. **02 Check the photo**: kicker "STEP 1 OF 2", title "Can you see the Soul?". Photo preview fills remaining height (radius 22, 2px gold-soft border). Helper "Make sure the whole car is in the photo and not blurry." Primary **"Use this photo"** (72px) → 03; secondary **"Take it again"** (56px) → 01.
 3. **03 What did you find?**: header row with 64px thumbnail + kicker "STEP 2 OF 2" + serif `--t-h2` title. Two radio cards (min-height 88, radius 22, padding 14×16): **Regular Soul** "Any color not listed below" with forest **+1** badge, and **Special Soul** "Alien Green, racing stripes, graphics or brown" with ink/gold-soft **+2** badge. Selected: 3px forest border, forest-tint bg, filled radio. Unselected: 2px gold-soft border, surface bg.
    - If Special: "What makes it special? Pick any" + multi-select chips (Alien Green, Racing stripes, Exterior graphics, Brown paint; min-height 56, pill; selected = forest fill/cream text) + note "Brown means brown: champagne, pale gold and beige don't count." A car in several categories still earns +2 total.
-   - "Where" row: auto-filled place from location (e.g. "Trader Joe's lot, Elm St") + **Change** link (56px target).
-   - Sticky footer (surface bg, 2px gold top rule): primary button. Disabled (`--c-cream-deep` bg, ink-muted text) with label "Pick what makes it special" until valid; enabled label "Send · +1 point" / "Send · +2 points". Footnote: "Not a Soul after all? Wrong calls cost 1 point."
+   - Sticky footer (surface bg, 2px gold top rule): primary button. Disabled (`--c-cream-deep` bg, ink-muted text) with label "Pick what makes it special" until valid; enabled label "Send · +1 point" / "Send · +2 points". Footnote: "Not a Soul after all? Wrong calls cost 1 point." **The Where row was removed** (deferred).
    - Valid = Regular selected, OR Special + at least one category. No default selection in production (the mock preselects Special + Alien Green to demonstrate).
 4. **04 Sending**: centered 200px photo, "Sending your photo…" (serif `--t-h1`), 14px progress bar (forest on cream-deep), "Keep the app open. This usually takes a few seconds."
-5. **05a Saved**: full forest background. 96px cream circle with forest check (8px gold halo), kicker "SPECIAL SOUL SAVED" / "SOUL SAVED", points in serif 72px ("+2"), "You have {n} points this week." Buttons: orange **"Snap another Soul"** → 01; gold-outline **"Done"** → Home.
+5. **05a Saved**: full forest background. 96px cream circle with forest check (8px gold halo), kicker "SPECIAL SOUL SAVED" / "SOUL SAVED", points in serif 72px ("+2"), "You have {n} points this week." plus a note: "We'll double-check the photo. If it isn't a Kia Soul, it becomes a −1 in Sightings." (rgba(255,252,245,.1) panel) Buttons: orange **"Snap another Soul"** → 01; gold-outline **"Done"** → Home.
 6. **05b Didn't send**: orange 96px "!" circle, "Your photo didn't send", "Don't worry, it's saved on this phone. We'll send it on our own when you have signal." Buttons: **"Try again now"** (primary) · **"OK, send it later"** (secondary → Home; the claim appears in Sightings as "Waiting to send").
 
-**Behavior notes:** Request camera permission on first use with a plain-language explanation. Keep the captured photo locally until the server confirms receipt. Points shown are placeholders (+1/+2/−1).
+**Behavior notes:** Request camera permission on first use with a plain-language explanation. Keep the captured photo locally until the server confirms receipt. Categories are **multi-select** and chosen during capture. Save GPS with the photo if allowed. Send triggers the background photo check.
+
+
+### Settings, past weeks, sighting photo: `Soul Search Settings - History.dc.html` (#5, #6, #12)
+- **01 Settings** (from the Home avatar): back "‹ Home", profile card (56px avatar, serif name, email), list: **Your name** › (opens 02) and **Large text** toggle ("Bigger words and buttons"; switches the type/tap tokens to large mode). Bottom: **Sign out** (orange outline). Version footnote.
+- **01b Settings for admins**: adds a section labeled "ONLY ADMINS SEE THIS" with **Admin tools** › and a count badge of flagged photos.
+- **02 Change your name**: same rules as first sign-in; primary "Save name".
+- **03 Past weeks** (from Leaderboard): cards newest first. Each card: date kicker, winner avatar + name + score, and a line with your result ("You: 2nd · 18 pts" or "You won this week!" in forest).
+- **04 One past week**: "Final · Nov 2–8", title "{winner} won", final standings in leaderboard rows.
+- **05 / 05b / 05c Sighting photo**: full-screen dark viewer (`--c-camera`), **Close** button (56px), photo (pinch to zoom), bottom cream sheet with name, time, claim, status chip. Flagged adds a note: "Our photo check wasn't sure about the stripes. The +2 still counts while an admin takes a look." False call adds an orange note: "Our photo check says this isn't a Kia Soul, so it counts as −1."
+
+### Empty, loading and error states: `Soul Search Empty - Error States.dc.html` (#8, #10)
+- **Home · no Souls yet**: points 0, rank "—" "23 players", card "No Souls yet this week" / "Your first one is out there. Regular Souls are +1, special ones +2."
+- **Home · loading**: header placeholders in forest-deep. The camera button works while scores load.
+- **Lists · loading**: gray placeholder rows/cards (`--c-cream-deep`) in the real layout; pulse opacity .6↔1 over 1.2s (skip it if reduced motion is on).
+- **Empty**: dashed gold circle with a serif "S", serif title, body text, orange **"Take a photo"**. Leaderboard: "No scores yet this week" / "Nobody has spotted a Soul since Monday. The first photo puts you on top." Sightings: "No sightings yet" / "Photos from everyone in the group show up here as soon as they're sent."
+- **Error** (same everywhere): error alert "Couldn't load {the scores | sightings}" / "Check your Wi-Fi or signal, then try again. Your photos are safe." + primary **Try again**.
+
+### Admin: `Soul Search Admin.dc.html` (#13)
+Entry: **Admin tools** row in Settings, admins only. Every action writes to the change history.
+- **A1 Admin tools**: rows for Flagged photos (badge), Challenges, Points & categories, Allowed emails, Adjust a score, Change history.
+- **A2 Flagged photos**: segmented **Flagged (n) | Auto false calls (n)**. Card: photo, player, time, "Claimed: …", the model's note in quotes, chip "Counting +2 for now".
+- **A3 Review**: big photo, "Player's claim" card, "Photo check notes" card, then three full-width actions (72px): **Keep the claim · +2** (forest; clears the flag / overturns), **Change to Regular · +1** (gold border), **Mark as false call · −1** (orange border). For auto false calls the same screen offers **Restore as Regular +1 / Restore as Special +2 / Keep false call**.
+- **A4 Points & categories**: steppers for Regular, Special and False call; list of categories with Remove; "+ Add a category"; note "Changes apply to new photos from now on. Past points stay the same."; sticky **Save changes**.
+- **A5 Allowed emails**: add field + **Add to the list**; note that no invite email is sent; list with status ("Joined · {name}" or "Not signed in yet") and Remove.
+- **A6 Adjust a score**: player picker, "Points now 8 → 11", stepper "Change by", **required** reason (admins only see it), sticky **Save · {name} +3**.
+- **A7 Change history**: newest first, filter **Everything | Scores only**. Row: admin avatar, "**Matthew** changed …", type chip (Photo / Score / Emails / Rules / Challenge) and time.
+
+### Challenges: `Soul Search Challenges.dc.html` (#14)
+- **C1 Admin list**: **+ New challenge**, then "Coming up" (orange "Starts in 3 days" chip) and "Finished" ("Won by …").
+- **C2 Create / edit**: Name, Starts/Ends date fields (whole days, group time zone), note "While it runs, new photos count toward the challenge instead of the week.", steppers starting from the weekly rules + per-category bonus rows ("Brown paint +3"), "+ Add a category bonus", **Save challenge**.
+- **C3 Home while running**: header kicker "CHALLENGE · BROWN WEEK", "Ends Sun · 2 days left", "Challenge points", challenge rank; **orange banner** under the header: "Brown Week is on" / "Brown Souls are worth +3. Photos count toward the challenge until Sunday night; weekly scores pick up again Monday."
+- **C4 Photo step 2**: orange-tint strip "Counts toward Brown Week"; point badges and the Send label show challenge values; a bonus category chip shows its points ("+3").
+- **C5 Saved**: kicker "BROWN SOUL SAVED", "+3", "You have 9 Brown Week points."
+- **C6 Challenge leaderboard**: segmented **{Challenge} | All time** (it replaces "This week" while running), rules strip "Rules: Regular +1 · Special +2 · Brown paint +3 · False call −1", rows, See past weeks.
+- **C7 Sightings**: day header says "· Brown Week"; challenge photos get the orange challenge tag.
 
 ## State Management
-- `auth`: `{ status: 'signedOut' | 'linkSent' | 'signedIn', email, user }`
-- `week`: `{ start, end, daysLeft }`, server-driven, resets Monday
-- `me`: `{ weekPoints, weekCount, rank, totalPlayers, pointsBehindNext }`
-- `leaderboard`: `{ period: 'week' | 'all', rows: [{ userId, name, score, count }] }`
-- `sightings`: `{ filter: 'all' | 'mine', items: [{ id, userId, photoUrl, takenAt, place, category, status }] }`
-- `uploadQueue`: pending photos with retry for offline/failure
-- `capture`: `{ step: 'camera' | 'review' | 'classify' | 'sending' | 'saved' | 'failed', photo, kind: 'regular' | 'special' | null, categories: Set, place }`
-- `settings.textSize`: `'standard' | 'large'`
+- `auth`: `{ status: 'signedOut' | 'notAllowed' | 'codeSent' | 'checking' | 'wrongCode' | 'expired' | 'lockedOut' | 'needsName' | 'signedIn', email, triesLeft, lockedUntil, user }`
+- `user`: `{ id, displayName, email, isAdmin, settings: { textSize: 'standard' | 'large' } }`
+- `period`: the active week or challenge `{ type: 'week' | 'challenge', id, name, start, end, rules }`
+- `me`: `{ points, count, rank, totalPlayers, pointsBehindNext }` for the active period
+- `leaderboard`: `{ period: 'current' | 'all', rows, status: 'loading' | 'ready' | 'empty' | 'error' }`
+- `pastWeeks`: `[{ start, end, winner, winnerPoints, myRank, myPoints }]`
+- `sightings`: `{ filter: 'all' | 'mine', status, items: [{ id, userId, photoUrl, takenAt, gps?, kind: 'regular' | 'special', categories: [], points, state: 'pendingUpload' | 'counted' | 'flagged' | 'falseCall', checkNotes, challengeId? }] }`
+- `capture`: `{ step: 'permission' | 'denied' | 'camera' | 'review' | 'classify' | 'sending' | 'saved' | 'failed', photo, kind, categories }`
+- `uploadQueue`: photos stored locally until the server confirms; auto-retry
+- Admin: `rules { regular, special, falseCall, categories[] }`, `allowlist[]`, `flagQueue[]`, `autoFalseCalls[]`, `auditLog[{ adminId, type, targetId, before, after, reason, at }]`, `challenges[]`
 
 ## Assets
 - **App icon** (built from shapes, so recreate it as a vector): forest rounded square (radius ≈ 22% of size), 1.5px gold inner rule inset ≈ 7%, cream Young Serif "S" centered (≈ 60% of size), orange dot top-right (≈ 13% of size). Sizes 180 / 120 / 60 / 40 are shown in the design system file.
@@ -193,9 +226,12 @@ Screens, in order:
 - **Fonts:** Young Serif and Figtree from Google Fonts (OFL).
 
 ## Files
-- `Soul Search Weekly.dc.html`: **the four screens to build** (sign in, home, leaderboard, sightings). The source of truth.
-- `Soul Search Photo Flow.dc.html`: the photo capture flow (camera → check → classify → sending → saved / didn't send).
-- `Soul Hunt Design System.dc.html`: tokens, type scale, and base components (buttons, score badges, category chips, photo upload tile with all four states, tally stepper, alerts, text field, toggles, leaderboard row) and the app icon at all sizes.
-- `support.js`: preview runtime only. Not part of the design.
-
-Note: "Soul Hunt" in the design-system file header refers to a paused Thanksgiving variant. The tokens and components apply unchanged to Soul Search.
+- `Soul Search Sign In.dc.html`: email, allowlist error, 6-digit code and its states, display name.
+- `Soul Search Weekly.dc.html`: Home, Leaderboard, Sightings.
+- `Soul Search Photo Flow.dc.html`: camera permission, camera → check → classify → sending → saved / didn't send.
+- `Soul Search Settings - History.dc.html`: Settings (player and admin), change name, past weeks, sighting photo.
+- `Soul Search Empty - Error States.dc.html`: empty, loading and error states.
+- `Soul Search Admin.dc.html`: admin tools.
+- `Soul Search Challenges.dc.html`: challenge admin and the player experience while one runs.
+- `Soul Hunt Design System.dc.html`: tokens, base components, app icon. ("Soul Hunt" is a paused Thanksgiving variant; the tokens apply unchanged.)
+- `support.js`: preview runtime only.

@@ -36,59 +36,19 @@ a{color:var(--c-forest);text-decoration-color:var(--c-gold)}a:hover{color:var(--
 <div data-text="{{ textSize }}" style="padding:56px 64px 80px;display:flex;flex-direction:column;gap:40px">
 <div style="display:flex;flex-direction:column;gap:8px">
 <div style="font:700 13px/1 var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-orange)">Soul Search / Weekly challenge</div>
-<h1 style="margin:0;font:400 40px/1.1 var(--f-display);color:var(--c-forest)">Sign in, Hunt, Leaderboard, Sightings</h1>
-<p style="margin:0;max-width:72ch;font:400 17px/1.5 var(--f-body);color:var(--c-ink-muted);text-wrap:pretty">Spot Souls anywhere, all week. Scores are live and reset each Monday. Sign-in is by magic link: tap the Send button on screen 01 to see the check-your-email state. Scoring still shows +1 / +2 / −1 as a placeholder until the weekly rules are set.</p>
+<h1 style="margin:0;font:400 40px/1.1 var(--f-display);color:var(--c-forest)">Home, Leaderboard, Sightings</h1>
+<p style="margin:0;max-width:72ch;font:400 17px/1.5 var(--f-body);color:var(--c-ink-muted);text-wrap:pretty">Spot Souls anywhere, all week. Invite-only. Scores are live and reset each Monday. Scoring is confirmed: +1 Regular, +2 Special, −1 false call. Sign-in now lives in its own file (6-digit code). The avatar on Home opens Settings; "Past weeks" on the Leaderboard opens weekly history; tapping a sighting opens the photo.</p>
 </div>
 
 <div style="display:flex;flex-wrap:wrap;gap:56px;align-items:flex-start">
-
-<div data-screen-label="01 Sign in" style="display:flex;flex-direction:column;gap:12px">
-<div style="display:flex;gap:8px;align-items:baseline"><span style="font:600 11px var(--f-mono);padding:3px 7px;background:var(--c-ink);color:var(--c-on-dark);border-radius:4px">01</span><span style="font:600 14px var(--f-body)">Sign in · magic link</span></div>
-<div style="width:390px;height:844px;border-radius:52px;border:10px solid #22170F;background:var(--c-cream);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(58,38,24,.25)">
-<div style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 15px var(--f-body)"><span>9:41</span><span style="width:24px;height:11px;border:1.5px solid var(--c-ink);border-radius:3px"></span></div>
-<div style="flex:1;display:flex;flex-direction:column;padding:24px 24px 32px;gap:18px">
-<div style="display:flex;flex-direction:column;align-items:center;gap:12px">
-<div style="width:84px;height:84px;border-radius:19px;background:var(--c-forest);position:relative;overflow:hidden;box-shadow:0 2px 6px rgba(20,52,36,.25)"><div style="position:absolute;inset:6px;border:1.5px solid var(--c-gold);border-radius:14px"></div><div style="position:absolute;top:12px;right:12px;width:11px;height:11px;border-radius:999px;background:var(--c-orange)"></div><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:400 50px/1 var(--f-display);color:var(--c-cream);padding-top:4px">S</div></div>
-<h2 style="margin:0;font:400 var(--t-display)/1.05 var(--f-display);color:var(--c-forest);text-align:center">Soul Search</h2>
-<span style="font:500 var(--t-body)/1.4 var(--f-body);color:var(--c-ink-muted);text-align:center;text-wrap:balance">A new Kia Soul challenge every week.</span>
-</div>
-<div style="border-top:var(--rule)"></div>
-<sc-if value="{{ notSent }}" hint-placeholder-val="{{ true }}">
-<div style="display:flex;flex-direction:column;gap:20px;flex:1">
-<label style="display:flex;flex-direction:column;gap:8px"><span style="font:700 var(--t-h3) var(--f-body)">Your email</span>
-<input type="email" value="{{ email }}" onChange="{{ setEmail }}" placeholder="you@example.com" style="min-height:var(--tap-lg);padding:0 18px;border-radius:var(--r-md);border:2px solid var(--c-gold);background:var(--c-surface);color:var(--c-ink);font:500 var(--t-body) var(--f-body);outline:none" style-focus="border-color:var(--c-forest);box-shadow:0 0 0 4px var(--c-forest-tint)"></label>
-<span style="font:500 var(--t-small)/1.45 var(--f-body);color:var(--c-ink-muted);text-wrap:pretty">We'll email you a link. Tap it to sign in. No password to remember.</span>
-<div style="flex:1"></div>
-<button onClick="{{ send }}" style="min-height:var(--tap-lg);border:0;border-radius:var(--r-md);background:var(--c-forest);color:var(--c-on-dark);font:700 var(--t-h3) var(--f-body);cursor:pointer;box-shadow:inset 0 -3px 0 var(--c-forest-deep)" style-hover="background:var(--c-forest-deep)">Send my sign-in link</button>
-</div>
-</sc-if>
-<sc-if value="{{ sent }}" hint-placeholder-val="{{ false }}">
-<div style="display:flex;flex-direction:column;gap:14px;flex:1">
-<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 16px;border-radius:var(--r-lg);background:var(--c-forest-tint);text-align:center">
-<span style="width:var(--tap-lg);height:var(--tap-lg);border-radius:999px;background:var(--c-forest);display:flex;align-items:center;justify-content:center"><span style="width:34px;height:24px;border:3px solid var(--c-on-dark);border-radius:4px"></span></span>
-<span style="font:400 var(--t-h2)/1.15 var(--f-display);color:var(--c-forest)">Check your email</span>
-<span style="font:500 var(--t-body)/1.45 var(--f-body);color:var(--c-ink);overflow-wrap:anywhere">We sent a link to <b>{{ email }}</b>. Open it on this phone.</span>
-<span style="font:500 var(--t-small)/1.4 var(--f-body);color:var(--c-ink-muted)">The link works for 15 minutes. Check spam if it's not there.</span>
-</div>
-<div style="flex:1"></div>
-<button style="min-height:var(--tap-lg);border:0;border-radius:var(--r-md);background:var(--c-forest);color:var(--c-on-dark);font:700 var(--t-h3) var(--f-body);cursor:pointer;box-shadow:inset 0 -3px 0 var(--c-forest-deep)">Open email app</button>
-<div style="display:flex;gap:12px">
-<button style="flex:1;min-height:var(--tap-min);border:2px solid var(--c-forest);border-radius:var(--r-md);background:transparent;color:var(--c-forest);font:700 var(--t-small) var(--f-body);cursor:pointer">Send again</button>
-<button onClick="{{ back }}" style="flex:1;min-height:var(--tap-min);border:2px solid var(--c-gold);border-radius:var(--r-md);background:transparent;color:var(--c-ink);font:700 var(--t-small) var(--f-body);cursor:pointer">Change email</button>
-</div>
-</div>
-</sc-if>
-</div>
-</div>
-</div>
 
 <div data-screen-label="02 Hunt home" style="display:flex;flex-direction:column;gap:12px">
 <div style="display:flex;gap:8px;align-items:baseline"><span style="font:600 11px var(--f-mono);padding:3px 7px;background:var(--c-ink);color:var(--c-on-dark);border-radius:4px">02</span><span style="font:600 14px var(--f-body)">Home</span></div>
 <div style="width:390px;height:844px;border-radius:52px;border:10px solid #22170F;background:var(--c-cream);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(58,38,24,.25)">
 <div style="flex:none;background:var(--c-forest);color:var(--c-on-dark)">
 <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 15px var(--f-body)"><span>9:41</span><span style="width:24px;height:11px;border:1.5px solid var(--c-on-dark);border-radius:3px"></span></div>
-<div style="padding:8px 24px 22px;display:flex;flex-direction:column;gap:14px;border-bottom:3px solid var(--c-gold)">
-<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-gold-soft)">Week of Nov 9–15</span><span style="font:600 var(--t-small) var(--f-body);color:var(--c-gold-soft)">3 days left</span></div>
+<div style="padding:4px 24px 22px;display:flex;flex-direction:column;gap:14px;border-bottom:3px solid var(--c-gold)">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><div style="display:flex;flex-direction:column;gap:4px"><span style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-gold-soft)">Week of Nov 9–15</span><span style="font:600 var(--t-small) var(--f-body);color:var(--c-gold-soft)">3 days left</span></div><button aria-label="Settings and profile" style="flex:none;width:var(--tap-min);height:var(--tap-min);border-radius:999px;border:2px solid var(--c-gold);background:var(--c-forest-deep);color:var(--c-on-dark);font:400 22px/1 var(--f-display);cursor:pointer;display:flex;align-items:center;justify-content:center">H</button></div>
 <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px">
 <div style="display:flex;flex-direction:column;gap:6px"><span style="font:500 var(--t-small) var(--f-body);color:var(--c-gold-soft)">Your points</span><span style="font:400 56px/1.1 var(--f-display)">{{ myPts }}</span></div>
 <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px"><span style="font:500 var(--t-small) var(--f-body);color:var(--c-gold-soft)">Rank</span><span style="font:400 var(--t-h1)/1 var(--f-display)">4th <span style="font:500 var(--t-small) var(--f-body);color:var(--c-gold-soft)">of 23</span></span></div>
@@ -102,7 +62,7 @@ a{color:var(--c-forest);text-decoration-color:var(--c-gold)}a:hover{color:var(--
 </button>
 <span style="font:500 var(--t-small)/1.4 var(--f-body);color:var(--c-ink-muted);text-align:center">Spotted one? Tap the big button, point, and shoot.</span>
 <sc-if value="{{ showToast }}" hint-placeholder-val="{{ false }}">
-<div role="status" style="display:flex;gap:10px;align-items:center;padding:12px 16px;border-radius:var(--r-md);background:var(--c-forest-tint);color:var(--c-forest);font:700 var(--t-small) var(--f-body)"><span style="width:28px;height:28px;border-radius:999px;background:var(--c-forest);color:var(--c-on-dark);font:800 15px/28px var(--f-body);text-align:center">✓</span>Photo saved. Mark it in Sightings.</div>
+<div role="status" style="display:flex;gap:10px;align-items:center;padding:12px 16px;border-radius:var(--r-md);background:var(--c-forest-tint);color:var(--c-forest);font:700 var(--t-small) var(--f-body)"><span style="width:28px;height:28px;border-radius:999px;background:var(--c-forest);color:var(--c-on-dark);font:800 15px/28px var(--f-body);text-align:center">✓</span>Photo saved. +1 point</div>
 </sc-if>
 </div>
 <div style="flex:none;margin:0 20px 16px;padding:14px 16px;border-radius:var(--r-lg);background:var(--c-surface);box-shadow:var(--shadow-card);display:flex;align-items:center;gap:14px">
@@ -138,6 +98,7 @@ a{color:var(--c-forest);text-decoration-color:var(--c-gold)}a:hover{color:var(--
 <span style="font:400 var(--t-h2) var(--f-display);color:var(--c-forest)">{{ p.score }}</span>
 </div>
 </sc-for>
+<button style="min-height:var(--tap-min);margin-top:6px;border:2px solid var(--c-forest);border-radius:var(--r-md);background:transparent;color:var(--c-forest);font:700 var(--t-body) var(--f-body);cursor:pointer">See past weeks ›</button>
 </div>
 <div style="flex:none;display:flex;border-top:var(--rule);background:var(--c-surface);padding-bottom:18px">
 <sc-for list="{{ tabsBoard }}" as="t" hint-placeholder-count="3">
@@ -167,7 +128,7 @@ a{color:var(--c-forest);text-decoration-color:var(--c-gold)}a:hover{color:var(--
 <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px">
 <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><span style="font:700 var(--t-small) var(--f-body)">{{ s.who }}</span><span style="font:500 13px var(--f-body);color:var(--c-ink-muted)">{{ s.time }}</span></div>
 <span style="font:500 14px var(--f-body);color:var(--c-ink-muted)">{{ s.kind }}</span>
-<span style="align-self:flex-start;padding:4px 10px;border-radius:999px;background:{{ s.bg }};color:{{ s.fg }};font:700 13px var(--f-body)">{{ s.status }}</span>
+<span style="align-self:flex-start;padding:3px 10px;border-radius:999px;background:{{ s.bg }};color:{{ s.fg }};border:2px {{ s.bstyle }} {{ s.bcolor }};font:700 13px/1.3 var(--f-body)">{{ s.status }}</span>
 </div>
 </div>
 </sc-for>
@@ -199,15 +160,16 @@ class Component extends DCLogic {
     const board = [...src].sort((a, b) => b[1] - a[1]).map(([name, score, n, me], k) => ({ rank: String(k + 1), name, score, initial: name[0], avatar: av[k % 4], sub: `${n} Souls`,
       bg: me ? 'var(--c-forest-tint)' : k === 0 ? 'var(--c-gold-soft)' : 'var(--c-surface)', border: me ? '2px solid var(--c-forest)' : k === 0 ? '2px solid var(--c-gold)' : '2px solid transparent' }));
     const allLog = [
-      { head: 'Today · Thu', who: 'Heathyr', time: '4:12 PM', kind: 'Alien Green · Trader Joe\u2019s lot', status: '+2 Special', bg: 'var(--c-gold-soft)', fg: 'var(--c-ink)', mine: true },
-      { who: 'Marcus T.', time: '2:40 PM', kind: 'Regular · Elm St', status: 'Waiting for review', bg: 'var(--c-cream-deep)', fg: 'var(--c-ink-muted)' },
-      { who: 'Heathyr', time: '9:05 AM', kind: 'Regular · Library', status: '+1 Counted', bg: 'var(--c-forest-tint)', fg: 'var(--c-forest)', mine: true },
-      { head: 'Yesterday · Wed', who: 'Priya K.', time: '6:18 PM', kind: 'Turned out to be a Telluride', status: '−1 False call', bg: 'var(--c-orange-tint)', fg: 'var(--c-orange-deep)' },
-      { who: 'Heathyr', time: '11:30 AM', kind: 'Brown paint · Costco', status: '+2 Special', bg: 'var(--c-gold-soft)', fg: 'var(--c-ink)', mine: true },
-      { who: 'Dana R.', time: '8:02 AM', kind: 'Racing stripes · I-90 rest stop', status: '+2 Special', bg: 'var(--c-gold-soft)', fg: 'var(--c-ink)' }
+      { head: 'Today · Thu', who: 'Heathyr', time: '4:31 PM', kind: 'Special · Alien Green', status: '+2 Special', bg: 'var(--c-gold-soft)', fg: 'var(--c-ink)', mine: true },
+      { who: 'Marcus T.', time: '2:40 PM', kind: 'Special · Racing stripes', status: '+2 · Flagged for a second look', bg: 'var(--c-surface)', fg: 'var(--c-orange-deep)', bc: 'var(--c-orange)' },
+      { who: 'Heathyr', time: '4:30 PM', kind: 'Regular', status: 'Waiting to send', bg: 'var(--c-cream)', fg: 'var(--c-ink-muted)', bc: 'var(--c-ink-muted)', dashed: true, mine: true },
+      { who: 'Heathyr', time: '9:05 AM', kind: 'Regular', status: '+1 Counted', bg: 'var(--c-forest-tint)', fg: 'var(--c-forest)', mine: true },
+      { head: 'Yesterday · Wed', who: 'Priya K.', time: '6:18 PM', kind: 'Photo check: not a Kia Soul', status: '−1 False call', bg: 'var(--c-orange-tint)', fg: 'var(--c-orange-deep)' },
+      { who: 'Heathyr', time: '11:30 AM', kind: 'Special · Brown paint', status: '+2 Special', bg: 'var(--c-gold-soft)', fg: 'var(--c-ink)', mine: true },
+      { who: 'Dana R.', time: '8:02 AM', kind: 'Special · Racing stripes', status: '+2 Special', bg: 'var(--c-gold-soft)', fg: 'var(--c-ink)' }
     ];
     let log = s.filter === 'mine' ? allLog.filter(x => x.mine) : allLog, lastHead = null;
-    log = log.map(x => { const h = allLog.slice(0, allLog.indexOf(x) + 1).reverse().find(y => y.head)?.head; const out = { ...x, head: h !== lastHead ? h : '' }; lastHead = h; return out; });
+    log = log.map(x => ({ ...x, bstyle: x.dashed ? 'dashed' : 'solid', bcolor: x.bc || 'transparent' })).map(x => { const idx = allLog.findIndex(y => y.who === x.who && y.time === x.time); const h = allLog.slice(0, idx + 1).reverse().find(y => y.head)?.head; const out = { ...x, head: h !== lastHead ? h : '' }; lastHead = h; return out; });
     return {
       textSize: this.props.textSize ?? 'standard',
       email: s.email, setEmail: e => this.setState({ email: e.target.value }),
