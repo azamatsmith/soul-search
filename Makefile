@@ -1,6 +1,7 @@
-.PHONY: install web api lint fmt test
+.PHONY: install web api db-start db-stop db-reset lint fmt test
 
 install:
+	npm ci
 	cd web && npm ci
 	cd api && uv sync
 
@@ -9,6 +10,15 @@ web:
 
 api:
 	cd api && uv run --env-file .env.development $(if $(wildcard api/.env.local),--env-file .env.local) fastapi dev app/main.py --port 8000
+
+db-start:
+	npx supabase start
+
+db-stop:
+	npx supabase stop
+
+db-reset:
+	npx supabase db reset
 
 lint:
 	cd web && npm run lint && npm run format:check && npm run typecheck
