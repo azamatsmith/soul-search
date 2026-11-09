@@ -9,7 +9,9 @@
   color: var(--c-ink);
 }
 
-.icon {
+.box::before {
+  content: '!';
+  content: '!' / '';
   flex: none;
   width: var(--s-6);
   height: var(--s-6);

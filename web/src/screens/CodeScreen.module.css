@@ -1,0 +1,28 @@
+.lead {
+  margin: 0;
+  color: var(--c-ink-muted);
+  font: 500 var(--t-body) / 1.45 var(--f-body);
+  text-wrap: pretty;
+}
+
+.email {
+  color: var(--c-ink);
+  overflow-wrap: anywhere;
+}
+
+.hint {
+  margin: 0;
+  color: var(--c-ink-muted);
+  font: 500 var(--t-small) / 1.45 var(--f-body);
+  text-wrap: pretty;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-3);
+}
