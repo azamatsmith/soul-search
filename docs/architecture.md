@@ -11,7 +11,7 @@ flowchart TB
     phone["Phone PWA, iPhone and Android<br/>React + Vite<br/>(Netlify)"]
     api["FastAPI<br/>(Render)"]
     claude["Claude vision API"]
-    email["Email provider<br/>(custom SMTP, e.g. Resend)"]
+    email["Resend<br/>(custom SMTP for Supabase Auth;<br/>Mailpit locally)"]
     inbox["Player's inbox"]
     cron["Supabase pg_cron + pg_net<br/>(weekly schedule)"]
 
@@ -42,7 +42,7 @@ sequenceDiagram
     participant pwa as PWA
     participant api as FastAPI
     participant auth as Supabase Auth
-    participant mail as Email provider
+    participant mail as Resend
 
     player->>pwa: Enter email
     pwa->>api: POST /auth/send-code
@@ -123,7 +123,7 @@ sequenceDiagram
 
 | Environment | Web | API | Supabase |
 | --- | --- | --- | --- |
-| Local | Vite on `localhost:5173` | FastAPI on `localhost:8000` | Supabase CLI stack in Docker, with a mail catcher for sign-in emails |
+| Local | Vite on `localhost:5173` | FastAPI on `localhost:8000` | Supabase CLI stack in Docker, with Mailpit catching sign-in emails |
 | Staging | Netlify branch deploy | Staging service deployed from a `staging` branch | Separate Supabase project with a test email sender |
 | Production | Netlify, deployed from `main` | Render, deployed from `main` once CI passes | Production Supabase project |
 
