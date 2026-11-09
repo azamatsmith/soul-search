@@ -39,3 +39,17 @@ def test_get_settings_names_missing_variable(monkeypatch: pytest.MonkeyPatch):
 
     with pytest.raises(RuntimeError, match="DATABASE_URL"):
         get_settings()
+
+
+def test_request_validation_error_uses_error_shape():
+    app = FastAPI()
+    register_error_handler(app)
+
+    @app.post("/echo")
+    def echo(body: dict[str, int]) -> dict[str, int]:
+        return body
+
+    response = TestClient(app).post("/echo", json={"a": "not-a-number"})
+
+    assert response.status_code == 422
+    assert response.json() == {"error": "invalid_request"}
