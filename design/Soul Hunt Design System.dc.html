@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+--c-cream:#FAF4E8;--c-surface:#FFFCF5;--c-cream-deep:#F1E7D3;
+--c-forest:#1F4A33;--c-forest-deep:#143424;--c-forest-tint:#E3EBE2;
+--c-orange:#B9501C;--c-orange-deep:#943E13;--c-orange-tint:#F8E2D2;
+--c-ink:#3A2618;--c-ink-muted:#6B5443;--c-gold:#C9A35A;--c-gold-soft:#E6D5AC;
+--c-on-dark:#FFFCF5;
+--f-display:"Young Serif",Georgia,serif;--f-body:"Figtree",system-ui,sans-serif;--f-mono:"JetBrains Mono",ui-monospace,monospace;
+--t-display:48px;--t-h1:34px;--t-h2:26px;--t-h3:21px;--t-body:19px;--t-small:16px;--t-label:13px;
+--s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:24px;--s-6:32px;--s-7:48px;--s-8:72px;
+--r-sm:8px;--r-md:14px;--r-lg:22px;--r-pill:999px;
+--tap-min:56px;--tap-lg:72px;
+--rule:2px solid var(--c-gold);--rule-thin:1px solid var(--c-gold-soft);
+--shadow-card:0 1px 0 var(--c-gold-soft),0 6px 18px rgba(58,38,24,.07);
+}
+[data-text="large"]{--t-display:54px;--t-h1:38px;--t-h2:29px;--t-h3:24px;--t-body:22px;--t-small:18px;--t-label:15px;--tap-min:64px;--tap-lg:80px}
+body{margin:0;background:var(--c-cream);color:var(--c-ink);font-family:var(--f-body);-webkit-font-smoothing:antialiased}
+a{color:var(--c-forest);text-decoration-color:var(--c-gold)}a:hover{color:var(--c-orange)}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<div data-text="{{ textSize }}" style="max-width:1180px;margin:0 auto;padding:var(--s-7) var(--s-5) var(--s-8);display:flex;flex-direction:column;gap:var(--s-8)">
+
+<header style="display:flex;flex-direction:column;gap:var(--s-4);border-bottom:var(--rule);padding-bottom:var(--s-6)">
+<div style="font:700 var(--t-label)/1 var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-orange)">Thanksgiving 2026 / Design system v0.1</div>
+<h1 style="margin:0;font:400 var(--t-display)/1.05 var(--f-display);color:var(--c-forest);text-wrap:balance">Soul Hunt: tokens &amp; base components</h1>
+<p style="margin:0;max-width:62ch;font:400 var(--t-body)/1.5 var(--f-body);color:var(--c-ink-muted);text-wrap:pretty">Foundation for the scavenger hunt app, taken from the family hunt guide. Every value below is a CSS variable defined once in <code style="font:500 .85em var(--f-mono);color:var(--c-ink)">:root</code>; components reference only those variables. Minimum tap target is 56px, 72px for upload and scoring actions.</p>
+</header>
+
+<section style="display:flex;flex-direction:column;gap:var(--s-5)">
+<div style="display:flex;align-items:baseline;gap:var(--s-3);border-bottom:var(--rule-thin);padding-bottom:var(--s-3)"><span style="font:500 var(--t-label) var(--f-mono);color:var(--c-orange)">01</span><h2 style="margin:0;font:400 var(--t-h1)/1.1 var(--f-display);color:var(--c-forest)">Color</h2></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:var(--s-4)">
+<sc-for list="{{ swatches }}" as="sw" hint-placeholder-count="10">
+<div style="display:flex;flex-direction:column;background:var(--c-surface);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow-card)">
+<div style="height:96px;background:{{ sw.v }};border-bottom:var(--rule-thin);display:flex;align-items:flex-end;padding:var(--s-3)"><span style="font:700 var(--t-small) var(--f-body);color:{{ sw.on }}">{{ sw.ratio }}</span></div>
+<div style="padding:var(--s-3) var(--s-4) var(--s-4);display:flex;flex-direction:column;gap:2px">
+<div style="font:700 var(--t-small)/1.3 var(--f-body)">{{ sw.name }}</div>
+<div style="font:500 12px/1.4 var(--f-mono);color:var(--c-ink-muted)">{{ sw.token }} · {{ sw.hex }}</div>
+<div style="font:400 14px/1.4 var(--f-body);color:var(--c-ink-muted)">{{ sw.use }}</div>
+</div></div>
+</sc-for>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:var(--s-5)">
+<div style="display:flex;align-items:baseline;gap:var(--s-3);border-bottom:var(--rule-thin);padding-bottom:var(--s-3)"><span style="font:500 var(--t-label) var(--f-mono);color:var(--c-orange)">02</span><h2 style="margin:0;font:400 var(--t-h1)/1.1 var(--f-display);color:var(--c-forest)">Type</h2></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr);background:var(--c-surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:var(--s-2) var(--s-5)">
+<div style="display:grid;grid-template-columns:150px minmax(0,1fr);gap:var(--s-4);align-items:baseline;padding:var(--s-4) 0;border-bottom:var(--rule-thin)"><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">--t-display · serif</span><span style="font:400 var(--t-display)/1.05 var(--f-display);color:var(--c-forest)">Let the Soul searching begin.</span></div>
+<div style="display:grid;grid-template-columns:150px minmax(0,1fr);gap:var(--s-4);align-items:baseline;padding:var(--s-4) 0;border-bottom:var(--rule-thin)"><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">--t-h1 · serif</span><span style="font:400 var(--t-h1)/1.1 var(--f-display);color:var(--c-forest)">The special-color field guide</span></div>
+<div style="display:grid;grid-template-columns:150px minmax(0,1fr);gap:var(--s-4);align-items:baseline;padding:var(--s-4) 0;border-bottom:var(--rule-thin)"><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">--t-h2 · serif</span><span style="font:400 var(--t-h2)/1.2 var(--f-display);color:var(--c-ink)">Round 2 · Costco lot</span></div>
+<div style="display:grid;grid-template-columns:150px minmax(0,1fr);gap:var(--s-4);align-items:baseline;padding:var(--s-4) 0;border-bottom:var(--rule-thin)"><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">--t-h3 · sans 700</span><span style="font:700 var(--t-h3)/1.3 var(--f-body);color:var(--c-ink)">Take a clear photo of each claim</span></div>
+<div style="display:grid;grid-template-columns:150px minmax(0,1fr);gap:var(--s-4);align-items:baseline;padding:var(--s-4) 0;border-bottom:var(--rule-thin)"><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">--t-body · sans 400</span><span style="font:400 var(--t-body)/1.5 var(--f-body);max-width:60ch;text-wrap:pretty">Count each car once per player for the whole hunt. Other players may find and count that same car too.</span></div>
+<div style="display:grid;grid-template-columns:150px minmax(0,1fr);gap:var(--s-4);align-items:baseline;padding:var(--s-4) 0;border-bottom:var(--rule-thin)"><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">--t-small · sans 500</span><span style="font:500 var(--t-small)/1.45 var(--f-body);color:var(--c-ink-muted)">Brown means brown: champagne, pale gold and beige do not qualify.</span></div>
+<div style="display:grid;grid-template-columns:150px minmax(0,1fr);gap:var(--s-4);align-items:baseline;padding:var(--s-4) 0"><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">--t-label · caps 700</span><span style="font:700 var(--t-label)/1 var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-orange)">Official hunt guide</span></div>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:var(--s-5)">
+<div style="display:flex;align-items:baseline;gap:var(--s-3);border-bottom:var(--rule-thin);padding-bottom:var(--s-3)"><span style="font:500 var(--t-label) var(--f-mono);color:var(--c-orange)">03</span><h2 style="margin:0;font:400 var(--t-h1)/1.1 var(--f-display);color:var(--c-forest)">Space, shape, touch</h2></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--s-4)">
+<div style="background:var(--c-surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:var(--s-5);display:flex;flex-direction:column;gap:var(--s-3)">
+<div style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-ink-muted)">Spacing</div>
+<sc-for list="{{ spaces }}" as="sp" hint-placeholder-count="8">
+<div style="display:flex;align-items:center;gap:var(--s-3)"><span style="width:56px;font:500 12px var(--f-mono);color:var(--c-ink-muted)">{{ sp.t }}</span><span style="height:12px;width:{{ sp.v }};background:var(--c-forest);border-radius:2px"></span><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">{{ sp.v }}</span></div>
+</sc-for>
+</div>
+<div style="background:var(--c-surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:var(--s-5);display:flex;flex-direction:column;gap:var(--s-4)">
+<div style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-ink-muted)">Radius &amp; rules</div>
+<div style="display:flex;gap:var(--s-3);flex-wrap:wrap">
+<div style="display:flex;flex-direction:column;gap:6px;align-items:center"><span style="width:56px;height:56px;border:2px solid var(--c-forest);border-radius:var(--r-sm)"></span><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">--r-sm</span></div>
+<div style="display:flex;flex-direction:column;gap:6px;align-items:center"><span style="width:56px;height:56px;border:2px solid var(--c-forest);border-radius:var(--r-md)"></span><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">--r-md</span></div>
+<div style="display:flex;flex-direction:column;gap:6px;align-items:center"><span style="width:56px;height:56px;border:2px solid var(--c-forest);border-radius:var(--r-lg)"></span><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">--r-lg</span></div>
+<div style="display:flex;flex-direction:column;gap:6px;align-items:center"><span style="width:56px;height:56px;border:2px solid var(--c-forest);border-radius:var(--r-pill)"></span><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">--r-pill</span></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:var(--s-2)"><div style="border-top:var(--rule)"></div><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">--rule · section headers</span><div style="border-top:var(--rule-thin);margin-top:var(--s-2)"></div><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">--rule-thin · dividers</span></div>
+</div>
+<div style="background:var(--c-surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:var(--s-5);display:flex;flex-direction:column;gap:var(--s-4)">
+<div style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-ink-muted)">Tap targets</div>
+<div style="display:flex;gap:var(--s-4);align-items:flex-end">
+<div style="display:flex;flex-direction:column;gap:6px"><span style="width:44px;height:44px;border:2px dashed var(--c-ink-muted);border-radius:var(--r-sm);opacity:.6"></span><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">44 · not used</span></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="width:var(--tap-min);height:var(--tap-min);background:var(--c-forest-tint);border:2px solid var(--c-forest);border-radius:var(--r-md)"></span><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">--tap-min</span></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="width:var(--tap-lg);height:var(--tap-lg);background:var(--c-orange-tint);border:2px solid var(--c-orange);border-radius:var(--r-md)"></span><span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">--tap-lg</span></div>
+</div>
+<p style="margin:0;font:400 var(--t-small)/1.45 var(--f-body);color:var(--c-ink-muted);text-wrap:pretty">Upload, score and timer controls use --tap-lg. Primary actions are full width, with at least 12px between targets.</p>
+</div>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:var(--s-5)">
+<div style="display:flex;align-items:baseline;gap:var(--s-3);border-bottom:var(--rule-thin);padding-bottom:var(--s-3)"><span style="font:500 var(--t-label) var(--f-mono);color:var(--c-orange)">04</span><h2 style="margin:0;font:400 var(--t-h1)/1.1 var(--f-display);color:var(--c-forest)">Base components</h2></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:var(--s-5);align-items:start">
+
+<div style="background:var(--c-surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:var(--s-5);display:flex;flex-direction:column;gap:var(--s-3)">
+<div style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-ink-muted)">Button</div>
+<button style="min-height:var(--tap-lg);border:0;border-radius:var(--r-md);background:var(--c-forest);color:var(--c-on-dark);font:700 var(--t-h3) var(--f-body);cursor:pointer;box-shadow:inset 0 -3px 0 var(--c-forest-deep)" style-hover="background:var(--c-forest-deep)" style-active="transform:translateY(1px)">Start 90-second round</button>
+<button style="min-height:var(--tap-lg);border:0;border-radius:var(--r-md);background:var(--c-orange);color:var(--c-on-dark);font:700 var(--t-h3) var(--f-body);cursor:pointer;box-shadow:inset 0 -3px 0 var(--c-orange-deep)" style-hover="background:var(--c-orange-deep)">Take photo</button>
+<button style="min-height:var(--tap-min);border:2px solid var(--c-forest);border-radius:var(--r-md);background:transparent;color:var(--c-forest);font:700 var(--t-body) var(--f-body);cursor:pointer" style-hover="background:var(--c-forest-tint)">Review claims</button>
+<div style="display:flex;gap:var(--s-3)">
+<button style="flex:1;min-height:var(--tap-min);border:0;border-radius:var(--r-md);background:transparent;color:var(--c-ink-muted);font:600 var(--t-body) var(--f-body);text-decoration:underline;text-decoration-color:var(--c-gold);text-underline-offset:4px;cursor:pointer">Skip</button>
+<button disabled="" style="flex:2;min-height:var(--tap-min);border:0;border-radius:var(--r-md);background:var(--c-cream-deep);color:var(--c-ink-muted);font:700 var(--t-body) var(--f-body)">Waiting for players</button>
+</div>
+</div>
+
+<div style="background:var(--c-surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:var(--s-5);display:flex;flex-direction:column;gap:var(--s-4)">
+<div style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-ink-muted)">Score badge &amp; category chip</div>
+<div style="display:flex;gap:var(--s-3);flex-wrap:wrap">
+<div style="display:flex;align-items:center;gap:var(--s-2);padding:6px 14px 6px 6px;border-radius:var(--r-pill);background:var(--c-forest-tint)"><span style="min-width:40px;height:40px;border-radius:var(--r-pill);background:var(--c-forest);color:var(--c-on-dark);font:400 20px/40px var(--f-display);text-align:center">+1</span><span style="font:600 var(--t-small) var(--f-body);color:var(--c-forest)">Regular</span></div>
+<div style="display:flex;align-items:center;gap:var(--s-2);padding:6px 14px 6px 6px;border-radius:var(--r-pill);background:var(--c-gold-soft)"><span style="min-width:40px;height:40px;border-radius:var(--r-pill);background:var(--c-ink);color:var(--c-gold-soft);font:400 20px/40px var(--f-display);text-align:center">+2</span><span style="font:600 var(--t-small) var(--f-body);color:var(--c-ink)">Special</span></div>
+<div style="display:flex;align-items:center;gap:var(--s-2);padding:6px 14px 6px 6px;border-radius:var(--r-pill);background:var(--c-orange-tint)"><span style="min-width:40px;height:40px;border-radius:var(--r-pill);background:var(--c-orange);color:var(--c-on-dark);font:400 20px/40px var(--f-display);text-align:center">−1</span><span style="font:600 var(--t-small) var(--f-body);color:var(--c-orange-deep)">False call</span></div>
+</div>
+<div style="display:flex;gap:var(--s-2);flex-wrap:wrap">
+<sc-for list="{{ cats }}" as="c" hint-placeholder-count="4">
+<button onClick="{{ c.toggle }}" aria-pressed="{{ c.on }}" style="min-height:var(--tap-min);padding:0 var(--s-4);border-radius:var(--r-pill);border:2px solid {{ c.border }};background:{{ c.bg }};color:{{ c.fg }};font:600 var(--t-small) var(--f-body);cursor:pointer;display:flex;align-items:center;gap:var(--s-2)"><span style="width:14px;height:14px;border-radius:var(--r-pill);background:{{ c.dot }};border:1px solid rgba(58,38,24,.25)"></span>{{ c.label }}</button>
+</sc-for>
+</div>
+<p style="margin:0;font:400 var(--t-small)/1.45 var(--f-body);color:var(--c-ink-muted)">Chips toggle. Any selection makes the claim worth 2 points total.</p>
+</div>
+
+<div style="background:var(--c-surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:var(--s-5);display:flex;flex-direction:column;gap:var(--s-4)">
+<div style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-ink-muted)">Photo upload tile</div>
+<button onClick="{{ cycleUpload }}" style="min-height:200px;border-radius:var(--r-lg);border:{{ up.border }};background:{{ up.bg }};color:var(--c-ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s-3);padding:var(--s-5);font-family:var(--f-body)">
+<span style="width:var(--tap-lg);height:var(--tap-lg);border-radius:var(--r-pill);background:{{ up.iconBg }};color:var(--c-on-dark);display:flex;align-items:center;justify-content:center;font:400 34px/1 var(--f-display)">{{ up.glyph }}</span>
+<span style="font:700 var(--t-h3)/1.2 var(--f-body)">{{ up.title }}</span>
+<span style="font:500 var(--t-small)/1.4 var(--f-body);color:var(--c-ink-muted)">{{ up.sub }}</span>
+<span style="width:100%;max-width:240px;height:10px;border-radius:var(--r-pill);background:var(--c-cream-deep);overflow:hidden;opacity:{{ up.barOpacity }}"><span style="display:block;height:100%;width:{{ up.pct }};background:var(--c-forest);border-radius:var(--r-pill);transition:width .4s"></span></span>
+</button>
+<p style="margin:0;font:400 var(--t-small)/1.45 var(--f-body);color:var(--c-ink-muted)">Tap to step through: empty, uploading, saved, failed. The whole tile is the target.</p>
+</div>
+
+<div style="background:var(--c-surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:var(--s-5);display:flex;flex-direction:column;gap:var(--s-4)">
+<div style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-ink-muted)">Tally stepper</div>
+<sc-for list="{{ steppers }}" as="st" hint-placeholder-count="3">
+<div style="display:flex;align-items:center;gap:var(--s-3);padding-bottom:var(--s-3);border-bottom:var(--rule-thin)">
+<div style="flex:1;display:flex;flex-direction:column"><span style="font:700 var(--t-body) var(--f-body)">{{ st.label }}</span><span style="font:500 var(--t-small) var(--f-body);color:var(--c-ink-muted)">{{ st.pts }}</span></div>
+<button onClick="{{ st.dec }}" aria-label="Decrease" style="width:var(--tap-min);height:var(--tap-min);border-radius:var(--r-md);border:2px solid var(--c-gold);background:var(--c-cream);color:var(--c-ink);font:700 28px/1 var(--f-body);cursor:pointer">−</button>
+<span style="min-width:48px;text-align:center;font:400 var(--t-h1)/1 var(--f-display);color:var(--c-forest)">{{ st.n }}</span>
+<button onClick="{{ st.inc }}" aria-label="Increase" style="width:var(--tap-min);height:var(--tap-min);border-radius:var(--r-md);border:0;background:var(--c-forest);color:var(--c-on-dark);font:700 28px/1 var(--f-body);cursor:pointer">+</button>
+</div>
+</sc-for>
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-ink-muted)">Round total</span><span style="font:400 var(--t-h1) var(--f-display);color:var(--c-forest)">{{ total }}</span></div>
+</div>
+
+<div style="background:var(--c-surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:var(--s-5);display:flex;flex-direction:column;gap:var(--s-4)">
+<div style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-ink-muted)">Round timer</div>
+<div style="background:var(--c-forest);border-radius:var(--r-lg);padding:var(--s-5);display:flex;flex-direction:column;align-items:center;gap:var(--s-2);border:3px solid var(--c-gold)">
+<span style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-gold-soft)">Round 2 of 4 · Target lot</span>
+<span style="font:400 88px/1 var(--f-display);color:var(--c-on-dark);font-variant-numeric:tabular-nums">1:12</span>
+<span style="width:100%;height:10px;border-radius:var(--r-pill);background:var(--c-forest-deep);overflow:hidden"><span style="display:block;height:100%;width:80%;background:var(--c-gold);border-radius:var(--r-pill)"></span></span>
+</div>
+</div>
+
+<div style="background:var(--c-surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:var(--s-5);display:flex;flex-direction:column;gap:var(--s-3)">
+<div style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-ink-muted)">Alert</div>
+<div role="alert" style="display:flex;gap:var(--s-3);align-items:flex-start;padding:var(--s-4);border-radius:var(--r-md);background:var(--c-orange);color:var(--c-on-dark)"><span style="flex:none;width:32px;height:32px;border-radius:var(--r-pill);background:var(--c-on-dark);color:var(--c-orange);font:800 20px/32px var(--f-body);text-align:center">!</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:700 var(--t-body)/1.3 var(--f-body)">Buzzer! Time's up.</span><span style="font:500 var(--t-small)/1.4 var(--f-body)">No photos after the buzzer. Head back to review claims.</span></div></div>
+<div style="display:flex;gap:var(--s-3);align-items:flex-start;padding:var(--s-4);border-radius:var(--r-md);background:var(--c-orange-tint);color:var(--c-ink);border:2px solid var(--c-orange)"><span style="flex:none;width:32px;height:32px;border-radius:var(--r-pill);background:var(--c-orange);color:var(--c-on-dark);font:800 20px/32px var(--f-body);text-align:center">!</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:700 var(--t-body)/1.3 var(--f-body)">Photo didn't send</span><span style="font:500 var(--t-small)/1.4 var(--f-body);color:var(--c-ink-muted)">It's saved on your phone. We'll retry when you have signal.</span></div></div>
+<div style="display:flex;gap:var(--s-3);align-items:flex-start;padding:var(--s-4);border-radius:var(--r-md);background:var(--c-forest-tint);color:var(--c-forest)"><span style="flex:none;width:32px;height:32px;border-radius:var(--r-pill);background:var(--c-forest);color:var(--c-on-dark);font:800 18px/32px var(--f-body);text-align:center">✓</span><span style="font:700 var(--t-body)/1.6 var(--f-body)">Claim saved · +2 points</span></div>
+</div>
+
+<div style="background:var(--c-surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:var(--s-5);display:flex;flex-direction:column;gap:var(--s-4)">
+<div style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-ink-muted)">Text field &amp; toggle</div>
+<label style="display:flex;flex-direction:column;gap:var(--s-2)"><span style="font:700 var(--t-small) var(--f-body)">Player name</span><input value="{{ name }}" onChange="{{ setName }}" style="min-height:var(--tap-min);padding:0 var(--s-4);border-radius:var(--r-md);border:2px solid var(--c-gold);background:var(--c-cream);color:var(--c-ink);font:500 var(--t-body) var(--f-body);outline:none" style-focus="border-color:var(--c-forest);box-shadow:0 0 0 4px var(--c-forest-tint)"></label>
+<sc-for list="{{ bonuses }}" as="b" hint-placeholder-count="2">
+<button onClick="{{ b.toggle }}" role="switch" aria-checked="{{ b.on }}" style="min-height:var(--tap-min);display:flex;align-items:center;gap:var(--s-3);padding:var(--s-2) 0;border:0;border-top:var(--rule-thin);background:transparent;text-align:left;cursor:pointer;font-family:var(--f-body);color:var(--c-ink)">
+<span style="flex:1;display:flex;flex-direction:column"><span style="font:700 var(--t-body) var(--f-body)">{{ b.name }}</span><span style="font:500 var(--t-small) var(--f-body);color:var(--c-ink-muted)">{{ b.pts }}</span></span>
+<span style="flex:none;width:64px;height:36px;border-radius:var(--r-pill);background:{{ b.track }};padding:4px;display:flex;justify-content:{{ b.align }};transition:background .2s"><span style="width:28px;height:28px;border-radius:var(--r-pill);background:var(--c-on-dark);box-shadow:0 1px 3px rgba(58,38,24,.3)"></span></span>
+</button>
+</sc-for>
+</div>
+
+<div style="background:var(--c-surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:var(--s-5);display:flex;flex-direction:column;gap:var(--s-3)">
+<div style="font:700 var(--t-label) var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-ink-muted)">Leaderboard row</div>
+<sc-for list="{{ players }}" as="p" hint-placeholder-count="4">
+<div style="min-height:var(--tap-min);display:flex;align-items:center;gap:var(--s-3);padding:var(--s-2) var(--s-3);border-radius:var(--r-md);background:{{ p.bg }}">
+<span style="width:24px;font:400 var(--t-h3) var(--f-display);color:var(--c-ink-muted)">{{ p.rank }}</span>
+<span style="width:44px;height:44px;border-radius:var(--r-pill);background:{{ p.avatar }};color:var(--c-on-dark);font:400 20px/44px var(--f-display);text-align:center">{{ p.initial }}</span>
+<span style="flex:1;font:700 var(--t-body) var(--f-body)">{{ p.name }}</span>
+<span style="font:400 var(--t-h2) var(--f-display);color:var(--c-forest)">{{ p.score }}</span>
+</div>
+</sc-for>
+</div>
+
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:var(--s-5)">
+<div style="display:flex;align-items:baseline;gap:var(--s-3);border-bottom:var(--rule-thin);padding-bottom:var(--s-3)"><span style="font:500 var(--t-label) var(--f-mono);color:var(--c-orange)">05</span><h2 style="margin:0;font:400 var(--t-h1)/1.1 var(--f-display);color:var(--c-forest)">Home-screen icon</h2></div>
+<div style="display:flex;flex-wrap:wrap;gap:var(--s-6);align-items:flex-end;background:var(--c-surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:var(--s-6)">
+<sc-for list="{{ icons }}" as="ic" hint-placeholder-count="4">
+<div style="display:flex;flex-direction:column;align-items:center;gap:var(--s-2)">
+<div style="width:{{ ic.px }};height:{{ ic.px }};border-radius:{{ ic.r }};background:var(--c-forest);position:relative;overflow:hidden;box-shadow:0 2px 6px rgba(20,52,36,.25)">
+<div style="position:absolute;inset:{{ ic.inset }};border:{{ ic.ring }} solid var(--c-gold);border-radius:{{ ic.innerR }}"></div>
+<div style="position:absolute;top:{{ ic.dotTop }};right:{{ ic.dotTop }};width:{{ ic.dot }};height:{{ ic.dot }};border-radius:999px;background:var(--c-orange)"></div>
+<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:400 {{ ic.font }}/1 var(--f-display);color:var(--c-cream);padding-top:{{ ic.nudge }}">S</div>
+</div>
+<span style="font:500 12px var(--f-mono);color:var(--c-ink-muted)">{{ ic.label }}</span>
+</div>
+</sc-for>
+<div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:var(--s-4);border-radius:var(--r-lg);background:var(--c-ink)">
+<div style="width:60px;height:60px;border-radius:14px;background:var(--c-forest);position:relative;overflow:hidden"><div style="position:absolute;inset:5px;border:1.5px solid var(--c-gold);border-radius:10px"></div><div style="position:absolute;top:9px;right:9px;width:8px;height:8px;border-radius:999px;background:var(--c-orange)"></div><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:400 34px/1 var(--f-display);color:var(--c-cream);padding-top:3px">S</div></div>
+<span style="font:500 12px var(--f-body);color:var(--c-cream)">Soul Hunt</span>
+</div>
+</div>
+<p style="margin:0;max-width:62ch;font:400 var(--t-small)/1.5 var(--f-body);color:var(--c-ink-muted);text-wrap:pretty">Serif S on forest green, inside a gold rule like the guide's page borders. The orange dot is the found Soul; it carries the accent at small sizes where the ring thins out.</p>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;textSize&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;standard&quot;,&quot;large&quot;],&quot;default&quot;:&quot;standard&quot;,&quot;tsType&quot;:&quot;'standard' | 'large'&quot;}}">
+class Component extends DCLogic {
+  state = { cats: { alien: true, stripes: false, graphics: false, brown: false }, upload: 0, n: { reg: 3, spe: 1, fal: 1 }, name: 'Heathyr', bonus: { exact: true, soulmates: false } };
+  renderVals() {
+    const s = this.state;
+    const catDefs = [['alien', 'Alien Green', '#9BC53D'], ['stripes', 'Racing stripes', '#FFFCF5'], ['graphics', 'Exterior graphics', '#C9A35A'], ['brown', 'Brown paint', '#6E4B30']];
+    const cats = catDefs.map(([k, label, dot]) => {
+      const on = s.cats[k];
+      return { label, dot, on: String(on), bg: on ? 'var(--c-forest)' : 'var(--c-surface)', fg: on ? 'var(--c-on-dark)' : 'var(--c-ink)', border: on ? 'var(--c-forest)' : 'var(--c-gold)',
+        toggle: () => this.setState(st => ({ cats: { ...st.cats, [k]: !st.cats[k] } })) };
+    });
+    const ups = [
+      { title: 'Add photo of the Soul', sub: 'Tap anywhere here to open the camera', glyph: '+', iconBg: 'var(--c-orange)', border: '3px dashed var(--c-gold)', bg: 'var(--c-cream)', pct: '0%', barOpacity: 0 },
+      { title: 'Sending photo…', sub: 'Keep the app open', glyph: '↑', iconBg: 'var(--c-forest)', border: '3px solid var(--c-gold-soft)', bg: 'var(--c-cream)', pct: '62%', barOpacity: 1 },
+      { title: 'Photo saved', sub: '4:12 PM · Target lot', glyph: '✓', iconBg: 'var(--c-forest)', border: '3px solid var(--c-forest)', bg: 'var(--c-forest-tint)', pct: '100%', barOpacity: 0 },
+      { title: "Didn't send. Tap to try again", sub: 'Your photo is still on this phone', glyph: '!', iconBg: 'var(--c-orange)', border: '3px solid var(--c-orange)', bg: 'var(--c-orange-tint)', pct: '0%', barOpacity: 0 }
+    ];
+    const mk = (k, label, pts, w) => ({ label, pts, n: s.n[k],
+      inc: () => this.setState(st => ({ n: { ...st.n, [k]: st.n[k] + 1 } })),
+      dec: () => this.setState(st => ({ n: { ...st.n, [k]: Math.max(0, st.n[k] - 1) } })) });
+    const total = s.n.reg + 2 * s.n.spe - s.n.fal;
+    const bonusDefs = [['exact', 'Exact Guess', '+2 · predict your count'], ['soulmates', 'Soulmates', '+2 · two Souls side by side']];
+    const sw = (name, token, hex, use, on, ratio) => ({ name, token, hex, use, v: `var(${token})`, on, ratio });
+    return {
+      textSize: this.props.textSize ?? 'standard',
+      swatches: [
+        sw('Cream', '--c-cream', '#FAF4E8', 'Page background', 'var(--c-ink)', 'Ink 12.6:1'),
+        sw('Surface', '--c-surface', '#FFFCF5', 'Cards, sheets', 'var(--c-ink)', 'Ink 13.6:1'),
+        sw('Cream deep', '--c-cream-deep', '#F1E7D3', 'Tracks, disabled', 'var(--c-ink)', 'Ink 11.2:1'),
+        sw('Forest', '--c-forest', '#1F4A33', 'Headers, primary actions', 'var(--c-on-dark)', 'Cream 9.6:1'),
+        sw('Forest deep', '--c-forest-deep', '#143424', 'Pressed, timer track', 'var(--c-on-dark)', 'Cream 12.9:1'),
+        sw('Burnt orange', '--c-orange', '#B9501C', 'Accents, alerts, camera', 'var(--c-on-dark)', 'Cream 4.9:1'),
+        sw('Orange tint', '--c-orange-tint', '#F8E2D2', 'Warning surfaces', 'var(--c-orange-deep)', 'Orange-deep 5.8:1'),
+        sw('Ink', '--c-ink', '#3A2618', 'Body text', 'var(--c-on-dark)', 'on cream 12.6:1'),
+        sw('Ink muted', '--c-ink-muted', '#6B5443', 'Secondary text', 'var(--c-on-dark)', 'on cream 6.6:1'),
+        sw('Gold', '--c-gold', '#C9A35A', 'Rules, borders only', 'var(--c-ink)', 'Not for text')
+      ],
+      spaces: [1, 2, 3, 4, 5, 6, 7, 8].map(i => ({ t: `--s-${i}`, v: ['4px', '8px', '12px', '16px', '24px', '32px', '48px', '72px'][i - 1] })),
+      cats,
+      up: ups[s.upload],
+      cycleUpload: () => this.setState(st => ({ upload: (st.upload + 1) % 4 })),
+      steppers: [mk('reg', 'Regular Soul', '+1 each'), mk('spe', 'Special-color Soul', '+2 each'), mk('fal', 'False call', '−1 each')],
+      total: total > 0 ? `${total} pts` : `${total} pts`,
+      name: s.name,
+      setName: e => this.setState({ name: e.target.value }),
+      bonuses: bonusDefs.map(([k, name, pts]) => ({ name, pts, on: String(s.bonus[k]), track: s.bonus[k] ? 'var(--c-forest)' : 'var(--c-gold-soft)', align: s.bonus[k] ? 'flex-end' : 'flex-start',
+        toggle: () => this.setState(st => ({ bonus: { ...st.bonus, [k]: !st.bonus[k] } })) })),
+      players: [['1', 'Heathyr', 14, 'var(--c-forest)'], ['2', 'Player 2', 11, 'var(--c-orange)'], ['3', 'Player 3', 9, 'var(--c-ink-muted)'], ['4', 'Player 4', 6, 'var(--c-ink)']].map(([rank, name, score, avatar], i) => ({ rank, name, score, avatar, initial: name[0], bg: i === 0 ? 'var(--c-gold-soft)' : 'transparent' })),
+      icons: [
+        { px: '180px', r: '40px', inset: '12px', innerR: '30px', ring: '3px', dot: '22px', dotTop: '26px', font: '110px', nudge: '10px', label: '180 · App Store' },
+        { px: '120px', r: '27px', inset: '8px', innerR: '20px', ring: '2px', dot: '15px', dotTop: '17px', font: '72px', nudge: '6px', label: '120 · iPhone' },
+        { px: '60px', r: '14px', inset: '5px', innerR: '10px', ring: '1.5px', dot: '8px', dotTop: '9px', font: '34px', nudge: '3px', label: '60 · Spotlight' },
+        { px: '40px', r: '9px', inset: '3px', innerR: '7px', ring: '1px', dot: '6px', dotTop: '6px', font: '24px', nudge: '2px', label: '40 · Settings' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
