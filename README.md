@@ -4,8 +4,7 @@ A web app with a React frontend and a FastAPI backend.
 
 ## Prerequisites
 
-- Homebrew
-- Node 26 via nvm: run `nvm use` in the repo root
+- Node 26 via nvm: run `nvm install` in the repo root
 - uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
 ## First-time setup
@@ -15,6 +14,10 @@ make install
 cp web/.env.example web/.env
 cp api/.env.example api/.env
 ```
+
+## Run it
+
+Run `make api` and `make web` in separate terminals, then open http://localhost:5173, which should show `API: ok`.
 
 ## Make targets
 
