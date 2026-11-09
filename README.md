@@ -43,6 +43,8 @@ Staging and production values are configured on each host, never committed.
 
 The API runs on Render as a Docker service defined in `render.yaml`. Render deploys each commit to `main` once its CI checks pass, and only switches over when `/health` responds. Environment variables such as `CORS_ORIGINS` are set in the Render dashboard, never committed.
 
+Production API: https://soul-search-api.onrender.com (health check at `/health`).
+
 ## Make targets
 
 | Target | What it does |
