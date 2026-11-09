@@ -22,7 +22,7 @@ Set up the soul-search monorepo so that `web/` and `api/` each run locally with 
 Makefile
 README.md
 web/
-  .env.example
+  .env.development
   package.json, vite.config.ts, tsconfig*.json, eslint.config.js, .prettierrc
   index.html
   src/main.tsx
@@ -30,7 +30,7 @@ web/
   src/App.test.tsx
   src/hooks/useApiHealth.ts
 api/
-  .env.example
+  .env.development
   .python-version
   pyproject.toml, uv.lock
   app/__init__.py
@@ -54,14 +54,14 @@ api/
 - Follows the project React rules: function components, named exports, one component per file, props typed with `ComponentNameProps`, no `any`.
 - `make web` runs `npm run dev` on port 5173.
 
-### Env templates
+### Env files
 
-| File | Variable | Example |
+| File | Variable | Value |
 | --- | --- | --- |
-| `web/.env.example` | `VITE_API_URL` | `http://localhost:8000` |
-| `api/.env.example` | `CORS_ORIGINS` | `http://localhost:5173` |
+| `web/.env.development` | `VITE_API_URL` | `http://localhost:8000` |
+| `api/.env.development` | `CORS_ORIGINS` | `http://localhost:5173` |
 
-Only variables the code uses today. Later issues add their own.
+Committed local development values; personal overrides and secrets go in git-ignored `*.local` files. Staging and production values are set on each host. Only variables the code uses today; later issues add their own.
 
 ## Makefile targets
 
