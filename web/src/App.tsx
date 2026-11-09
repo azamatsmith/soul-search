@@ -1,13 +1,6 @@
-import { useApiHealth } from './hooks/useApiHealth'
+import { createBrowserRouter, RouterProvider } from 'react-router'
+import { routes } from './routes'
 
-export const App = () => {
-  const status = useApiHealth(import.meta.env.VITE_API_URL)
-  const label = status === 'checking' ? 'checking...' : status
+const router = createBrowserRouter(routes)
 
-  return (
-    <main>
-      <h1>Soul Search</h1>
-      <p>API: {label}</p>
-    </main>
-  )
-}
+export const App = () => <RouterProvider router={router} />

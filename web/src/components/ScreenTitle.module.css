@@ -1,0 +1,18 @@
+.header {
+  padding: var(--s-3) 20px 14px;
+  border-bottom: var(--rule);
+}
+
+.kicker {
+  margin: 0;
+  color: var(--c-orange);
+  font: 700 var(--t-label) var(--f-body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  color: var(--c-forest);
+  font: 400 var(--t-h1) / 1.1 var(--f-display);
+}
