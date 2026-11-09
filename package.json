@@ -1,0 +1,7 @@
+{
+  "name": "soul-search",
+  "private": true,
+  "devDependencies": {
+    "supabase": "3.0.0"
+  }
+}
