@@ -28,6 +28,17 @@ With your Docker runtime running, `make db-start` starts the local Supabase stac
 - Studio (database UI): http://localhost:54323
 - Mail catcher for auth emails: http://localhost:54324
 
+### Signing in locally
+
+The API needs two keys from the local stack. Run `npx supabase status` and copy them into `api/.env.local`:
+
+```sh
+SUPABASE_SECRET_KEY=<SECRET_KEY from supabase status>
+SUPABASE_JWT_SECRET=<JWT_SECRET from supabase status>
+```
+
+Sign in with a seeded email such as `bob@example.test`, then read the 6-digit code in the mail catcher at http://localhost:54324.
+
 `make db-reset` rebuilds the local database from the migrations and seed data in `supabase/`. The seed adds three test players: Alice (an admin), Bob and Carol, with the emails `alice@example.test`, `bob@example.test` and `carol@example.test`. `make db-test` runs the database tests. `make db-stop` stops the stack.
 
 ## Environments
@@ -36,6 +47,10 @@ With your Docker runtime running, `make db-start` starts the local Supabase stac
 | --- | --- | --- | --- |
 | `VITE_API_URL` | web | `http://localhost:8000` | Set in the Netlify dashboard |
 | `CORS_ORIGINS` | api | `http://localhost:5173` | Set in the Render dashboard |
+| `SUPABASE_URL` | api | `http://127.0.0.1:54321` | Set in the Render dashboard |
+| `SUPABASE_SECRET_KEY` | api | `api/.env.local` | Set in the Render dashboard |
+| `SUPABASE_JWT_SECRET` | api | `api/.env.local` | Set in the Render dashboard, only if the project still uses the legacy JWT secret |
+| `DATABASE_URL` | api | local stack | Set in the Render dashboard, using the transaction pooler connection string |
 
 Staging and production values are configured on each host, never committed.
 
@@ -46,6 +61,15 @@ The web app runs on Netlify, configured by `netlify.toml`. Netlify builds `web/`
 The web app installs to the home screen on iPhone (Safari) and Android (Chrome) as a PWA. Its icon is `web/public/icon.svg`. After changing it, run `npm run icons` in `web/` to regenerate the PNG sizes.
 
 The API runs on Render as a Docker service defined in `render.yaml`. Render deploys each commit to `main` once its CI checks pass, and only switches over when `/health` responds. Environment variables such as `CORS_ORIGINS` are set in the Render dashboard, never committed.
+
+### Sign-in emails
+
+Production sign-in codes are sent through [Resend](https://resend.com) as custom SMTP, because Supabase's built-in sender is heavily rate-limited. In the Supabase dashboard for the production project:
+
+1. In Resend, verify the sending domain and create an SMTP API key.
+2. Under Authentication, SMTP Settings, enable custom SMTP with host `smtp.resend.com`, port `465`, user `resend` and the API key as the password.
+3. Under Authentication, Providers, Email, set the email OTP expiry to `600` seconds and the OTP length to `6`.
+4. Under Authentication, Email Templates, set both "Magic Link" and "Confirm signup" to the contents of `supabase/templates/code.html`, with the subject "Your Soul Search code". The template shows the code (`{{ .Token }}`), not a link.
 
 Production web app: https://soulsearchapp.netlify.app
 
@@ -62,6 +86,7 @@ Production API: https://soul-search-api.onrender.com (health check at `/health`)
 | `make db-stop` | Stop the local Supabase stack |
 | `make db-reset` | Rebuild the local database from migrations and seed data |
 | `make db-test` | Run the database tests against the local stack |
+| `make db-api-test` | Run the API tests that need the local database |
 | `make lint` | Lint, format check and typecheck both apps |
 | `make fmt` | Auto-format both apps |
 | `make test` | Run web and api tests |
