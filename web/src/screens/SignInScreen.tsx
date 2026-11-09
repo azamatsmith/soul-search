@@ -7,9 +7,9 @@ import type { EmailError } from '../hooks/useSignIn'
 import styles from './SignInScreen.module.css'
 
 export interface SignInScreenProps {
-  sending: boolean
   error: EmailError | null
   onSubmit: (email: string) => void
+  sending: boolean
 }
 
 const ERRORS: Record<EmailError, { title: string; body?: string }> = {
@@ -25,9 +25,9 @@ const ERRORS: Record<EmailError, { title: string; body?: string }> = {
 }
 
 export const SignInScreen = ({
-  sending,
   error,
   onSubmit,
+  sending,
 }: SignInScreenProps) => {
   const [email, setEmail] = useState('')
   const canSubmit = !sending && email.trim().includes('@')
@@ -45,32 +45,32 @@ export const SignInScreen = ({
   return (
     <AuthLayout>
       <div className={styles.brand}>
-        <div className={styles.logo} aria-hidden="true">
+        <div aria-hidden="true" className={styles.logo}>
           <span className={styles.logoDot} />S
         </div>
         <h1 className={styles.name}>Soul Search</h1>
         <p className={styles.tagline}>A new Kia Soul challenge every week.</p>
       </div>
-      <form className={styles.form} onSubmit={handleSubmit} noValidate>
+      <form className={styles.form} noValidate onSubmit={handleSubmit}>
         <TextField
-          label="Your email"
-          type="email"
-          inputMode="email"
-          autoComplete="email"
-          autoCapitalize="none"
-          spellCheck={false}
-          value={email}
-          onChange={handleEmailChange}
           aria-invalid={message ? true : undefined}
+          autoCapitalize="none"
+          autoComplete="email"
           hint={
             message
               ? undefined
               : "We'll email you a 6-digit code. Type it in here to sign in. No password to remember."
           }
+          inputMode="email"
+          label="Your email"
+          onChange={handleEmailChange}
+          spellCheck={false}
+          type="email"
+          value={email}
         />
         {message && <FormError title={message.title}>{message.body}</FormError>}
         <div className={styles.spacer} />
-        <Button type="submit" disabled={!canSubmit}>
+        <Button disabled={!canSubmit} type="submit">
           Email me a code
         </Button>
         <p className={styles.footnote}>Soul Search is invite-only.</p>

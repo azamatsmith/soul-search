@@ -18,10 +18,10 @@ const tabClassName = ({ isActive }: { isActive: boolean }) =>
   isActive ? `${styles.tab} ${styles.active}` : styles.tab
 
 export const TabBar = () => (
-  <nav className={styles.bar} aria-label="Main">
-    {tabs.map(({ to, label, icon: Icon }) => (
-      <NavLink key={to} to={to} end className={tabClassName}>
-        <Icon size={26} strokeWidth={2.5} aria-hidden="true" />
+  <nav aria-label="Main" className={styles.bar}>
+    {tabs.map(({ icon: Icon, label, to }) => (
+      <NavLink className={tabClassName} end key={to} to={to}>
+        <Icon aria-hidden="true" size={26} strokeWidth={2.5} />
         {label}
       </NavLink>
     ))}

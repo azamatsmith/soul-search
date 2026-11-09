@@ -9,7 +9,7 @@ describe('TextField', () => {
   })
 
   it('shows the hint when there is no error', () => {
-    render(<TextField label="Your name" hint="2 to 20 characters." />)
+    render(<TextField hint="2 to 20 characters." label="Your name" />)
     expect(screen.getByLabelText('Your name')).toHaveAccessibleDescription(
       '2 to 20 characters.',
     )
@@ -21,9 +21,9 @@ describe('TextField', () => {
   it('shows the error instead of the hint and marks the input invalid', () => {
     render(
       <TextField
-        label="Your name"
-        hint="2 to 20 characters."
         error="Names need at least 2 characters."
+        hint="2 to 20 characters."
+        label="Your name"
       />,
     )
     const input = screen.getByLabelText('Your name')

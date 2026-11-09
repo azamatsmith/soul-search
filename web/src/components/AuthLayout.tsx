@@ -2,12 +2,12 @@ import type { ReactNode } from 'react'
 import styles from './AuthLayout.module.css'
 
 export interface AuthLayoutProps {
+  children: ReactNode
   kicker?: string
   title?: string
-  children: ReactNode
 }
 
-export const AuthLayout = ({ kicker, title, children }: AuthLayoutProps) => (
+export const AuthLayout = ({ children, kicker, title }: AuthLayoutProps) => (
   <main className={styles.screen}>
     {title && (
       <header className={styles.header}>

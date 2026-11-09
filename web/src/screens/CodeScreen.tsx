@@ -8,10 +8,10 @@ import type { CodeState, CodeStatus } from '../hooks/useSignIn'
 import styles from './CodeScreen.module.css'
 
 export interface CodeScreenProps {
-  state: CodeState
-  onSubmitCode: (code: string) => void
-  onResend: () => void
   onChangeEmail: () => void
+  onResend: () => void
+  onSubmitCode: (code: string) => void
+  state: CodeState
 }
 
 const TITLES: Partial<Record<CodeStatus, string>> = {
@@ -29,10 +29,10 @@ const clearsCode = (previous: CodeStatus, next: CodeStatus) =>
   (previous === 'sending' && next === 'idle')
 
 export const CodeScreen = ({
-  state,
-  onSubmitCode,
-  onResend,
   onChangeEmail,
+  onResend,
+  onSubmitCode,
+  state,
 }: CodeScreenProps) => {
   const { status } = state
   const [code, setCode] = useState('')
@@ -55,12 +55,12 @@ export const CodeScreen = ({
         We sent a 6-digit code to <b className={styles.email}>{state.email}</b>.
       </p>
       <CodeInput
-        value={code}
+        disabled={DISABLED_INPUT.includes(status)}
+        invalid={invalid}
         onChange={setCode}
         onComplete={onSubmitCode}
-        disabled={DISABLED_INPUT.includes(status)}
         readOnly={READ_ONLY_INPUT.includes(status)}
-        invalid={invalid}
+        value={code}
       />
       {(status === 'idle' || sending) && (
         <p className={styles.hint}>
@@ -77,16 +77,16 @@ export const CodeScreen = ({
       )}
       {WITH_RESEND.includes(status) ? (
         <div className={styles.pair}>
-          <Button variant="secondary" onClick={onResend}>
+          <Button onClick={onResend} variant="secondary">
             Send a new code
           </Button>
-          <Button variant="secondary" onClick={onChangeEmail}>
+          <Button onClick={onChangeEmail} variant="secondary">
             Use another email
           </Button>
         </div>
       ) : (
         status !== 'checking' && (
-          <Button variant="link" onClick={onChangeEmail} disabled={sending}>
+          <Button disabled={sending} onClick={onChangeEmail} variant="link">
             Use another email
           </Button>
         )

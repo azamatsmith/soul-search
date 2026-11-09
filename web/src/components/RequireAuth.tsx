@@ -23,7 +23,7 @@ export const RequireAuth = () => {
   }, [revoked])
 
   if (session.status === 'signed_out') {
-    return <Navigate to="/sign-in" replace />
+    return <Navigate replace to="/sign-in" />
   }
   if (session.status === 'unreachable') {
     return <UnreachableScreen onRetry={session.retry} />
@@ -33,10 +33,10 @@ export const RequireAuth = () => {
   }
   if (!me) return null
   if (!me.display_name && pathname !== WELCOME_PATH) {
-    return <Navigate to={WELCOME_PATH} replace />
+    return <Navigate replace to={WELCOME_PATH} />
   }
   if (me.display_name && pathname === WELCOME_PATH) {
-    return <Navigate to="/" replace />
+    return <Navigate replace to="/" />
   }
 
   const context: MeOutletContext = { me, setMe }
