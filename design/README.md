@@ -15,7 +15,7 @@ One audience consideration drives many decisions: **an older, less tech-confiden
   - Doubtful Special → keeps +2, flagged for an admin.
   - **Players can see flags.** A false call changes the sighting's chip only; there's no notice or push.
 - **Where/place is deferred** for the MVP. Save GPS if allowed; show no place name anywhere.
-- **Challenges:** while a challenge runs, new photos count toward the challenge **instead of** the week. *Assumption to confirm:* the weekly board is paused for the challenge dates.
+- **Challenges** have exact start/end times (Pacific), so they can last hours or days. While one runs, new photos count toward the challenge **instead of** the week. **Confirmed:** the weekly board is paused for the challenge dates.
 
 ## About the Design Files
 The files in this bundle are **design references created in HTML**. They are prototypes that show the intended look and behavior, not production code to copy. Recreate them in the target codebase using its patterns and libraries. Open the `.dc.html` files directly in a browser. `support.js` is only the preview runtime; ignore it for implementation.
@@ -199,9 +199,10 @@ Entry: **Admin tools** row in Settings, admins only. Every action writes to the 
 - **A7 Change history**: newest first, filter **Everything | Scores only**. Row: admin avatar, "**Matthew** changed …", type chip (Photo / Score / Emails / Rules / Challenge) and time.
 
 ### Challenges: `Soul Search Challenges.dc.html` (#14)
-- **C1 Admin list**: **+ New challenge**, then "Coming up" (orange "Starts in 3 days" chip) and "Finished" ("Won by …").
-- **C2 Create / edit**: Name, Starts/Ends date fields (whole days, group time zone), note "While it runs, new photos count toward the challenge instead of the week.", steppers starting from the weekly rules + per-category bonus rows ("Brown paint +3"), "+ Add a category bonus", **Save challenge**.
-- **C3 Home while running**: header kicker "CHALLENGE · BROWN WEEK", "Ends Sun · 2 days left", "Challenge points", challenge rank; **orange banner** under the header: "Brown Week is on" / "Brown Souls are worth +3. Photos count toward the challenge until Sunday night; weekly scores pick up again Monday."
+- **C1 Admin list**: **+ New challenge**, then "Running now" (2px orange border card, chip "Live · ends 6:00 pm · 3 hours left"), "Coming up" (chip "Starts Thu 9:00 am · in 3 days") and "Finished" ("Won by …"). Card subtitle shows the exact range, e.g. "Thu Nov 26, 2:00 – 6:00 pm".
+- **C2 Create / edit**: Name; **Starts** and **Ends** each have a date picker (flex 3) next to a time picker (flex 2), both 72px. **Exact times in Pacific (America/Los_Angeles)**, stored as UTC. Under them: "All times Pacific" plus a live duration ("Runs 4 hours" / "Runs 3 days, 15 hours"). Validate that Ends is after Starts. Note "While it runs, new photos count toward the challenge instead of the week."; C2b shows a 4-hour "Thanksgiving Dash" (Thu Nov 26, 2:00–6:00 pm); steppers starting from the weekly rules + per-category bonus rows ("Brown paint +3"), "+ Add a category bonus", **Save challenge**.
+- **Time-left copy rule** (Home header, C1 chips, leaderboard kicker): more than 24 h left → "Ends Sun 11:59 pm · 2 days left"; 1–24 h → "Ends 6:00 pm · 3 hours left"; under 1 h → "Ends 6:00 pm · 45 min left". Use the weekday only when the end isn't today. Lowercase am/pm, Pacific time. Starts use the same pattern ("Starts Thu 9:00 am · in 3 days").
+- **C3 Home while running**: header kicker "CHALLENGE · BROWN WEEK", "Ends Sun 11:59 pm · 2 days left" (C3b short version: "Ends 6:00 pm · 3 hours left", banner "Alien Green Souls are worth +3 until 6:00 pm today. After that, photos count toward your week again."), "Challenge points", challenge rank; **orange banner** under the header: "Brown Week is on" / "Brown Souls are worth +3. Photos count toward the challenge until Sun 11:59 pm. Weekly scores pick up again after that."
 - **C4 Photo step 2**: orange-tint strip "Counts toward Brown Week"; point badges and the Send label show challenge values; a bonus category chip shows its points ("+3").
 - **C5 Saved**: kicker "BROWN SOUL SAVED", "+3", "You have 9 Brown Week points."
 - **C6 Challenge leaderboard**: segmented **{Challenge} | All time** (it replaces "This week" while running), rules strip "Rules: Regular +1 · Special +2 · Brown paint +3 · False call −1", rows, See past weeks.
