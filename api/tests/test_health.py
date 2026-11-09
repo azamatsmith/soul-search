@@ -24,6 +24,25 @@ def test_cors_allows_default_origin(monkeypatch: pytest.MonkeyPatch):
     assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
 
 
+def test_cors_preflight_allows_post_with_authorization(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("CORS_ORIGINS", raising=False)
+    client = TestClient(create_app())
+
+    response = client.options(
+        "/health",
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "authorization,content-type",
+        },
+    )
+
+    assert response.status_code == 200
+    methods = response.headers["access-control-allow-methods"]
+    assert "POST" in methods
+    assert "PUT" in methods
+
+
 def test_cors_blocks_unlisted_origin(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.delenv("CORS_ORIGINS", raising=False)
     client = TestClient(create_app())

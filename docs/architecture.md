@@ -44,13 +44,13 @@ sequenceDiagram
     participant mail as Email provider
 
     player->>pwa: Enter email
-    pwa->>api: Request a code
+    pwa->>api: POST /auth/send-code
     api->>api: Check the email is on the allowlist
     api->>auth: Send a one-time code
     auth->>mail: Send email
     mail-->>player: 6-digit code, valid for 10 minutes
     player->>pwa: Enter code
-    pwa->>api: Verify the code
+    pwa->>api: POST /auth/verify-code
     api->>api: Count tries per email (5 wrong locks sign-in for 15 minutes)
     api->>auth: Verify the code
     auth-->>api: Session
