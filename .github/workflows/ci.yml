@@ -56,3 +56,11 @@ jobs:
       - run: npm ci
       - run: npx supabase start -x realtime,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
       - run: npx supabase test db
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+          cache-dependency-glob: api/uv.lock
+      - run: uv sync --locked
+        working-directory: api
+      - run: uv run pytest -m db
+        working-directory: api
