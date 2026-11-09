@@ -1,0 +1,30 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  box-sizing: border-box;
+  min-height: 100%;
+  padding: calc(env(safe-area-inset-top) + var(--s-3)) var(--s-5)
+    calc(env(safe-area-inset-bottom) + var(--s-6));
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.kicker {
+  margin: 0;
+  color: var(--c-orange);
+  font: 700 var(--t-label) / 1.2 var(--f-body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  color: var(--c-forest);
+  font: 400 var(--t-h1) / 1.1 var(--f-display);
+  text-wrap: balance;
+}
