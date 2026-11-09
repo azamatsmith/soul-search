@@ -91,10 +91,11 @@ def verify_code(body: VerifyCodeBody, attempts: Attempts, auth: Auth, now: Now) 
     if session is not None:
         attempts.save(email, register_success(state), now)
         return SessionResponse(**asdict(session))
-    if code_expired(state, now):
-        raise ApiError(410, "expired")
+    expired = code_expired(state, now)
     state = register_failure(state, now)
     attempts.save(email, state, now)
     if is_locked(state, now):
         raise locked_error(state)
+    if expired:
+        raise ApiError(410, "expired")
     raise ApiError(401, "wrong_code", tries_left=tries_left(state))

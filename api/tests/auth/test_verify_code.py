@@ -70,15 +70,27 @@ def test_verify_while_locked_423_does_not_extend(auth_harness: AuthHarness):
     assert auth_harness.supabase.verified == []
 
 
-def test_verify_expired_410_not_counted(auth_harness: AuthHarness):
-    sent_long_ago = AttemptState(failed_count=2, code_sent_at=T0 - timedelta(seconds=601))
-    auth_harness.attempts.states[BOB] = sent_long_ago
+def test_verify_expired_410_counts_as_wrong(auth_harness: AuthHarness):
+    auth_harness.attempts.states[BOB] = AttemptState(
+        failed_count=2, code_sent_at=T0 - timedelta(seconds=601), last_failed_at=T0 - MINUTE
+    )
 
     response = verify(auth_harness)
 
     assert response.status_code == 410
     assert response.json() == {"error": "expired"}
-    assert auth_harness.attempts.states[BOB] == sent_long_ago
+    assert auth_harness.attempts.states[BOB].failed_count == 3
+
+
+def test_verify_fifth_try_on_expired_code_locks_423(auth_harness: AuthHarness):
+    auth_harness.attempts.states[BOB] = AttemptState(
+        failed_count=4, code_sent_at=T0 - timedelta(seconds=601), last_failed_at=T0 - MINUTE
+    )
+
+    response = verify(auth_harness)
+
+    assert response.status_code == 423
+    assert auth_harness.attempts.states[BOB].locked_until == T0 + 15 * MINUTE
 
 
 def test_verify_without_code_sent_counts_as_wrong(auth_harness: AuthHarness):
