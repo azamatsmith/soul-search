@@ -1,4 +1,4 @@
-.PHONY: install web api db-start db-stop db-reset lint fmt test
+.PHONY: install web api db-start db-stop db-reset db-test lint fmt test
 
 install:
 	npm ci
@@ -19,6 +19,9 @@ db-stop:
 
 db-reset:
 	npx supabase db reset
+
+db-test:
+	npx supabase test db
 
 lint:
 	cd web && npm run lint && npm run format:check && npm run typecheck
