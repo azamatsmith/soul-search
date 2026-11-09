@@ -1,0 +1,5 @@
+.status {
+  margin: var(--s-5) 20px;
+  color: var(--c-ink-muted);
+  font: 500 var(--t-small) / 1.45 var(--f-body);
+}

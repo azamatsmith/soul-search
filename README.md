@@ -41,6 +41,10 @@ Staging and production values are configured on each host, never committed.
 
 ## Deployment
 
+The web app runs on Netlify, configured by `netlify.toml`. Netlify builds `web/` and deploys `main` to production, and builds a preview for every pull request. Previews don't call the production API. `VITE_API_URL` is set in the Netlify dashboard.
+
+The web app installs to the home screen on iPhone (Safari) and Android (Chrome) as a PWA. Its icon is `web/public/icon.svg`. After changing it, run `npm run icons` in `web/` to regenerate the PNG sizes.
+
 The API runs on Render as a Docker service defined in `render.yaml`. Render deploys each commit to `main` once its CI checks pass, and only switches over when `/health` responds. Environment variables such as `CORS_ORIGINS` are set in the Render dashboard, never committed.
 
 ## Make targets
