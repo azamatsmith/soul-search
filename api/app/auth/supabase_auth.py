@@ -35,7 +35,8 @@ class SupabaseAuth:
         )
 
     def send_code(self, email: str) -> None:
-        response = self._post("/otp", {"email": email, "create_user": True})
+        self._ensure_user(email)
+        response = self._post("/otp", {"email": email, "create_user": False})
         if response.status_code == 429:
             raise TooSoon
         if response.is_error:
@@ -55,11 +56,25 @@ class SupabaseAuth:
             expires_at=body["expires_at"],
         )
 
+    def _ensure_user(self, email: str) -> None:
+        response = self._post("/admin/users", {"email": email, "email_confirm": True})
+        if response.status_code == 422 and _error_code(response) == "email_exists":
+            return
+        if response.is_error:
+            raise AuthUnavailable(f"create user failed with {response.status_code}")
+
     def _post(self, path: str, payload: dict[str, object]) -> httpx.Response:
         try:
             return self._client.post(path, json=payload)
         except httpx.HTTPError as error:
             raise AuthUnavailable(str(error)) from error
+
+
+def _error_code(response: httpx.Response) -> str | None:
+    try:
+        return response.json().get("error_code")
+    except ValueError:
+        return None
 
 
 def get_supabase_auth() -> SupabaseAuth:

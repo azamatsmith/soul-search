@@ -4,14 +4,15 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from app.auth.tokens import CurrentUser, get_current_user
+from app.auth.allowed_user import get_allowed_user
+from app.auth.tokens import CurrentUser
 from app.errors import ApiError
 from app.me.display_name import DisplayNameError, validate_display_name
 from app.me.players_repo import NameTaken, Player, PlayersRepo, get_players_repo
 
 router = APIRouter(prefix="/me")
 
-User = Annotated[CurrentUser, Depends(get_current_user)]
+User = Annotated[CurrentUser, Depends(get_allowed_user)]
 Players = Annotated[PlayersRepo, Depends(get_players_repo)]
 
 

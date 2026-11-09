@@ -3,10 +3,11 @@ from uuid import UUID
 import pytest
 from fastapi.testclient import TestClient
 
+from app.auth.attempts_repo import get_attempts_repo
 from app.auth.tokens import CurrentUser, get_current_user
 from app.main import create_app
 from app.me.players_repo import Player, get_players_repo
-from tests.fakes import FakePlayersRepo
+from tests.fakes import FakeAttemptsRepo, FakePlayersRepo
 
 USER_ID = UUID("b2222222-2222-2222-2222-222222222222")
 USER = CurrentUser(id=USER_ID, email="bob@example.test")
@@ -17,11 +18,14 @@ ALICE = Player(
     text_size="standard",
 )
 
+ALLOWED = {"bob@example.test", "alice@example.test"}
+
 
 def client_for(user: CurrentUser, players: FakePlayersRepo) -> TestClient:
     app = create_app()
     app.dependency_overrides[get_current_user] = lambda: user
     app.dependency_overrides[get_players_repo] = lambda: players
+    app.dependency_overrides[get_attempts_repo] = lambda: FakeAttemptsRepo(ALLOWED)
     return TestClient(app)
 
 
@@ -95,3 +99,27 @@ def test_me_requires_auth_401(players: FakePlayersRepo):
 
     assert response.status_code == 401
     assert response.json() == {"error": "unauthenticated"}
+
+
+def test_me_not_on_allowlist_403(players: FakePlayersRepo):
+    stranger = CurrentUser(id=USER_ID, email="stranger@example.test")
+
+    response = client_for(stranger, players).get("/me")
+
+    assert response.status_code == 403
+    assert response.json() == {"error": "not_allowed"}
+
+
+def test_put_name_not_on_allowlist_403(players: FakePlayersRepo):
+    stranger = CurrentUser(id=USER_ID, email="stranger@example.test")
+
+    response = client_for(stranger, players).put("/me/display-name", json={"display_name": "Eve"})
+
+    assert response.status_code == 403
+    assert USER_ID not in players.players
+
+
+def test_allowlist_check_ignores_email_case(players: FakePlayersRepo):
+    shouty = CurrentUser(id=USER_ID, email="BOB@Example.test")
+
+    assert client_for(shouty, players).get("/me").status_code == 200

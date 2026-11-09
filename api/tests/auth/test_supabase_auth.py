@@ -20,7 +20,7 @@ def make_auth(handler: Callable[[httpx.Request], httpx.Response]) -> SupabaseAut
     return SupabaseAuth("http://supabase.test", "secret", transport=httpx.MockTransport(handler))
 
 
-def test_send_code_posts_email_with_apikey():
+def test_send_code_creates_confirmed_user_then_sends_without_signup():
     requests: list[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -29,20 +29,44 @@ def test_send_code_posts_email_with_apikey():
 
     make_auth(handler).send_code("bob@example.test")
 
-    (request,) = requests
-    assert request.method == "POST"
-    assert str(request.url) == "http://supabase.test/auth/v1/otp"
-    assert request.headers["apikey"] == "secret"
-    assert json.loads(request.content) == {"email": "bob@example.test", "create_user": True}
+    create, otp = requests
+    assert str(create.url) == "http://supabase.test/auth/v1/admin/users"
+    assert create.headers["apikey"] == "secret"
+    assert json.loads(create.content) == {"email": "bob@example.test", "email_confirm": True}
+    assert str(otp.url) == "http://supabase.test/auth/v1/otp"
+    assert otp.headers["apikey"] == "secret"
+    assert json.loads(otp.content) == {"email": "bob@example.test", "create_user": False}
+
+
+def test_send_code_existing_user_still_sends():
+    paths: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        paths.append(request.url.path)
+        if request.url.path.endswith("/admin/users"):
+            return httpx.Response(422, json={"error_code": "email_exists"})
+        return httpx.Response(200, json={})
+
+    make_auth(handler).send_code("bob@example.test")
+
+    assert paths == ["/auth/v1/admin/users", "/auth/v1/otp"]
+
+
+def test_send_code_create_user_failure_raises_unavailable():
+    auth = make_auth(lambda _: httpx.Response(401, json={"error_code": "no_authorization"}))
+
+    with pytest.raises(AuthUnavailable):
+        auth.send_code("bob@example.test")
 
 
 def test_send_code_429_raises_too_soon():
-    auth = make_auth(
-        lambda _: httpx.Response(429, json={"error_code": "over_email_send_rate_limit"})
-    )
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/admin/users"):
+            return httpx.Response(422, json={"error_code": "email_exists"})
+        return httpx.Response(429, json={"error_code": "over_email_send_rate_limit"})
 
     with pytest.raises(TooSoon):
-        auth.send_code("bob@example.test")
+        make_auth(handler).send_code("bob@example.test")
 
 
 def test_verify_code_posts_token():
