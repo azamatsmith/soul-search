@@ -49,6 +49,7 @@ Body `{email}`. The email is trimmed and lowercased.
 | Not in `allowed_emails` | 403 | `not_allowed` |
 | `locked_until` in the future | 423 | `locked`, `locked_until` |
 | Supabase resend throttle | 429 | `too_soon` |
+| Supabase down or 5xx | 502 | `auth_unavailable` |
 | Sent | 204 | |
 
 On success it upserts `sign_in_attempts.code_sent_at = now()`. Supabase is asked to create the auth user if missing, since the allowlist was already checked.
@@ -59,7 +60,9 @@ Body `{email, code}`. `code` must be 6 digits (422 otherwise).
 
 | Case | Status | Body |
 | --- | --- | --- |
+| Not in `allowed_emails` | 403 | `not_allowed` |
 | Locked | 423 | `locked`, `locked_until` |
+| Supabase down or 5xx | 502 | `auth_unavailable`, not counted |
 | Supabase accepts | 200 | `access_token`, `refresh_token`, `expires_in`, `expires_at` |
 | Rejected and `code_sent_at` older than 600 s | 410 | `expired` |
 | Rejected, fewer than 5 wrong | 401 | `wrong_code`, `tries_left` |
