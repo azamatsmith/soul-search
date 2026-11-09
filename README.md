@@ -11,9 +11,9 @@ A web app with a React frontend and a FastAPI backend.
 
 ```sh
 make install
-cp web/.env.example web/.env
-cp api/.env.example api/.env
 ```
+
+Local settings live in the committed `web/.env.development` and `api/.env.development` files, so no copying is needed. Put personal overrides or local secrets in `web/.env.development.local` or `api/.env.local`; both are git-ignored.
 
 ## Run it
 
