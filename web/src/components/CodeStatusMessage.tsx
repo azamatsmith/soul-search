@@ -16,8 +16,8 @@ export const CodeStatusMessage = ({ state }: CodeStatusMessageProps) => {
   switch (state.status) {
     case 'checking':
       return (
-        <div role="status" className={styles.checking}>
-          <span className={styles.spinner} aria-hidden="true" />
+        <div className={styles.checking} role="status">
+          <span aria-hidden="true" className={styles.spinner} />
           Checking your code…
         </div>
       )

@@ -6,16 +6,16 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button = ({
-  variant = 'primary',
-  type = 'button',
   className,
+  type = 'button',
+  variant = 'primary',
   ...buttonProps
 }: ButtonProps) => (
   <button
     {...buttonProps}
-    type={type}
     className={[styles.button, styles[variant], className]
       .filter(Boolean)
       .join(' ')}
+    type={type}
   />
 )

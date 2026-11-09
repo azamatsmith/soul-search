@@ -4,12 +4,12 @@ import styles from './CodeInput.module.css'
 export const CODE_LENGTH = 6
 
 export interface CodeInputProps {
-  value: string
+  disabled?: boolean
+  invalid?: boolean
   onChange: (value: string) => void
   onComplete: (code: string) => void
-  disabled?: boolean
   readOnly?: boolean
-  invalid?: boolean
+  value: string
 }
 
 const BOX_INDEXES = Array.from({ length: CODE_LENGTH }, (_, index) => index)
@@ -43,12 +43,12 @@ const nextCode = (previous: string, raw: string) => {
 }
 
 export const CodeInput = ({
-  value,
+  disabled = false,
+  invalid = false,
   onChange,
   onComplete,
-  disabled = false,
   readOnly = false,
-  invalid = false,
+  value,
 }: CodeInputProps) => {
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const next = nextCode(value, event.target.value)
@@ -60,29 +60,29 @@ export const CodeInput = ({
   return (
     <div className={styles.wrapper}>
       <input
-        className={styles.input}
         aria-label="6-digit code"
-        inputMode="numeric"
         autoComplete="one-time-code"
         autoFocus
-        value={value}
+        className={styles.input}
         disabled={disabled}
-        readOnly={readOnly}
+        inputMode="numeric"
         onChange={handleChange}
+        readOnly={readOnly}
+        value={value}
       />
       <div
-        className={styles.boxes}
-        data-testid="code-boxes"
-        data-invalid={invalid}
-        data-disabled={disabled}
         aria-hidden="true"
+        className={styles.boxes}
+        data-disabled={disabled}
+        data-invalid={invalid}
+        data-testid="code-boxes"
       >
         {BOX_INDEXES.map((index) => (
           <span
-            key={index}
-            data-testid="code-box"
-            data-active={!disabled && index === value.length}
             className={styles.box}
+            data-active={!disabled && index === value.length}
+            data-testid="code-box"
+            key={index}
           >
             {value[index] ?? ''}
           </span>

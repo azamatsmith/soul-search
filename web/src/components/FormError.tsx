@@ -2,12 +2,12 @@ import type { ReactNode } from 'react'
 import styles from './FormError.module.css'
 
 export interface FormErrorProps {
-  title: string
   children?: ReactNode
+  title: string
 }
 
-export const FormError = ({ title, children }: FormErrorProps) => (
-  <div role="alert" className={styles.box}>
+export const FormError = ({ children, title }: FormErrorProps) => (
+  <div className={styles.box} role="alert">
     <div className={styles.text}>
       <span className={styles.title}>{title}</span>
       {children && <span className={styles.body}>{children}</span>}

@@ -9,19 +9,19 @@ export const SignInPage = () => {
   if (state.step === 'email') {
     return (
       <SignInScreen
-        sending={state.sending}
         error={state.error}
         onSubmit={submitEmail}
+        sending={state.sending}
       />
     )
   }
 
   return (
     <CodeScreen
-      state={state}
-      onSubmitCode={submitCode}
-      onResend={resendCode}
       onChangeEmail={changeEmail}
+      onResend={resendCode}
+      onSubmitCode={submitCode}
+      state={state}
     />
   )
 }

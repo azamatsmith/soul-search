@@ -4,12 +4,12 @@ import { describe, expect, it, vi } from 'vitest'
 import { CodeInput } from './CodeInput'
 
 interface HarnessProps {
-  onComplete: (code: string) => void
-  onChange?: (value: string) => void
   invalid?: boolean
+  onChange?: (value: string) => void
+  onComplete: (code: string) => void
 }
 
-const Harness = ({ onComplete, onChange, invalid }: HarnessProps) => {
+const Harness = ({ invalid, onChange, onComplete }: HarnessProps) => {
   const [value, setValue] = useState('')
   const handleChange = (next: string) => {
     onChange?.(next)
@@ -17,10 +17,10 @@ const Harness = ({ onComplete, onChange, invalid }: HarnessProps) => {
   }
   return (
     <CodeInput
-      value={value}
+      invalid={invalid}
       onChange={handleChange}
       onComplete={onComplete}
-      invalid={invalid}
+      value={value}
     />
   )
 }
@@ -60,7 +60,7 @@ describe('CodeInput', () => {
 
   it('strips non-digits and keeps the first six', () => {
     const onChange = vi.fn()
-    render(<Harness onComplete={vi.fn()} onChange={onChange} />)
+    render(<Harness onChange={onChange} onComplete={vi.fn()} />)
     fireEvent.change(input(), { target: { value: 'Code: 482 913.' } })
     expect(onChange).toHaveBeenCalledWith('482913')
     fireEvent.change(input(), { target: { value: '4829137' } })
@@ -94,7 +94,7 @@ describe('CodeInput', () => {
   })
 
   it('marks boxes invalid', () => {
-    render(<Harness onComplete={vi.fn()} invalid />)
+    render(<Harness invalid onComplete={vi.fn()} />)
     expect(screen.getByTestId('code-boxes')).toHaveAttribute(
       'data-invalid',
       'true',

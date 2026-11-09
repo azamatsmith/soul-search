@@ -68,17 +68,17 @@ export const WelcomeScreen = () => {
 
   return (
     <AuthLayout kicker="Welcome!" title="What should we call you?">
-      <form className={styles.form} onSubmit={handleSubmit} noValidate>
+      <form className={styles.form} noValidate onSubmit={handleSubmit}>
         <p className={styles.lead}>
           This is how other players see you on the leaderboard.
         </p>
         <TextField
-          label="Your name"
           autoComplete="nickname"
-          value={name}
-          onChange={handleNameChange}
-          hint="2 to 20 characters. You can change it later in Settings."
           error={error ? nameErrorText(error, submittedName) : undefined}
+          hint="2 to 20 characters. You can change it later in Settings."
+          label="Your name"
+          onChange={handleNameChange}
+          value={name}
         />
         {error === 'unavailable' && (
           <FormError title="We couldn't reach Soul Search.">
@@ -86,7 +86,7 @@ export const WelcomeScreen = () => {
           </FormError>
         )}
         <div className={styles.spacer} />
-        <Button type="submit" disabled={saving}>
+        <Button disabled={saving} type="submit">
           Let's go
         </Button>
       </form>

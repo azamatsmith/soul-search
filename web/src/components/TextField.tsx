@@ -2,16 +2,16 @@ import { useId, type InputHTMLAttributes } from 'react'
 import styles from './TextField.module.css'
 
 export interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
-  label: string
-  hint?: string
   error?: string
+  hint?: string
+  label: string
 }
 
 export const TextField = ({
-  label,
-  hint,
-  error,
   className,
+  error,
+  hint,
+  label,
   ...inputProps
 }: TextFieldProps) => {
   const inputId = useId()
@@ -27,13 +27,13 @@ export const TextField = ({
       </label>
       <input
         {...inputProps}
-        id={inputId}
-        className={[styles.input, className].filter(Boolean).join(' ')}
-        aria-invalid={invalid ? true : undefined}
         aria-describedby={note ? noteId : undefined}
+        aria-invalid={invalid ? true : undefined}
+        className={[styles.input, className].filter(Boolean).join(' ')}
+        id={inputId}
       />
       {note && (
-        <p id={noteId} className={error ? styles.error : styles.hint}>
+        <p className={error ? styles.error : styles.hint} id={noteId}>
           {note}
         </p>
       )}
