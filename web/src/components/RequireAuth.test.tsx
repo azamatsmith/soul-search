@@ -156,4 +156,25 @@ describe('RequireAuth', () => {
     ).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/')
   })
+
+  it('shows try again when the stored session cannot be refreshed', async () => {
+    const retry = vi.fn()
+    session.mockReturnValue({ status: 'unreachable', retry })
+    const router = renderAt('/scores')
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      "We couldn't reach Soul Search.",
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(retry).toHaveBeenCalledTimes(1)
+    expect(router.state.location.pathname).toBe('/scores')
+  })
+
+  it('sends an unreachable session from sign in to the retry screen', async () => {
+    session.mockReturnValue({ status: 'unreachable', retry: vi.fn() })
+    const router = renderAt('/sign-in')
+    expect(
+      await screen.findByRole('button', { name: 'Try again' }),
+    ).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/')
+  })
 })

@@ -5,9 +5,7 @@ import { useMe } from '../hooks/useMe'
 import { useSession } from '../hooks/useSession'
 import { useTextSize } from '../hooks/useTextSize'
 import { supabase } from '../lib/supabase'
-import { AuthLayout } from './AuthLayout'
-import { Button } from './Button'
-import { FormError } from './FormError'
+import { UnreachableScreen } from './UnreachableScreen'
 
 const WELCOME_PATH = '/welcome'
 
@@ -27,15 +25,11 @@ export const RequireAuth = () => {
   if (session.status === 'signed_out') {
     return <Navigate to="/sign-in" replace />
   }
+  if (session.status === 'unreachable') {
+    return <UnreachableScreen onRetry={session.retry} />
+  }
   if (status === 'error' && !revoked) {
-    return (
-      <AuthLayout>
-        <FormError title="We couldn't reach Soul Search.">
-          Check your connection and try again.
-        </FormError>
-        <Button onClick={retry}>Try again</Button>
-      </AuthLayout>
-    )
+    return <UnreachableScreen onRetry={retry} />
   }
   if (!me) return null
   if (!me.display_name && pathname !== WELCOME_PATH) {
