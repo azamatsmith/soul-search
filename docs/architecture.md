@@ -1,6 +1,6 @@
 # Architecture
 
-Soul Search is an installable iPhone web app (PWA) backed by a FastAPI service and Supabase. The PWA talks only to FastAPI; FastAPI is the only part that talks to Supabase and the Claude vision API.
+Soul Search is an installable phone web app (PWA) for iPhone and Android backed by a FastAPI service and Supabase. The PWA talks only to FastAPI; FastAPI is the only part that talks to Supabase and the Claude vision API.
 
 Most of this is planned rather than built. Each issue that lands updates this page.
 
@@ -8,7 +8,7 @@ Most of this is planned rather than built. Each issue that lands updates this pa
 
 ```mermaid
 flowchart TB
-    phone["iPhone PWA<br/>React + Vite<br/>(Netlify)"]
+    phone["Phone PWA, iPhone and Android<br/>React + Vite<br/>(Netlify)"]
     api["FastAPI<br/>(Render)"]
     claude["Claude vision API"]
     email["Email provider<br/>(custom SMTP, e.g. Resend)"]
