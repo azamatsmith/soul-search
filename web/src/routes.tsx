@@ -2,6 +2,7 @@ import type { RouteObject } from 'react-router'
 import { AppShell } from './components/AppShell'
 import { RedirectIfSignedIn } from './components/RedirectIfSignedIn'
 import { RequireAuth } from './components/RequireAuth'
+import { ChangeNameScreen } from './screens/ChangeNameScreen'
 import { ScoresScreen } from './screens/ScoresScreen'
 import { SightingsScreen } from './screens/SightingsScreen'
 import { SignInPage } from './screens/SignInPage'
@@ -17,6 +18,7 @@ export const routes: RouteObject[] = [
     element: <RequireAuth />,
     children: [
       { path: '/welcome', element: <WelcomeScreen /> },
+      { path: '/settings/name', element: <ChangeNameScreen /> },
       {
         path: '/',
         element: <AppShell />,
