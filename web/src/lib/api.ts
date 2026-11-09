@@ -1,3 +1,4 @@
+import { isAuthApiError } from '@supabase/supabase-js'
 import type { TextSize } from '../hooks/useTextSize'
 import { supabase } from './supabase'
 
@@ -74,9 +75,61 @@ const toFailure = (status: number, body: unknown): ApiFailure => {
 
 const baseUrl = () => (import.meta.env.VITE_API_URL ?? '').replace(/\/+$/, '')
 
-const accessToken = async (): Promise<string | null> => {
-  const { data } = await supabase.auth.getSession()
-  return data.session?.access_token ?? null
+const REQUEST_TIMEOUT_MS = 15_000
+
+type TokenResult = { token: string } | ApiFailure
+
+const NETWORK: ApiFailure = { ok: false, status: 0, error: 'network' }
+const SIGNED_OUT: ApiFailure = {
+  ok: false,
+  status: 401,
+  error: 'unauthenticated',
+}
+
+const currentToken = async (): Promise<TokenResult> => {
+  const { data, error } = await supabase.auth.getSession()
+  if (error) return NETWORK
+  return data.session ? { token: data.session.access_token } : SIGNED_OUT
+}
+
+const refreshedToken = async (): Promise<TokenResult> => {
+  const { data, error } = await supabase.auth.refreshSession()
+  if (error) return isAuthApiError(error) ? SIGNED_OUT : NETWORK
+  return data.session ? { token: data.session.access_token } : SIGNED_OUT
+}
+
+const send = async (
+  path: string,
+  method: 'GET' | 'POST' | 'PUT',
+  body: unknown,
+  token: string | null,
+): Promise<Response | null> => {
+  const headers = new Headers()
+  if (body !== undefined) headers.set('Content-Type', 'application/json')
+  if (token) headers.set('Authorization', `Bearer ${token}`)
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  try {
+    return await fetch(`${baseUrl()}${path}`, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: controller.signal,
+    })
+  } catch {
+    return null
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+const toResult = async <T>(
+  response: Response | null,
+): Promise<ApiResult<T>> => {
+  if (!response) return NETWORK
+  if (!response.ok) return toFailure(response.status, await readJson(response))
+  if (response.status === 204) return { ok: true, data: null as T }
+  return { ok: true, data: (await readJson(response)) as T }
 }
 
 const request = async <T>(
@@ -85,28 +138,16 @@ const request = async <T>(
   body: unknown,
   auth: boolean,
 ): Promise<ApiResult<T>> => {
-  const headers = new Headers()
-  if (body !== undefined) headers.set('Content-Type', 'application/json')
-  if (auth) {
-    const token = await accessToken()
-    if (!token) return { ok: false, status: 401, error: 'unauthenticated' }
-    headers.set('Authorization', `Bearer ${token}`)
-  }
+  if (!auth) return toResult<T>(await send(path, method, body, null))
 
-  let response: Response
-  try {
-    response = await fetch(`${baseUrl()}${path}`, {
-      method,
-      headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
-    })
-  } catch {
-    return { ok: false, status: 0, error: 'network' }
-  }
+  const first = await currentToken()
+  if (!('token' in first)) return first
+  const response = await send(path, method, body, first.token)
+  if (response?.status !== 401) return toResult<T>(response)
 
-  if (!response.ok) return toFailure(response.status, await readJson(response))
-  if (response.status === 204) return { ok: true, data: null as T }
-  return { ok: true, data: (await readJson(response)) as T }
+  const refreshed = await refreshedToken()
+  if (!('token' in refreshed)) return refreshed
+  return toResult<T>(await send(path, method, body, refreshed.token))
 }
 
 export const sendCode = (email: string) =>
