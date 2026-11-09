@@ -9,7 +9,7 @@ Most of this is planned rather than built. Each issue that lands updates this pa
 ```mermaid
 flowchart TB
     phone["iPhone PWA<br/>React + Vite<br/>(Netlify)"]
-    api["FastAPI<br/>(Render or Fly)"]
+    api["FastAPI<br/>(Render)"]
     claude["Claude vision API"]
     email["Email provider<br/>(custom SMTP, e.g. Resend)"]
     inbox["Player's inbox"]
@@ -123,6 +123,6 @@ sequenceDiagram
 | --- | --- | --- | --- |
 | Local | Vite on `localhost:5173` | FastAPI on `localhost:8000` | Supabase CLI stack in Docker, with a mail catcher for sign-in emails |
 | Staging | Netlify branch deploy | Staging service deployed from a `staging` branch | Separate Supabase project with a test email sender |
-| Production | Netlify, deployed from `main` | Render or Fly | Production Supabase project |
+| Production | Netlify, deployed from `main` | Render, deployed from `main` once CI passes | Production Supabase project |
 
 Staging is planned in #18. Changes go to staging first, are verified there, then are promoted to `main`.

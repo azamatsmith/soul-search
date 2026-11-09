@@ -35,9 +35,13 @@ With your Docker runtime running, `make db-start` starts the local Supabase stac
 | Variable | App | Local (`.env.development`) | Staging and production |
 | --- | --- | --- | --- |
 | `VITE_API_URL` | web | `http://localhost:8000` | Set in the Netlify dashboard |
-| `CORS_ORIGINS` | api | `http://localhost:5173` | Set in the API host dashboard |
+| `CORS_ORIGINS` | api | `http://localhost:5173` | Set in the Render dashboard |
 
 Staging and production values are configured on each host, never committed.
+
+## Deployment
+
+The API runs on Render as a Docker service defined in `render.yaml`. Render deploys each commit to `main` once its CI checks pass, and only switches over when `/health` responds. Environment variables such as `CORS_ORIGINS` are set in the Render dashboard, never committed.
 
 ## Make targets
 

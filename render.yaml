@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: soul-search-api
+    runtime: docker
+    plan: 0.5c-512mb
+    region: oregon
+    branch: main
+    rootDir: api
+    dockerfilePath: ./api/Dockerfile
+    dockerContext: ./api
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: CORS_ORIGINS
+        sync: false
