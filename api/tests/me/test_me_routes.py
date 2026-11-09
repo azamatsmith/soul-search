@@ -123,3 +123,32 @@ def test_allowlist_check_ignores_email_case(players: FakePlayersRepo):
     shouty = CurrentUser(id=USER_ID, email="BOB@Example.test")
 
     assert client_for(shouty, players).get("/me").status_code == 200
+
+
+@pytest.mark.parametrize("size", ["large", "standard"])
+def test_put_text_size_saves_and_returns_me(players: FakePlayersRepo, size: str):
+    players.players[USER_ID] = Player(
+        USER_ID, "Bob", False, "large" if size == "standard" else "standard"
+    )
+
+    response = client_for(USER, players).put("/me/text-size", json={"text_size": size})
+
+    assert response.status_code == 200
+    assert response.json()["text_size"] == size
+    assert players.players[USER_ID].text_size == size
+
+
+def test_put_text_size_bad_value_422(players: FakePlayersRepo):
+    players.players[USER_ID] = Player(USER_ID, "Bob", False, "standard")
+
+    response = client_for(USER, players).put("/me/text-size", json={"text_size": "huge"})
+
+    assert response.status_code == 422
+    assert response.json() == {"error": "invalid_request"}
+
+
+def test_put_text_size_before_name_step_404(players: FakePlayersRepo):
+    response = client_for(USER, players).put("/me/text-size", json={"text_size": "large"})
+
+    assert response.status_code == 404
+    assert response.json() == {"error": "no_player"}

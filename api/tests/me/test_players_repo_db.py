@@ -79,3 +79,13 @@ def test_connection_usable_after_name_taken(db_conn: psycopg.Connection):
         repo.save_display_name(BOB, "ALICE")
 
     assert repo.get(BOB).display_name == "Bob"
+
+
+def test_save_text_size_updates_player(db_conn: psycopg.Connection):
+    player = PgPlayersRepo(db_conn).save_text_size(ALICE, "large")
+
+    assert player == Player(id=ALICE, display_name="Alice", is_admin=True, text_size="large")
+
+
+def test_save_text_size_missing_player_returns_none(db_conn: psycopg.Connection):
+    assert PgPlayersRepo(db_conn).save_text_size(uuid4(), "large") is None

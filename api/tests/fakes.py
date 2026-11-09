@@ -65,5 +65,13 @@ class FakePlayersRepo:
         self.players[player_id] = player
         return player
 
+    def save_text_size(self, player_id: UUID, size: str) -> Player | None:
+        existing = self.players.get(player_id)
+        if existing is None:
+            return None
+        player = replace(existing, text_size=size)
+        self.players[player_id] = player
+        return player
+
     def flagged_count(self) -> int:
         return self.flagged
