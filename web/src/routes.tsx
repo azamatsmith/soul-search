@@ -3,6 +3,7 @@ import { AppShell } from './components/AppShell'
 import { RedirectIfSignedIn } from './components/RedirectIfSignedIn'
 import { RequireAdmin } from './components/RequireAdmin'
 import { RequireAuth } from './components/RequireAuth'
+import { AdjustScoreScreen } from './screens/AdjustScoreScreen'
 import { AdminScreen } from './screens/AdminScreen'
 import { AllowedEmailsScreen } from './screens/AllowedEmailsScreen'
 import { CaptureScreen } from './screens/CaptureScreen'
@@ -37,6 +38,7 @@ export const routes: RouteObject[] = [
           { path: '/admin/flagged', element: <FlaggedPhotosScreen /> },
           { path: '/admin/flagged/:id', element: <ReviewPhotoScreen /> },
           { path: '/admin/points', element: <PointsScreen /> },
+          { path: '/admin/adjust', element: <AdjustScoreScreen /> },
         ],
       },
       {

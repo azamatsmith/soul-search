@@ -1,0 +1,49 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.label {
+  color: var(--c-ink);
+  font: 700 var(--t-h3) / 1.2 var(--f-body);
+}
+
+.control {
+  position: relative;
+  display: flex;
+  gap: var(--s-3);
+  align-items: center;
+  min-height: var(--tap-lg);
+  padding: 0 var(--s-4);
+  border: 2px solid var(--c-gold);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+}
+
+.control:focus-within {
+  border-color: var(--c-forest);
+  box-shadow: 0 0 0 var(--s-1) var(--c-forest-tint);
+}
+
+.select {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap-lg);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--c-ink);
+  font: 700 var(--t-body) var(--f-body);
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.chevron {
+  flex: none;
+  width: var(--t-h3);
+  height: var(--t-h3);
+  color: var(--c-gold);
+  pointer-events: none;
+}

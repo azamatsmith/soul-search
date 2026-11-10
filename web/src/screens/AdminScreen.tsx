@@ -42,6 +42,11 @@ export const AdminScreen = () => {
           title="Allowed emails"
           to="/admin/emails"
         />
+        <SettingsRow
+          subtitle="Add or take away points"
+          title="Adjust a score"
+          to="/admin/adjust"
+        />
       </div>
       <p className={styles.note}>
         Every change here is saved to the change history with your name.

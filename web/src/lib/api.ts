@@ -74,6 +74,8 @@ const ERROR_CODES = [
   'invalid_categories',
   'invalid_category',
   'already_reviewed',
+  'invalid_change',
+  'invalid_reason',
   'network',
   'unknown',
 ] as const
@@ -385,3 +387,31 @@ export interface ReviewQueue {
 
 export const getReviewQueue = () =>
   request<ReviewQueue>('/admin/review', 'GET', undefined, true)
+
+export interface PlayerScore {
+  display_name: string
+  id: string
+  points: number
+}
+
+export interface Scores {
+  period: { kind: 'challenge' | 'week'; name: string | null }
+  players: PlayerScore[]
+}
+
+export interface ScoreAdjustment {
+  change: number
+  player_id: string
+  reason: string
+}
+
+export const getScores = () =>
+  request<Scores>('/admin/scores', 'GET', undefined, true)
+
+export const postScoreAdjustment = (adjustment: ScoreAdjustment) =>
+  request<{ player_id: string; points: number }>(
+    '/admin/scores',
+    'POST',
+    adjustment,
+    true,
+  )

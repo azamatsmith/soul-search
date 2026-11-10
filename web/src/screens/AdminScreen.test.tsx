@@ -49,6 +49,14 @@ describe('AdminScreen', () => {
     expect(await within(row).findByText('2')).toBeInTheDocument()
   })
 
+  it('links to adjust a score', () => {
+    load.mockResolvedValue({ ok: true, data: { emails: [] } })
+    renderAdmin()
+    expect(
+      screen.getByRole('link', { name: /Adjust a score/ }),
+    ).toHaveAttribute('href', '/admin/adjust')
+  })
+
   it('links to points and categories with the current rules', async () => {
     load.mockResolvedValue({ ok: true, data: { emails: [] } })
     loadRules.mockResolvedValue({
