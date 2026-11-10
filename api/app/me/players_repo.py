@@ -28,6 +28,8 @@ class PlayersRepo(Protocol):
 
     def save_display_name(self, player_id: UUID, name: str) -> Player: ...
 
+    def save_text_size(self, player_id: UUID, size: str) -> Player | None: ...
+
     def flagged_count(self) -> int: ...
 
 
@@ -59,6 +61,13 @@ class PgPlayersRepo:
             raise
         assert row is not None
         return Player(*row)
+
+    def save_text_size(self, player_id: UUID, size: str) -> Player | None:
+        row = self._conn.execute(
+            f"update public.players set text_size = %s where id = %s returning {PLAYER_COLUMNS}",
+            (size, player_id),
+        ).fetchone()
+        return Player(*row) if row else None
 
     def flagged_count(self) -> int:
         row = self._conn.execute("select count(*) from public.sightings where flagged").fetchone()

@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
@@ -29,6 +29,10 @@ class DisplayNameBody(BaseModel):
     display_name: str
 
 
+class TextSizeBody(BaseModel):
+    text_size: Literal["standard", "large"]
+
+
 def me_response(user: CurrentUser, player: Player | None, players: PlayersRepo) -> MeResponse:
     is_admin = player is not None and player.is_admin
     return MeResponse(
@@ -56,4 +60,12 @@ def put_display_name(body: DisplayNameBody, user: User, players: Players) -> MeR
         player = players.save_display_name(user.id, name)
     except NameTaken as error:
         raise ApiError(409, "name_taken") from error
+    return me_response(user, player, players)
+
+
+@router.put("/text-size")
+def put_text_size(body: TextSizeBody, user: User, players: Players) -> MeResponse:
+    player = players.save_text_size(user.id, body.text_size)
+    if player is None:
+        raise ApiError(404, "no_player")
     return me_response(user, player, players)
