@@ -22,6 +22,7 @@ from app.sightings.repo import (
     get_sightings_repo,
 )
 from app.sightings.scoring import Rules
+from app.sightings.url_cache import SignedUrlCache, get_url_cache
 from app.verification.runner import get_verification_runner
 from tests.fakes import (
     EMPTY_STANDING,
@@ -60,8 +61,11 @@ class Harness:
     def __init__(self, repo: FakeSightingsRepo) -> None:
         self.repo = repo
         self.store = FakePhotoStore()
+        self.url_cache = SignedUrlCache()
         self.verification_runs = 0
         app = create_app()
+        self.app = app
+        app.dependency_overrides[get_url_cache] = lambda: self.url_cache
         app.dependency_overrides[get_current_user] = lambda: BOB
         app.dependency_overrides[get_attempts_repo] = lambda: FakeAttemptsRepo({BOB.email})
         app.dependency_overrides[get_players_repo] = lambda: FakePlayersRepo([BOB_PLAYER])
@@ -554,3 +558,28 @@ def test_sightings_never_include_admin_notes(harness: Harness):
 
     assert "verification_notes" not in item
     assert "photo_path" not in item
+
+
+def test_sightings_reuse_signed_urls_between_refreshes(harness: Harness):
+    sighting = logged(BOB_ID, "Bob")
+    harness.repo.logs = [sighting]
+    store_photo(harness, sighting)
+    first = harness.client.get("/sightings").json()["sightings"][0]["thumb_url"]
+
+    harness.store.fail = StorageUnavailable("down")
+    again = harness.client.get("/sightings").json()["sightings"][0]["thumb_url"]
+
+    assert again == first
+
+
+def test_sightings_re_sign_urls_close_to_expiry(harness: Harness):
+    sighting = logged(BOB_ID, "Bob")
+    harness.repo.logs = [sighting]
+    store_photo(harness, sighting)
+    harness.client.get("/sightings")
+
+    harness.store.fail = StorageUnavailable("down")
+    harness.app.dependency_overrides[get_now] = lambda: NOW + timedelta(minutes=51)
+    later = harness.client.get("/sightings").json()["sightings"][0]["thumb_url"]
+
+    assert later is None
