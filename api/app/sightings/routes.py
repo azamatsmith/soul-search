@@ -8,12 +8,16 @@ from pydantic import BaseModel
 from app.auth.allowed_user import get_allowed_user
 from app.auth.tokens import CurrentUser
 from app.clock import get_now
+from app.sightings.photo_store import PhotoStore, StorageUnavailable, get_photo_store
 from app.sightings.repo import Period, SightingsRepo, get_sightings_repo
+
+SIGNED_URL_SECONDS = 3600
 
 router = APIRouter()
 
 User = Annotated[CurrentUser, Depends(get_allowed_user)]
 Repo = Annotated[SightingsRepo, Depends(get_sightings_repo)]
+Store = Annotated[PhotoStore, Depends(get_photo_store)]
 Now = Annotated[datetime, Depends(get_now)]
 
 
@@ -32,6 +36,16 @@ class PeriodOut(BaseModel):
     starts_at: datetime
     ends_at: datetime
     rules: RulesOut
+
+
+class StandingOut(BaseModel):
+    points: int
+    count: int
+    rank: int | None
+    total_players: int
+    next_rank: int | None
+    points_behind_next: int | None
+    last_photo_url: str | None
 
 
 def period_out(period: Period) -> PeriodOut:
@@ -55,3 +69,23 @@ def period_out(period: Period) -> PeriodOut:
 @router.get("/period")
 def get_period(_user: User, repo: Repo, now: Now) -> PeriodOut:
     return period_out(repo.period_at(now))
+
+
+@router.get("/me/standing")
+def get_standing(user: User, repo: Repo, store: Store, now: Now) -> StandingOut:
+    standing = repo.standing(user.id, repo.period_at(now))
+    photo_url = None
+    if standing.last_photo_path:
+        try:
+            photo_url = store.signed_url(standing.last_photo_path, SIGNED_URL_SECONDS)
+        except StorageUnavailable:
+            photo_url = None
+    return StandingOut(
+        points=standing.points,
+        count=standing.count,
+        rank=standing.rank,
+        total_players=standing.total_players,
+        next_rank=standing.next_rank,
+        points_behind_next=standing.points_behind_next,
+        last_photo_url=photo_url,
+    )

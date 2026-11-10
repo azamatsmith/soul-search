@@ -1,0 +1,38 @@
+import json
+from collections.abc import Callable
+
+import httpx
+import pytest
+
+from app.sightings.photo_store import PhotoStore, StorageUnavailable
+
+
+def make_store(handler: Callable[[httpx.Request], httpx.Response]) -> PhotoStore:
+    return PhotoStore("http://supabase.test", "secret", transport=httpx.MockTransport(handler))
+
+
+def test_signed_url_returns_absolute_url():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert str(request.url) == "http://supabase.test/storage/v1/object/sign/photos/p/s.jpg"
+        assert request.headers["authorization"] == "Bearer secret"
+        assert request.headers["apikey"] == "secret"
+        assert json.loads(request.content) == {"expiresIn": 3600}
+        return httpx.Response(200, json={"signedURL": "/object/sign/photos/p/s.jpg?token=t"})
+
+    url = make_store(handler).signed_url("p/s.jpg", 3600)
+
+    assert url == "http://supabase.test/storage/v1/object/sign/photos/p/s.jpg?token=t"
+
+
+@pytest.mark.parametrize("status", [400, 404, 500])
+def test_error_status_raises_unavailable(status: int):
+    with pytest.raises(StorageUnavailable):
+        make_store(lambda _r: httpx.Response(status)).signed_url("p/s.jpg", 60)
+
+
+def test_network_error_raises_unavailable():
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("down", request=request)
+
+    with pytest.raises(StorageUnavailable):
+        make_store(handler).signed_url("p/s.jpg", 60)

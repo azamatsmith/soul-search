@@ -5,7 +5,7 @@ from uuid import UUID
 from app.auth.lockout import AttemptState
 from app.auth.supabase_auth import AuthSession
 from app.me.players_repo import NameTaken, Player
-from app.sightings.repo import Period
+from app.sightings.repo import Period, Standing
 
 
 class FakeAttemptsRepo:
@@ -78,11 +78,36 @@ class FakePlayersRepo:
         return self.flagged
 
 
+EMPTY_STANDING = Standing(
+    points=0,
+    count=0,
+    rank=None,
+    total_players=3,
+    next_rank=None,
+    points_behind_next=None,
+    last_photo_path=None,
+)
+
+
 class FakeSightingsRepo:
     def __init__(self, period: Period) -> None:
         self.period = period
+        self.standings: dict[UUID, Standing] = {}
         self.period_requests: list[datetime] = []
 
     def period_at(self, at: datetime) -> Period:
         self.period_requests.append(at)
         return self.period
+
+    def standing(self, player_id: UUID, period: Period) -> Standing:
+        return self.standings.get(player_id, EMPTY_STANDING)
+
+
+class FakePhotoStore:
+    def __init__(self) -> None:
+        self.fail: Exception | None = None
+
+    def signed_url(self, path: str, expires_in: int) -> str:
+        if self.fail:
+            raise self.fail
+        return f"https://signed.test/{path}?ttl={expires_in}"
