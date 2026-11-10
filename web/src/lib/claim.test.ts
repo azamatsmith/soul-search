@@ -12,19 +12,17 @@ const RULES: Rules = {
 
 describe('claimPoints', () => {
   it('is null until a valid claim is picked', () => {
-    expect(claimPoints(RULES, null, [])).toBeNull()
-    expect(claimPoints(RULES, 'special', [])).toBeNull()
+    expect(claimPoints(RULES, null, null)).toBeNull()
+    expect(claimPoints(RULES, 'special', null)).toBeNull()
   })
 
   it('scores regular and special claims', () => {
-    expect(claimPoints(RULES, 'regular', [])).toBe(1)
-    expect(claimPoints(RULES, 'special', ['Alien Green'])).toBe(2)
+    expect(claimPoints(RULES, 'regular', null)).toBe(1)
+    expect(claimPoints(RULES, 'special', 'Alien Green')).toBe(2)
   })
 
-  it('uses the highest category bonus', () => {
-    expect(claimPoints(RULES, 'special', ['Alien Green', 'Brown paint'])).toBe(
-      3,
-    )
+  it('uses the category bonus when it beats special points', () => {
+    expect(claimPoints(RULES, 'special', 'Brown paint')).toBe(3)
   })
 })
 

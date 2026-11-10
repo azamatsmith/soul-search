@@ -5,12 +5,11 @@ export type ClaimType = 'regular' | 'special'
 export const claimPoints = (
   rules: Rules,
   claimType: ClaimType | null,
-  categories: string[],
+  category: string | null,
 ): number | null => {
   if (claimType === 'regular') return rules.regular
-  if (claimType !== 'special' || categories.length === 0) return null
-  const bonuses = categories.map((category) => rules.bonuses[category] ?? 0)
-  return Math.max(rules.special, ...bonuses)
+  if (claimType !== 'special' || category === null) return null
+  return Math.max(rules.special, rules.bonuses[category] ?? 0)
 }
 
 export const sendLabel = (points: number | null) =>

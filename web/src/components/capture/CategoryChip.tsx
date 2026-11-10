@@ -2,7 +2,7 @@ import styles from './CategoryChip.module.css'
 
 export interface CategoryChipProps {
   label: string
-  onToggle: (label: string) => void
+  onSelect: (label: string) => void
   selected: boolean
 }
 
@@ -13,17 +13,18 @@ const DOTS: Record<string, string> = {
 
 export const CategoryChip = ({
   label,
-  onToggle,
+  onSelect,
   selected,
 }: CategoryChipProps) => {
-  const handleClick = () => onToggle(label)
+  const handleClick = () => onSelect(label)
   const dot = DOTS[label]
 
   return (
     <button
-      aria-pressed={selected}
+      aria-checked={selected}
       className={selected ? `${styles.chip} ${styles.selected}` : styles.chip}
       onClick={handleClick}
+      role="radio"
       type="button"
     >
       {dot && <span aria-hidden className={`${styles.dot} ${dot}`} />}

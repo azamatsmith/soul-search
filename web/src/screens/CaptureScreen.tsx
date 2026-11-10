@@ -43,10 +43,10 @@ export const CaptureScreen = () => {
   }
 
   const handleSend = async () => {
-    const { categories, claimType, photo } = capture
+    const { category, claimType, photo } = capture
     if (!photo || !claimType) return
     await sender.send({
-      categories: claimType === 'special' ? categories : [],
+      categories: claimType === 'special' && category ? [category] : [],
       claimType,
       id: photo.id,
       location,
@@ -122,10 +122,10 @@ export const CaptureScreen = () => {
       )}
       {capture.step === 'claim' && capture.photo && period.data && (
         <ClaimForm
-          categories={capture.categories}
+          category={capture.category}
           claimType={capture.claimType}
-          onCategoryToggle={capture.toggleCategory}
-          onClaimTypeChange={capture.setClaimType}
+          onCategoryChange={capture.setCategory}
+          onClaimTypeChange={capture.chooseClaimType}
           onSend={handleSend}
           photoUrl={capture.photo.url}
           rules={period.data.rules}

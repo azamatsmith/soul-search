@@ -74,9 +74,12 @@ const SAVED = {
   },
 }
 
+const pickCategory = (name: string) =>
+  fireEvent.click(screen.getByRole('radio', { name }))
+
 const pickBrownSpecial = () => {
   fireEvent.click(screen.getByRole('radio', { name: /Special Soul/ }))
-  click('Brown paint')
+  pickCategory('Brown paint')
 }
 
 const reachClaimStep = async () => {
@@ -242,22 +245,41 @@ describe('CaptureScreen', () => {
       screen.getByRole('button', { name: 'Pick what makes it special' }),
     ).toBeDisabled()
 
-    click('Alien Green')
-    expect(screen.getByRole('button', { name: 'Alien Green' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    )
+    pickCategory('Alien Green')
     expect(
       screen.getByRole('button', { name: 'Send for 2 points' }),
     ).toBeEnabled()
 
-    click('Brown paint')
+    pickCategory('Brown paint')
     expect(
       screen.getByRole('button', { name: 'Send for 3 points' }),
     ).toBeEnabled()
+  })
 
-    click('Alien Green')
-    click('Brown paint')
+  it('lets the player pick only one special category', async () => {
+    await reachClaimStep()
+    fireEvent.click(screen.getByRole('radio', { name: /Special Soul/ }))
+
+    expect(
+      screen.getByRole('radiogroup', { name: /What makes it special/ }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Pick one')).toBeInTheDocument()
+
+    pickCategory('Alien Green')
+    pickCategory('Brown paint')
+    pickCategory('Brown paint')
+
+    expect(screen.getByRole('radio', { name: 'Brown paint' })).toBeChecked()
+    expect(screen.getByRole('radio', { name: 'Alien Green' })).not.toBeChecked()
+  })
+
+  it('clears the special category when the claim type changes', async () => {
+    await reachClaimStep()
+    pickBrownSpecial()
+
+    fireEvent.click(screen.getByRole('radio', { name: /Regular Soul/ }))
+    fireEvent.click(screen.getByRole('radio', { name: /Special Soul/ }))
+
     expect(
       screen.getByRole('button', { name: 'Pick what makes it special' }),
     ).toBeDisabled()

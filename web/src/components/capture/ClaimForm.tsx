@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import type { Rules } from '../../lib/api'
 import { claimPoints, sendLabel, type ClaimType } from '../../lib/claim'
 import { Button } from '../Button'
@@ -7,9 +8,9 @@ import styles from './ClaimForm.module.css'
 import { StepHeading } from './StepHeading'
 
 export interface ClaimFormProps {
-  categories: string[]
+  category: string | null
   claimType: ClaimType | null
-  onCategoryToggle: (category: string) => void
+  onCategoryChange: (category: string) => void
   onClaimTypeChange: (claimType: ClaimType) => void
   onSend: () => void
   photoUrl: string
@@ -17,15 +18,16 @@ export interface ClaimFormProps {
 }
 
 export const ClaimForm = ({
-  categories,
+  category,
   claimType,
-  onCategoryToggle,
+  onCategoryChange,
   onClaimTypeChange,
   onSend,
   photoUrl,
   rules,
 }: ClaimFormProps) => {
-  const points = claimPoints(rules, claimType, categories)
+  const legendId = useId()
+  const points = claimPoints(rules, claimType, category)
 
   return (
     <main className={styles.screen}>
@@ -62,17 +64,21 @@ export const ClaimForm = ({
         </div>
         {claimType === 'special' && (
           <fieldset className={styles.categories}>
-            <legend className={styles.legend}>
+            <legend className={styles.legend} id={legendId}>
               What makes it special?{' '}
-              <span className={styles.any}>Pick any</span>
+              <span className={styles.hint}>Pick one</span>
             </legend>
-            <div className={styles.chips}>
-              {rules.categories.map((category) => (
+            <div
+              aria-labelledby={legendId}
+              className={styles.chips}
+              role="radiogroup"
+            >
+              {rules.categories.map((option) => (
                 <CategoryChip
-                  key={category}
-                  label={category}
-                  onToggle={onCategoryToggle}
-                  selected={categories.includes(category)}
+                  key={option}
+                  label={option}
+                  onSelect={onCategoryChange}
+                  selected={option === category}
                 />
               ))}
             </div>
