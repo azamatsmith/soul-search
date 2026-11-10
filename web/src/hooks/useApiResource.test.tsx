@@ -80,17 +80,34 @@ describe('useApiResource', () => {
     expect(result.current.error).toBeNull()
   })
 
-  it('refresh after a failed first load behaves like retry', async () => {
+  it('keeps showing the error while a refresh after a failure loads', async () => {
+    let resolveSecond: (value: ApiResult<number>) => void = () => {}
     const load = vi
       .fn<() => Promise<ApiResult<number>>>()
       .mockResolvedValueOnce(failed)
-      .mockResolvedValueOnce(ok(5))
+      .mockImplementationOnce(() => new Promise((r) => (resolveSecond = r)))
     const { result } = renderHook(() => useApiResource(load))
     await waitFor(() => expect(result.current.status).toBe('error'))
 
     act(() => result.current.refresh())
 
-    expect(result.current.status).toBe('loading')
-    await waitFor(() => expect(result.current.data).toBe(5))
+    expect(result.current.status).toBe('error')
+    await act(async () => resolveSecond(ok(5)))
+    expect(result.current.status).toBe('ready')
+    expect(result.current.data).toBe(5)
+  })
+
+  it('ignores refresh while the first load is still running', async () => {
+    let resolveFirst: (value: ApiResult<number>) => void = () => {}
+    const load = vi.fn(
+      () => new Promise<ApiResult<number>>((r) => (resolveFirst = r)),
+    )
+    const { result } = renderHook(() => useApiResource(load))
+
+    act(() => result.current.refresh())
+
+    expect(load).toHaveBeenCalledTimes(1)
+    await act(async () => resolveFirst(ok(3)))
+    expect(result.current.data).toBe(3)
   })
 })

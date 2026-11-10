@@ -44,17 +44,17 @@ export const useApiResource = <T>(
 
   const retry = () =>
     setAttempt((current) => ({ count: current.count + 1, quiet: false }))
-  const refresh = () =>
-    setAttempt((current) => ({
-      count: current.count + 1,
-      quiet: lastGood !== null,
-    }))
+  const refresh = () => {
+    if (loaded === null) return
+    setAttempt((current) => ({ count: current.count + 1, quiet: true }))
+  }
   const controls = { refresh, retry }
 
   if (attempt.quiet && lastGood) {
     return { status: 'ready', data: lastGood.data, error: null, ...controls }
   }
-  const result = loaded?.attempt === attempt.count ? loaded.result : null
+  const current = loaded?.attempt === attempt.count || attempt.quiet
+  const result = loaded && current ? loaded.result : null
   if (!result)
     return { status: 'loading', data: null, error: null, ...controls }
   if (!result.ok) {
