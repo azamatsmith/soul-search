@@ -1,0 +1,24 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  height: 100%;
+  padding: var(--s-3) var(--gutter) var(--s-6);
+}
+
+.photo {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  border: 2px solid var(--c-gold-soft);
+  border-radius: var(--r-lg);
+  background: var(--stripes);
+  object-fit: cover;
+}
+
+.helper {
+  margin: 0;
+  padding: 0 var(--s-1);
+  color: var(--c-ink-muted);
+  font: 500 var(--t-small) / 1.45 var(--f-body);
+}
