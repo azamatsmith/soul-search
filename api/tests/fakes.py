@@ -4,6 +4,7 @@ from uuid import UUID
 
 from app.admin.audit_repo import AuditEntry
 from app.admin.emails_repo import AllowedEmail
+from app.admin.review import Decision, ReviewItem
 from app.admin.rules_repo import PointRules
 from app.auth.lockout import AttemptState
 from app.auth.supabase_auth import AuthSession
@@ -16,6 +17,7 @@ from app.sightings.repo import (
     Sighting,
     Standing,
 )
+from app.sightings.scoring import Rules
 from app.verification.outcome import CheckResult, Claim, Outcome
 from app.verification.repo import PendingSighting
 from app.weeks.repo import CloseOut
@@ -278,3 +280,26 @@ class FakePointRulesRepo:
 
     def save(self, rules: PointRules) -> None:
         self.rules = rules
+
+
+class FakeReviewRepo:
+    def __init__(self, items: list[ReviewItem], rules: Rules) -> None:
+        self.items = {item.id: item for item in items}
+        self.rules = rules
+        self.resolved: dict[UUID, tuple[Decision, UUID]] = {}
+        self.lose_race = False
+
+    def queue(self) -> tuple[ReviewItem, ...]:
+        return tuple(sorted(self.items.values(), key=lambda item: item.taken_at, reverse=True))
+
+    def find(self, sighting_id: UUID) -> ReviewItem | None:
+        return self.items.get(sighting_id)
+
+    def rules_for(self, item: ReviewItem) -> Rules:
+        return self.rules
+
+    def resolve(self, sighting_id: UUID, decision: Decision, admin_id: UUID) -> bool:
+        if self.lose_race or self.items.pop(sighting_id, None) is None:
+            return False
+        self.resolved[sighting_id] = (decision, admin_id)
+        return True
