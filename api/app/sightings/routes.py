@@ -29,6 +29,7 @@ from app.sightings.photo_store import (
     thumb_path,
 )
 from app.sightings.repo import (
+    LoggedSighting,
     NewSighting,
     Period,
     Sighting,
@@ -104,6 +105,27 @@ class LeaderboardOut(BaseModel):
     ends_at: datetime | None
     total_players: int
     rows: list[LeaderboardRowOut]
+
+
+class LoggedSightingOut(BaseModel):
+    id: UUID
+    player_id: UUID
+    display_name: str
+    is_me: bool
+    taken_at: datetime
+    claim_type: str
+    categories: list[str]
+    points: int
+    status: str
+    flagged: bool
+    check_note: str | None
+    thumb_url: str | None
+
+
+class SightingsLogOut(BaseModel):
+    starts_at: datetime
+    ends_at: datetime
+    sightings: list[LoggedSightingOut]
 
 
 class PostSightingOut(BaseModel):
@@ -191,6 +213,47 @@ def get_leaderboard(
             )
             for row in board.rows
         ],
+    )
+
+
+@router.get("/sightings")
+def get_sightings(
+    user: User, repo: Repo, store: Store, now: Now, mine: bool = False
+) -> SightingsLogOut:
+    week = repo.week_at(now)
+    log = repo.week_log(week, user.id if mine else None)
+    urls = _photo_urls(store, [s.photo_path for s in log])
+    return SightingsLogOut(
+        starts_at=week.starts_at,
+        ends_at=week.ends_at,
+        sightings=[_logged_out(s, user.id, urls.get(s.photo_path)) for s in log],
+    )
+
+
+def _photo_urls(store: PhotoStore, photo_paths: list[str]) -> dict[str, str | None]:
+    try:
+        thumbs = store.signed_urls([thumb_path(p) for p in photo_paths], SIGNED_URL_SECONDS)
+        urls = {p: thumbs.get(thumb_path(p)) for p in photo_paths}
+        missing = [p for p, url in urls.items() if url is None]
+        return urls | store.signed_urls(missing, SIGNED_URL_SECONDS)
+    except StorageUnavailable:
+        return {}
+
+
+def _logged_out(sighting: LoggedSighting, me: UUID, thumb_url: str | None) -> LoggedSightingOut:
+    return LoggedSightingOut(
+        id=sighting.id,
+        player_id=sighting.player_id,
+        display_name=sighting.display_name,
+        is_me=sighting.player_id == me,
+        taken_at=sighting.taken_at,
+        claim_type=sighting.claim_type,
+        categories=list(sighting.categories),
+        points=sighting.points,
+        status=sighting.status,
+        flagged=sighting.flagged,
+        check_note=sighting.check_note,
+        thumb_url=thumb_url,
     )
 
 
