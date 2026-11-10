@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Annotated, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, Response, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, Query, Response, UploadFile, status
 from pydantic import BaseModel
 
 from app.auth.allowed_user import get_allowed_user
@@ -12,7 +12,13 @@ from app.errors import ApiError
 from app.me.players_repo import PlayersRepo, get_players_repo
 from app.sightings.photo_meta import CleanPhoto, InvalidPhoto, clean_photo
 from app.sightings.photo_store import PhotoStore, StorageUnavailable, get_photo_store
-from app.sightings.repo import NewSighting, Period, Sighting, SightingsRepo, get_sightings_repo
+from app.sightings.repo import (
+    NewSighting,
+    Period,
+    Sighting,
+    SightingsRepo,
+    get_sightings_repo,
+)
 from app.sightings.scoring import InvalidClaim, points_for
 
 MAX_PHOTO_BYTES = 8 * 1024 * 1024
@@ -63,6 +69,23 @@ class SightingOut(BaseModel):
     points: int
     status: str
     flagged: bool
+
+
+class LeaderboardRowOut(BaseModel):
+    player_id: UUID
+    display_name: str
+    points: int
+    count: int
+    rank: int
+    is_me: bool
+
+
+class LeaderboardOut(BaseModel):
+    scope: Literal["week", "all"]
+    starts_at: datetime | None
+    ends_at: datetime | None
+    total_players: int
+    rows: list[LeaderboardRowOut]
 
 
 class PostSightingOut(BaseModel):
@@ -122,6 +145,34 @@ def get_standing(user: User, repo: Repo, store: Store, now: Now) -> StandingOut:
         next_rank=standing.next_rank,
         points_behind_next=standing.points_behind_next,
         last_photo_url=photo_url,
+    )
+
+
+@router.get("/leaderboard")
+def get_leaderboard(
+    user: User,
+    repo: Repo,
+    now: Now,
+    scope: Annotated[Literal["week", "all"], Query()],
+) -> LeaderboardOut:
+    week = repo.week_at(now) if scope == "week" else None
+    board = repo.leaderboard(week)
+    return LeaderboardOut(
+        scope=scope,
+        starts_at=week.starts_at if week else None,
+        ends_at=week.ends_at if week else None,
+        total_players=board.total_players,
+        rows=[
+            LeaderboardRowOut(
+                player_id=row.player_id,
+                display_name=row.display_name,
+                points=row.points,
+                count=row.count,
+                rank=row.rank,
+                is_me=row.player_id == user.id,
+            )
+            for row in board.rows
+        ],
     )
 
 
