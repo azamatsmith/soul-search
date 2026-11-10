@@ -13,6 +13,33 @@ export interface Me {
   flagged_count: number | null
 }
 
+export interface Rules {
+  regular: number
+  special: number
+  false_call: number
+  categories: string[]
+  bonuses: Record<string, number>
+}
+
+export interface Period {
+  kind: 'week' | 'challenge'
+  id: string
+  name: string | null
+  starts_at: string
+  ends_at: string
+  rules: Rules
+}
+
+export interface Standing {
+  points: number
+  count: number
+  rank: number | null
+  total_players: number
+  next_rank: number | null
+  points_behind_next: number | null
+  last_photo_url: string | null
+}
+
 export interface SessionTokens {
   access_token: string
   refresh_token: string
@@ -164,3 +191,9 @@ export const putDisplayName = (displayName: string) =>
 
 export const putTextSize = (textSize: TextSize) =>
   request<Me>('/me/text-size', 'PUT', { text_size: textSize }, true)
+
+export const getPeriod = () =>
+  request<Period>('/period', 'GET', undefined, true)
+
+export const getStanding = () =>
+  request<Standing>('/me/standing', 'GET', undefined, true)

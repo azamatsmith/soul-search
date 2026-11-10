@@ -5,15 +5,15 @@
   justify-content: center;
   width: var(--tap-min);
   height: var(--tap-min);
+  border: 2px solid var(--c-gold);
+  border-radius: var(--r-pill);
+  background: var(--c-forest-deep);
+  color: var(--c-on-dark);
+  font: 400 var(--t-h3) / 1 var(--f-display);
   text-decoration: none;
 }
 
-.avatar {
-  width: var(--badge);
-  height: var(--badge);
-  border-radius: var(--r-pill);
-  background: var(--c-forest);
+.button:hover {
   color: var(--c-on-dark);
-  font: 400 var(--t-small) / var(--badge) var(--f-display);
-  text-align: center;
+  border-color: var(--c-gold-soft);
 }

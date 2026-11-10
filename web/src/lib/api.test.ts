@@ -1,6 +1,13 @@
 import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getMe, putTextSize, sendCode, verifyCode } from './api'
+import {
+  getMe,
+  getPeriod,
+  getStanding,
+  putTextSize,
+  sendCode,
+  verifyCode,
+} from './api'
 import { supabase } from './supabase'
 
 vi.mock('./supabase', () => ({
@@ -265,5 +272,21 @@ describe('api', () => {
     await vi.advanceTimersByTimeAsync(1)
     expect(await pending).toEqual({ ok: false, status: 0, error: 'network' })
     vi.useRealTimers()
+  })
+
+  it.each([
+    ['getPeriod', '/period', getPeriod],
+    ['getStanding', '/me/standing', getStanding],
+  ])('%s gets %s with the bearer token', async (_name, path, load) => {
+    signedIn('tok')
+    const fetchMock = stubFetch(() => respond(200, { points: 3 }))
+    expect(await load()).toEqual({ ok: true, data: { points: 3 } })
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ]
+    expect(url).toBe(`http://localhost:8000${path}`)
+    expect(init.method).toBe('GET')
+    expect(new Headers(init.headers).get('Authorization')).toBe('Bearer tok')
   })
 })
