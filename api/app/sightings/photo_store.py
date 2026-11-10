@@ -29,6 +29,9 @@ class PhotoStore:
             headers={"Content-Type": "image/jpeg", "x-upsert": "true"},
         )
 
+    def download(self, path: str) -> bytes:
+        return self._send("GET", f"/object/{BUCKET}/{path}").content
+
     def signed_url(self, path: str, expires_in: int) -> str:
         response = self._send(
             "POST", f"/object/sign/{BUCKET}/{path}", json={"expiresIn": expires_in}
