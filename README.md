@@ -63,7 +63,7 @@ The web app runs on Netlify, configured by `netlify.toml`. Netlify builds `web/`
 
 The web app installs to the home screen on iPhone (Safari) and Android (Chrome) as a PWA. Its icon is `web/public/icon.svg`. After changing it, run `npm run icons` in `web/` to regenerate the PNG sizes.
 
-The API runs on Render as a Docker service defined in `render.yaml`. Render deploys each commit to `main` once its CI checks pass, and only switches over when `/health` responds. Environment variables such as `CORS_ORIGINS` are set in the Render dashboard, never committed.
+The API runs on Render as a Docker service defined in `render.yaml`. Render deploys each commit to `main` once its CI checks pass, and only switches over when `/health` responds. The API checks `SUPABASE_URL` and `DATABASE_URL` when it starts and refuses to start if either is malformed, so a bad value fails the deploy and the previous version keeps running. Environment variables such as `CORS_ORIGINS` are set in the Render dashboard, never committed.
 
 ### Sign-in emails
 
