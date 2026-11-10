@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import get_cors_origins
+from app.config import get_cors_origin_regex, get_cors_origins
 from app.main import create_app
 
 
@@ -63,3 +63,58 @@ def test_cors_origins_tolerate_spaces_and_trailing_comma(monkeypatch: pytest.Mon
     response = client.get("/health", headers={"Origin": ""})
     assert "access-control-allow-origin" not in response.headers
     assert get_cors_origins() == ["http://a.example", "http://b.example"]
+
+
+PREVIEW_REGEX = r"^https://deploy-preview-\d+--soulsearchapp\.netlify\.app$"
+
+
+def test_cors_allows_origin_matching_regex(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("CORS_ORIGIN_REGEX", PREVIEW_REGEX)
+    client = TestClient(create_app())
+    origin = "https://deploy-preview-32--soulsearchapp.netlify.app"
+
+    response = client.get("/health", headers={"Origin": origin})
+
+    assert response.headers["access-control-allow-origin"] == origin
+
+
+@pytest.mark.parametrize(
+    "origin",
+    [
+        "https://deploy-preview-32--soulsearchapp.netlify.app.evil.example",
+        "https://deploy-preview-32--othersite.netlify.app",
+        "http://deploy-preview-32--soulsearchapp.netlify.app",
+        "https://deploy-preview-abc--soulsearchapp.netlify.app",
+    ],
+)
+def test_cors_regex_blocks_lookalikes(monkeypatch: pytest.MonkeyPatch, origin: str):
+    monkeypatch.setenv("CORS_ORIGIN_REGEX", PREVIEW_REGEX)
+    client = TestClient(create_app())
+
+    response = client.get("/health", headers={"Origin": origin})
+
+    assert "access-control-allow-origin" not in response.headers
+
+
+def test_cors_regex_unset_allows_no_previews(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("CORS_ORIGIN_REGEX", raising=False)
+    client = TestClient(create_app())
+    origin = "https://deploy-preview-32--soulsearchapp.netlify.app"
+
+    response = client.get("/health", headers={"Origin": origin})
+
+    assert "access-control-allow-origin" not in response.headers
+    assert get_cors_origin_regex() is None
+
+
+def test_cors_regex_blank_is_unset(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("CORS_ORIGIN_REGEX", "  ")
+
+    assert get_cors_origin_regex() is None
+
+
+def test_cors_regex_invalid_fails_at_startup(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("CORS_ORIGIN_REGEX", "(unclosed")
+
+    with pytest.raises(RuntimeError, match="CORS_ORIGIN_REGEX"):
+        create_app()

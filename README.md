@@ -49,6 +49,7 @@ Sign in with a seeded email such as `bob@example.test`, then read the 6-digit co
 | `VITE_SUPABASE_URL` | web | `http://127.0.0.1:54321` | Set in the Netlify dashboard |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | web | local stack's publishable key | Set in the Netlify dashboard (the project's publishable key, safe for browsers) |
 | `CORS_ORIGINS` | api | `http://localhost:5173` | Set in the Render dashboard |
+| `CORS_ORIGIN_REGEX` | api | unset | Optional, set in the Render dashboard to allow origins by pattern, such as Netlify previews: `^https://deploy-preview-\d+--soulsearchapp\.netlify\.app$` |
 | `SUPABASE_URL` | api | `http://127.0.0.1:54321` | Set in the Render dashboard |
 | `SUPABASE_SECRET_KEY` | api | `api/.env.local` | Set in the Render dashboard |
 | `SUPABASE_JWT_SECRET` | api | `api/.env.local` | Set in the Render dashboard, only if the project still uses the legacy JWT secret |
