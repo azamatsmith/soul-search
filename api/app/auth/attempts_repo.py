@@ -1,11 +1,10 @@
 from datetime import datetime
-from typing import Annotated, Protocol
+from typing import Protocol
 
 import psycopg
-from fastapi import Depends
 
 from app.auth.lockout import AttemptState
-from app.db import get_conn
+from app.db import Conn
 
 
 class AttemptsRepo(Protocol):
@@ -60,5 +59,5 @@ class PgAttemptsRepo:
         )
 
 
-def get_attempts_repo(conn: Annotated[psycopg.Connection, Depends(get_conn)]) -> AttemptsRepo:
+def get_attempts_repo(conn: Conn) -> AttemptsRepo:
     return PgAttemptsRepo(conn)

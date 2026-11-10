@@ -1,12 +1,11 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Annotated, Literal, Protocol
+from typing import Literal, Protocol
 from uuid import UUID
 
 import psycopg
-from fastapi import Depends
 
-from app.db import get_conn
+from app.db import Conn
 from app.sightings.periods import week_bounds
 from app.sightings.scoring import Rules
 
@@ -314,5 +313,5 @@ def _sighting(row: tuple) -> Sighting:
     )
 
 
-def get_sightings_repo(conn: Annotated[psycopg.Connection, Depends(get_conn)]) -> SightingsRepo:
+def get_sightings_repo(conn: Conn) -> SightingsRepo:
     return PgSightingsRepo(conn)
