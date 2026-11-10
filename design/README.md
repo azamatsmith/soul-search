@@ -105,7 +105,7 @@ The body size is 19px on purpose (larger than typical) for legibility. **Large-t
 - **01 Enter email**: brand block, email input (72px, `type=email`, `autocomplete=email`), helper "We'll email you a 6-digit code. Type it in here to sign in. No password to remember.", primary **"Email me a code"**, footnote "Soul Search is invite-only."
 - **01b Email not on the list**: input in the error style (orange border + orange-tint ring) and an error alert: "This email isn't on the list." / "Ask Matthew or Heathyr to add you, then try again." Check the allowlist **before** sending a code.
 - **02 Enter code**: kicker "STEP 2 OF 2", title "Check your email", "We sent a 6-digit code to **{email}**." Code field = **6 boxes (flex, gap 8, 68px tall, radius 14, serif 34px digits) drawn over ONE hidden `<input inputmode="numeric" autocomplete="one-time-code" maxlength="6">`**, so iOS QuickType autofill ("From Mail") and paste both work. The active box has a 3px forest border, focus ring and caret; filled boxes have a forest border. **It submits on its own after the 6th digit**, so there's no Sign in button. Helper: "The code works for 10 minutes. Check spam if you don't see it." Text link "Use another email". The "Open email app" button was removed.
-- **02b Checking**: boxes muted (cream-deep, read-only), status bar "Checking your code…" with spinner on forest-tint.
+- **02b Checking**: boxes muted (cream-deep, read-only), status bar "Checking your code…" with the small rolling car (see Loading) on forest-tint.
 - **02c Wrong code**: boxes with orange borders, alert "That code isn't right." / "Check the email and try again. 3 tries left." Buttons: Send a new code · Use another email. Clear the boxes on the next keypress.
 - **02d Code expired**: title "That code expired", alert "Codes only work for 10 minutes.", primary **"Email me a new code"**.
 - **02e Too many tries**: title "Too many tries", alert "Please wait 15 minutes. For safety, sign-in is paused after 5 wrong codes.", disabled button with a live countdown "Try again in mm:ss".
@@ -166,7 +166,7 @@ Screens, in order:
    - If Special: "What makes it special? Pick any" + multi-select chips (Alien Green, Racing stripes, Exterior graphics, Brown paint; min-height 56, pill; selected = forest fill/cream text) + note "Brown means brown: champagne, pale gold and beige don't count." A car in several categories still earns +2 total.
    - Sticky footer (surface bg, 2px gold top rule): primary button. Disabled (`--c-cream-deep` bg, ink-muted text) with label "Pick what makes it special" until valid; enabled label "Send · +1 point" / "Send · +2 points". Footnote: "Not a Soul after all? Wrong calls cost 1 point." **The Where row was removed** (deferred).
    - Valid = Regular selected, OR Special + at least one category. No default selection in production (the mock preselects Special + Alien Green to demonstrate).
-4. **04 Sending**: centered 200px photo, "Sending your photo…" (serif `--t-h1`), 14px progress bar (forest on cream-deep), "Keep the app open. This usually takes a few seconds."
+4. **04 Sending**: centered 200px photo, "Sending your photo…" (serif `--t-h1`), 14px progress bar (forest on cream-deep) with the rolling car riding on top at the current percent (wheels turning), "Keep the app open. This usually takes a few seconds."
 5. **05a Saved**: full forest background. 96px cream circle with forest check (8px gold halo), kicker "SPECIAL SOUL SAVED" / "SOUL SAVED", points in serif 72px ("+2"), "You have {n} points this week." plus a note: "We'll double-check the photo. If it isn't a Kia Soul, it becomes a −1 in Sightings." (rgba(255,252,245,.1) panel) Buttons: orange **"Snap another Soul"** → 01; gold-outline **"Done"** → Home.
 6. **05b Didn't send**: orange 96px "!" circle, "Your photo didn't send", "Don't worry, it's saved on this phone. We'll send it on our own when you have signal." Buttons: **"Try again now"** (primary) · **"OK, send it later"** (secondary → Home; the claim appears in Sightings as "Waiting to send").
 
@@ -182,9 +182,9 @@ Screens, in order:
 - **05 / 05b / 05c Sighting photo**: full-screen dark viewer (`--c-camera`), **Close** button (56px), photo (pinch to zoom), bottom cream sheet with name, time, claim, status chip. Flagged adds a note: "Our photo check wasn't sure about the stripes. The +2 still counts while an admin takes a look." False call adds an orange note: "Our photo check says this isn't a Kia Soul, so it counts as −1."
 
 ### Empty, loading and error states: `Soul Search Empty - Error States.dc.html` (#8, #10)
-- **Home · no Souls yet**: points 0, rank shows small text "Snap a Soul to get ranked" over "23 players" (the app replaces the mockup's dash, which read as missing data), card "No Souls yet this week" / "Your first one is out there. Regular Souls are +1, special ones +2."
-- **Home · loading**: header placeholders in forest-deep. The camera button works while scores load.
-- **Lists · loading**: gray placeholder rows/cards (`--c-cream-deep`) in the real layout; pulse opacity .6↔1 over 1.2s (skip it if reduced motion is on).
+- **Home · no Souls yet**: points 0, rank shows small text "Snap a Soul to get ranked" over "23 players" (not a dash, which read as missing data), card "No Souls yet this week" / "Your first one is out there. Regular Souls are +1, special ones +2."
+- **Home · loading**: header placeholders in forest-deep, with the dark shimmer. The camera button works while scores load.
+- **Lists · loading**: gray placeholder rows/cards (`--c-cream-deep`) in the real layout; shimmer sweep, 1.6s linear, left to right (skip it if reduced motion is on).
 - **Empty**: dashed gold circle with a serif "S", serif title, body text, orange **"Take a photo"**. Leaderboard: "No scores yet this week" / "Nobody has spotted a Soul since Monday. The first photo puts you on top." Sightings: "No sightings yet" / "Photos from everyone in the group show up here as soon as they're sent."
 - **Error** (same everywhere): error alert "Couldn't load {the scores | sightings}" / "Check your Wi-Fi or signal, then try again. Your photos are safe." + primary **Try again**.
 
@@ -207,6 +207,13 @@ Entry: **Admin tools** row in Settings, admins only. Every action writes to the 
 - **C5 Saved**: kicker "BROWN SOUL SAVED", "+3", "You have 9 Brown Week points."
 - **C6 Challenge leaderboard**: segmented **{Challenge} | All time** (it replaces "This week" while running), rules strip "Rules: Regular +1 · Special +2 · Brown paint +3 · False call −1", rows, See past weeks.
 - **C7 Sightings**: day header says "· Brown Week"; challenge photos get the orange challenge tag.
+
+### Loading
+Two patterns, one for each kind of wait. Both are in `Soul Hunt Design System.dc.html` (section 06).
+- **Rolling car** (network waits with no layout to show: checking a sign-in code, sending a photo, any full-screen wait). A small boxy car (inline SVG, 64×44 viewBox: `--c-forest` body, `--c-forest-tint` windows, `--c-ink` wheels with `--c-gold-soft` hub bars, `--c-orange` tail light) on a 3px dashed `--c-gold` road. It drives left to right across its container in 2.4s ease-in-out, looping; wheels rotate every 0.5s. Inline size: 40×28 car on a 96×34 road. When progress is known (Sending), don't loop: position the car at the progress value on top of the progress bar. It's a generic car, not any real model; keep it that way. Always pair it with a visible text label and `role="status"`; the car itself is `aria-hidden`.
+- **Shimmer** (lists and cards whose layout is known: Leaderboard, Sightings, Home header). Placeholders in `--c-cream-deep` (`--c-forest-deep` on the green header) in the real layout, with a lighter band (`#FBF6EC`, or `#24533A` on dark) sweeping left to right, 1.6s linear, infinite.
+- **Reduced motion** (`prefers-reduced-motion: reduce`): the car parks centered with still wheels; placeholders don't move. Labels stay.
+- Animate with `transform` in production (the prototypes animate `left` for simplicity).
 
 ## State Management
 - `auth`: `{ status: 'signedOut' | 'notAllowed' | 'codeSent' | 'checking' | 'wrongCode' | 'expired' | 'lockedOut' | 'needsName' | 'signedIn', email, triesLeft, lockedUntil, user }`
