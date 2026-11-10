@@ -73,3 +73,17 @@ describe('useQueuedSightings', () => {
     await waitFor(() => expect(result.current.items).toEqual([]))
   })
 })
+
+describe('useQueuedSightings reloads', () => {
+  it('keeps the same list when nothing in the queue changed', async () => {
+    const store = storeOf([item('a')])
+    const { result } = renderHook(() => useQueuedSightings('p1', store))
+    await waitFor(() => expect(ids(result.current.items)).toEqual(['a']))
+    const first = result.current.items
+
+    act(() => result.current.reload())
+
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(result.current.items).toBe(first)
+  })
+})
