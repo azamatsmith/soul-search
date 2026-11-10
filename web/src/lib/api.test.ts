@@ -1,6 +1,6 @@
 import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getMe, sendCode, verifyCode } from './api'
+import { getMe, putTextSize, sendCode, verifyCode } from './api'
 import { supabase } from './supabase'
 
 vi.mock('./supabase', () => ({
@@ -209,6 +209,30 @@ describe('api', () => {
       ok: false,
       status: 401,
       error: 'unauthenticated',
+    })
+  })
+
+  it('putTextSize sends the size with the bearer token', async () => {
+    signedIn('tok')
+    const fetchMock = stubFetch(() => respond(200, { text_size: 'large' }))
+    await putTextSize('large')
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ]
+    expect(url).toBe('http://localhost:8000/me/text-size')
+    expect(init.method).toBe('PUT')
+    expect(init.body).toBe(JSON.stringify({ text_size: 'large' }))
+    expect(new Headers(init.headers).get('Authorization')).toBe('Bearer tok')
+  })
+
+  it('putTextSize passes no_player through', async () => {
+    signedIn('tok')
+    stubFetch(() => respond(404, { error: 'no_player' }))
+    expect(await putTextSize('large')).toEqual({
+      ok: false,
+      status: 404,
+      error: 'no_player',
     })
   })
 

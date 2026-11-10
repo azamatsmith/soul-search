@@ -3,6 +3,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(
+      (process.env.COMMIT_REF ?? 'dev').slice(0, 7),
+    ),
+  },
   plugins: [
     react(),
     VitePWA({

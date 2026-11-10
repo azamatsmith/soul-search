@@ -43,9 +43,16 @@
   --tap-min: 56px;
   --tap-lg: 72px;
 
+  --avatar-lg: 56px;
+  --badge: 32px;
+  --switch-w: 64px;
+  --switch-h: 36px;
+  --switch-knob: 28px;
+
   --rule: 2px solid var(--c-gold);
   --rule-thin: 1px solid var(--c-gold-soft);
   --shadow-card: 0 1px 0 var(--c-gold-soft), 0 6px 18px rgba(58, 38, 24, 0.07);
+  --shadow-knob: 0 1px 3px rgba(58, 38, 24, 0.3);
   --stripes: repeating-linear-gradient(
     135deg,
     var(--c-cream-deep) 0 8px,

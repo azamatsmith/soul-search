@@ -6,6 +6,7 @@ import { RequireAuth } from './components/RequireAuth'
 import { AdminScreen } from './screens/AdminScreen'
 import { ChangeNameScreen } from './screens/ChangeNameScreen'
 import { ScoresScreen } from './screens/ScoresScreen'
+import { SettingsScreen } from './screens/SettingsScreen'
 import { SightingsScreen } from './screens/SightingsScreen'
 import { SignInPage } from './screens/SignInPage'
 import { TakePhotoScreen } from './screens/TakePhotoScreen'
@@ -20,6 +21,7 @@ export const routes: RouteObject[] = [
     element: <RequireAuth />,
     children: [
       { path: '/welcome', element: <WelcomeScreen /> },
+      { path: '/settings', element: <SettingsScreen /> },
       { path: '/settings/name', element: <ChangeNameScreen /> },
       {
         element: <RequireAdmin />,
