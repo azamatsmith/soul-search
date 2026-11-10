@@ -1,8 +1,7 @@
-import { Button } from '../components/Button'
 import { CameraButton } from '../components/CameraButton'
-import { FormError } from '../components/FormError'
 import { HomeHeader } from '../components/HomeHeader'
 import { HomeHeaderPlaceholder } from '../components/HomeHeaderPlaceholder'
+import { LoadError } from '../components/LoadError'
 import { SummaryCard } from '../components/SummaryCard'
 import { useApiResource } from '../hooks/useApiResource'
 import { useMeContext } from '../hooks/useMeContext'
@@ -43,10 +42,7 @@ export const TakePhotoScreen = () => {
       </div>
       {failed && (
         <div className={styles.error}>
-          <FormError title="Couldn't load your points">
-            Check your Wi-Fi or signal, then try again. Your photos are safe.
-          </FormError>
-          <Button onClick={handleRetry}>Try again</Button>
+          <LoadError onRetry={handleRetry} thing="your points" />
         </div>
       )}
       {period.data && standing.data && (

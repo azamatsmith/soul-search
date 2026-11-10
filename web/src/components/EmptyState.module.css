@@ -1,0 +1,55 @@
+.empty {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--s-3);
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-5) var(--s-6);
+  text-align: center;
+}
+
+.mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--empty-mark);
+  height: var(--empty-mark);
+  border: 3px dashed var(--c-gold);
+  border-radius: var(--r-pill);
+  color: var(--c-gold);
+  font: 400 var(--t-empty-mark) / 1 var(--f-display);
+}
+
+.title {
+  margin: 0;
+  color: var(--c-forest);
+  font: 400 var(--t-h2) / 1.15 var(--f-display);
+}
+
+.body {
+  margin: 0;
+  color: var(--c-ink-muted);
+  font: 500 var(--t-body) / 1.45 var(--f-body);
+  text-wrap: pretty;
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--tap-lg);
+  margin-top: var(--s-2);
+  border-radius: var(--r-md);
+  background: var(--c-orange);
+  box-shadow: inset 0 -3px 0 var(--c-orange-deep);
+  color: var(--c-on-dark);
+  font: 700 var(--t-h3) / 1.2 var(--f-body);
+  text-decoration: none;
+}
+
+.action:hover {
+  background: var(--c-orange-deep);
+  color: var(--c-on-dark);
+}
