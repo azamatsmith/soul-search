@@ -122,6 +122,7 @@ class LoggedSightingOut(BaseModel):
     flagged: bool
     check_note: str | None
     thumb_url: str | None
+    photo_url: str | None
 
 
 class SightingsLogOut(BaseModel):
@@ -224,19 +225,20 @@ def get_sightings(
 ) -> SightingsLogOut:
     week = repo.week_at(now)
     log = repo.week_log(week, user.id if mine else None)
-    urls = _cached_photo_urls(store, cache, [s.photo_path for s in log], now)
+    paths = [s.photo_path for s in log]
+    urls = _cached_signed_urls(store, cache, paths + [thumb_path(p) for p in paths], now)
     return SightingsLogOut(
         starts_at=week.starts_at,
         ends_at=week.ends_at,
-        sightings=[_logged_out(s, user.id, urls.get(s.photo_path)) for s in log],
+        sightings=[_logged_out(s, user.id, urls) for s in log],
     )
 
 
-def _cached_photo_urls(
-    store: PhotoStore, cache: SignedUrlCache, photo_paths: list[str], now: datetime
+def _cached_signed_urls(
+    store: PhotoStore, cache: SignedUrlCache, paths: list[str], now: datetime
 ) -> dict[str, str | None]:
-    urls: dict[str, str | None] = {p: cache.get(p, now) for p in photo_paths}
-    fresh = _photo_urls(store, [p for p, url in urls.items() if url is None])
+    urls = {p: cache.get(p, now) for p in paths}
+    fresh = _signed_urls(store, [p for p, url in urls.items() if url is None])
     expires_at = now + timedelta(seconds=SIGNED_URL_SECONDS)
     for path, url in fresh.items():
         if url:
@@ -244,17 +246,17 @@ def _cached_photo_urls(
     return urls | {p: url for p, url in fresh.items() if url}
 
 
-def _photo_urls(store: PhotoStore, photo_paths: list[str]) -> dict[str, str | None]:
+def _signed_urls(store: PhotoStore, paths: list[str]) -> dict[str, str | None]:
     try:
-        thumbs = store.signed_urls([thumb_path(p) for p in photo_paths], SIGNED_URL_SECONDS)
-        urls = {p: thumbs.get(thumb_path(p)) for p in photo_paths}
-        missing = [p for p, url in urls.items() if url is None]
-        return urls | store.signed_urls(missing, SIGNED_URL_SECONDS)
+        return store.signed_urls(paths, SIGNED_URL_SECONDS)
     except StorageUnavailable:
         return {}
 
 
-def _logged_out(sighting: LoggedSighting, me: UUID, thumb_url: str | None) -> LoggedSightingOut:
+def _logged_out(
+    sighting: LoggedSighting, me: UUID, urls: dict[str, str | None]
+) -> LoggedSightingOut:
+    photo_url = urls.get(sighting.photo_path)
     return LoggedSightingOut(
         id=sighting.id,
         player_id=sighting.player_id,
@@ -267,7 +269,8 @@ def _logged_out(sighting: LoggedSighting, me: UUID, thumb_url: str | None) -> Lo
         status=sighting.status,
         flagged=sighting.flagged,
         check_note=sighting.check_note,
-        thumb_url=thumb_url,
+        thumb_url=urls.get(thumb_path(sighting.photo_path)) or photo_url,
+        photo_url=photo_url,
     )
 
 

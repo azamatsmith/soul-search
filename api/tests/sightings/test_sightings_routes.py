@@ -518,6 +518,7 @@ def test_sightings_lists_the_week_with_thumbnails(harness: Harness):
     assert first["is_me"] is True
     assert first["display_name"] == "Bob"
     assert first["thumb_url"] == f"https://signed.test/{BOB_ID}/{mine.id}.thumb.jpg?ttl=3600"
+    assert first["photo_url"] == f"https://signed.test/{BOB_ID}/{mine.id}.jpg?ttl=3600"
     assert second["is_me"] is False
     assert second["status"] == "false_call"
     assert second["check_note"] == "not a Soul"
@@ -539,6 +540,7 @@ def test_sightings_falls_back_to_full_photo_without_thumbnail(harness: Harness):
     (item,) = harness.client.get("/sightings").json()["sightings"]
 
     assert item["thumb_url"] == f"https://signed.test/{BOB_ID}/{old.id}.jpg?ttl=3600"
+    assert item["photo_url"] == item["thumb_url"]
 
 
 def test_sightings_still_load_when_storage_is_down(harness: Harness):
@@ -548,7 +550,9 @@ def test_sightings_still_load_when_storage_is_down(harness: Harness):
     response = harness.client.get("/sightings")
 
     assert response.status_code == 200
-    assert [s["thumb_url"] for s in response.json()["sightings"]] == [None]
+    (item,) = response.json()["sightings"]
+    assert item["thumb_url"] is None
+    assert item["photo_url"] is None
 
 
 def test_sightings_never_include_admin_notes(harness: Harness):
@@ -564,12 +568,14 @@ def test_sightings_reuse_signed_urls_between_refreshes(harness: Harness):
     sighting = logged(BOB_ID, "Bob")
     harness.repo.logs = [sighting]
     store_photo(harness, sighting)
-    first = harness.client.get("/sightings").json()["sightings"][0]["thumb_url"]
+    first = harness.client.get("/sightings").json()["sightings"][0]
 
     harness.store.fail = StorageUnavailable("down")
-    again = harness.client.get("/sightings").json()["sightings"][0]["thumb_url"]
+    again = harness.client.get("/sightings").json()["sightings"][0]
 
-    assert again == first
+    assert again["thumb_url"] == first["thumb_url"]
+    assert again["photo_url"] == first["photo_url"]
+    assert again["photo_url"] is not None
 
 
 def test_sightings_re_sign_urls_close_to_expiry(harness: Harness):

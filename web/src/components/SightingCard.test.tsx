@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
 import type { CardKind, LogCard } from '../lib/sightingsCopy'
 import { SightingCard } from './SightingCard'
 
@@ -7,6 +7,7 @@ const card = (changes: Partial<LogCard> = {}): LogCard => ({
   categories: [],
   checkNote: null,
   claimType: 'regular',
+  fullPhotoUrl: null,
   id: 'a',
   kind: 'counted',
   name: 'Heathyr',
@@ -30,7 +31,7 @@ const CASES: [CardKind, Partial<LogCard>, string][] = [
 
 describe('SightingCard', () => {
   it.each(CASES)('renders the %s card', (kind, changes, chip) => {
-    render(<SightingCard card={card({ ...changes, kind })} />)
+    render(<SightingCard card={card({ ...changes, kind })} onOpen={vi.fn()} />)
 
     expect(screen.getByText(chip).dataset.kind).toBe(kind)
     expect(screen.getByText('Heathyr')).toBeInTheDocument()
@@ -45,6 +46,7 @@ describe('SightingCard', () => {
           claimType: 'special',
           kind: 'special',
         })}
+        onOpen={vi.fn()}
       />,
     )
 
@@ -52,7 +54,9 @@ describe('SightingCard', () => {
   })
 
   it('shows the photo', () => {
-    const { container } = render(<SightingCard card={card()} />)
+    const { container } = render(
+      <SightingCard card={card()} onOpen={vi.fn()} />,
+    )
 
     expect(container.querySelector('img')?.getAttribute('src')).toBe(
       'https://signed.test/a.thumb.jpg',
@@ -61,10 +65,21 @@ describe('SightingCard', () => {
 
   it('renders without a photo url', () => {
     const { container } = render(
-      <SightingCard card={card({ photoUrl: null })} />,
+      <SightingCard card={card({ photoUrl: null })} onOpen={vi.fn()} />,
     )
 
     expect(container.querySelector('img')).toBeNull()
     expect(screen.getByText('+1 Counted')).toBeInTheDocument()
+  })
+
+  it('opens the photo when tapped', () => {
+    const onOpen = vi.fn()
+    render(<SightingCard card={card()} onOpen={onOpen} />)
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Open photo from Heathyr, 4:31 PM' }),
+    )
+
+    expect(onOpen).toHaveBeenCalledWith('a')
   })
 })

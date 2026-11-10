@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { EmptyState } from '../components/EmptyState'
 import { LoadError } from '../components/LoadError'
+import { PhotoViewer } from '../components/PhotoViewer'
 import { ScreenTitle } from '../components/ScreenTitle'
 import { SegmentedControl } from '../components/SegmentedControl'
 import { SightingsList } from '../components/SightingsList'
@@ -9,6 +10,7 @@ import { useApiResource } from '../hooks/useApiResource'
 import { useAutoRefresh } from '../hooks/useAutoRefresh'
 import { useMeContext } from '../hooks/useMeContext'
 import { useNow } from '../hooks/useNow'
+import { usePhotoParam } from '../hooks/usePhotoParam'
 import { useQueuedSightings } from '../hooks/useQueuedSightings'
 import { useUploadsFlushed } from '../hooks/useUploadsFlushed'
 import { useWaitingCards } from '../hooks/useWaitingCards'
@@ -30,6 +32,7 @@ const toCard = (sighting: LoggedSighting): LogCard => ({
   categories: sighting.categories,
   checkNote: sighting.check_note,
   claimType: sighting.claim_type,
+  fullPhotoUrl: sighting.photo_url ?? sighting.thumb_url,
   id: sighting.id,
   kind: cardKind(sighting),
   name: sighting.display_name,
@@ -46,6 +49,7 @@ export const SightingsScreen = () => {
   const mine = useApiResource(loadMine)
   const queue = useQueuedSightings(me.id)
   const waiting = useWaitingCards(queue.items, me.display_name ?? '')
+  const photo = usePhotoParam()
   const log = filter === 'everyone' ? everyone : mine
 
   const handleRefresh = () => {
@@ -62,6 +66,12 @@ export const SightingsScreen = () => {
     ...waiting.filter((card) => !sentIds.has(card.id)),
     ...sent.map(toCard),
   ]
+  const opened = photo.photoId
+    ? [...(everyone.data?.sightings ?? []), ...(mine.data?.sightings ?? [])]
+        .map(toCard)
+        .concat(waiting)
+        .find((card) => card.id === photo.photoId)
+    : undefined
   const countText =
     log.status === 'loading' ? null : `${cards.length} this week`
 
@@ -80,7 +90,7 @@ export const SightingsScreen = () => {
         />
         {log.status === 'loading' && <SightingsPlaceholder />}
         {log.status !== 'loading' && cards.length > 0 && (
-          <SightingsList groups={groupByDay(cards, now)} />
+          <SightingsList groups={groupByDay(cards, now)} onOpen={photo.open} />
         )}
         {log.status === 'error' && (
           <LoadError onRetry={log.retry} thing="sightings" />
@@ -92,6 +102,9 @@ export const SightingsScreen = () => {
           />
         )}
       </div>
+      {opened && (
+        <PhotoViewer card={opened} key={opened.id} onClose={photo.close} />
+      )}
     </div>
   )
 }

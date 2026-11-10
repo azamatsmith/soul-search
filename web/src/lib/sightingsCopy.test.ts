@@ -7,6 +7,9 @@ import {
   groupByDay,
   type LogCard,
   timeText,
+  viewerClaimLine,
+  viewerNote,
+  viewerTime,
 } from './sightingsCopy'
 
 const THU_EVENING = Date.parse('2026-11-13T04:00:00Z')
@@ -15,6 +18,7 @@ const card = (changes: Partial<LogCard> = {}): LogCard => ({
   categories: [],
   checkNote: null,
   claimType: 'regular',
+  fullPhotoUrl: null,
   id: 'a',
   kind: 'counted',
   name: 'Heathyr',
@@ -126,6 +130,68 @@ describe('claimLine', () => {
       ),
     ).toBe('Looks like a Kia Niro')
     expect(claimLine(card({ kind: 'false_call' }))).toBe(
+      'Photo check: not a Kia Soul',
+    )
+  })
+})
+
+describe('viewerTime', () => {
+  it('shows the Pacific weekday and time', () => {
+    expect(viewerTime('2026-11-13T00:31:00Z')).toBe('Thu 4:31 PM')
+  })
+})
+
+describe('viewerClaimLine', () => {
+  it('matches the card for counted sightings', () => {
+    expect(viewerClaimLine(card())).toBe('Regular')
+    expect(
+      viewerClaimLine(
+        card({
+          categories: ['Alien Green'],
+          claimType: 'special',
+          kind: 'flagged',
+        }),
+      ),
+    ).toBe('Special · Alien Green')
+  })
+
+  it('shows what was claimed on a false call', () => {
+    expect(viewerClaimLine(card({ kind: 'false_call' }))).toBe(
+      'Claimed: Regular',
+    )
+    expect(
+      viewerClaimLine(
+        card({
+          categories: ['Alien Green'],
+          claimType: 'special',
+          kind: 'false_call',
+        }),
+      ),
+    ).toBe('Claimed: Special · Alien Green')
+  })
+})
+
+describe('viewerNote', () => {
+  it('has no note for counted, special or waiting sightings', () => {
+    expect(viewerNote(card())).toBeNull()
+    expect(viewerNote(card({ kind: 'special' }))).toBeNull()
+    expect(viewerNote(card({ kind: 'waiting' }))).toBeNull()
+  })
+
+  it('shows the check note on flagged and false-call sightings', () => {
+    expect(viewerNote(card({ checkNote: 'Stripes?', kind: 'flagged' }))).toBe(
+      'Stripes?',
+    )
+    expect(viewerNote(card({ checkNote: 'A Niro', kind: 'false_call' }))).toBe(
+      'A Niro',
+    )
+  })
+
+  it('falls back when there is no check note', () => {
+    expect(viewerNote(card({ kind: 'flagged', points: 2 }))).toBe(
+      "Our photo check wasn't sure about this one. The +2 still counts while an admin takes a look.",
+    )
+    expect(viewerNote(card({ kind: 'false_call' }))).toBe(
       'Photo check: not a Kia Soul',
     )
   })
