@@ -238,6 +238,7 @@ export interface LoggedSighting {
   flagged: boolean
   id: string
   is_me: boolean
+  photo_url: string | null
   player_id: string
   points: number
   status: SightingStatus

@@ -37,6 +37,7 @@ const sighting = (changes: Partial<LoggedSighting>): LoggedSighting => ({
   player_id: 'me',
   points: 1,
   status: 'counted',
+  photo_url: null,
   taken_at: '2026-11-13T00:31:00Z',
   thumb_url: null,
   ...changes,
@@ -89,9 +90,9 @@ const serve = (everyone: LoggedSighting[]) =>
       ok(log(mine ? everyone.filter((s) => s.is_me) : everyone)),
     )
 
-const renderLog = () =>
+const renderLog = (path = '/sightings') =>
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[path]}>
       <SightingsScreen />
     </MemoryRouter>,
   )
@@ -208,5 +209,59 @@ describe('SightingsScreen', () => {
     await waitFor(() =>
       expect(vi.mocked(getSightings).mock.calls.length).toBeGreaterThan(before),
     )
+  })
+
+  it('opens a sighting full screen and closes it', async () => {
+    serve(EVERYONE)
+    renderLog()
+
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: 'Open photo from Marcus T., 5:00 PM',
+      }),
+    )
+    expect(
+      screen.getByRole('dialog', { name: 'Marcus T.' }),
+    ).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+
+  it('opens a linked photo and closes it', async () => {
+    serve(EVERYONE)
+    renderLog('/sightings?photo=wed')
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Marcus T.' }),
+    ).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+
+  it('ignores a link to a photo that is not in the log', async () => {
+    serve(EVERYONE)
+    renderLog('/sightings?photo=gone')
+
+    await screen.findByText('Marcus T.')
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('opens a waiting card with its queued photo', async () => {
+    queue([queued('q1')])
+    serve([])
+    renderLog()
+
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: 'Open photo from Heathyr, 4:35 PM',
+      }),
+    )
+
+    const dialog = screen.getByRole('dialog', { name: 'Heathyr' })
+    expect(within(dialog).getByText('Waiting to send')).toBeInTheDocument()
+    expect(
+      within(dialog).getByRole('img', { name: 'Photo from Heathyr' }),
+    ).toHaveAttribute('src', 'blob:queued')
   })
 })

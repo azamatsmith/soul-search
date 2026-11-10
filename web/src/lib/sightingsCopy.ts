@@ -7,6 +7,7 @@ export interface LogCard {
   categories: string[]
   checkNote: string | null
   claimType: 'regular' | 'special'
+  fullPhotoUrl: string | null
   id: string
   kind: CardKind
   name: string
@@ -75,19 +76,34 @@ export const chipText = ({ kind, points }: LogCard) => {
   }
 }
 
-export const claimLine = ({
-  categories,
-  checkNote,
-  claimType,
-  kind,
-}: LogCard) => {
-  if (kind === 'false_call') return checkNote ?? 'Photo check: not a Kia Soul'
-  return claimType === 'special'
-    ? `Special · ${categories.join(', ')}`
-    : 'Regular'
+const FALSE_CALL_FALLBACK = 'Photo check: not a Kia Soul'
+
+const claimed = ({ categories, claimType }: LogCard) =>
+  claimType === 'special' ? `Special · ${categories.join(', ')}` : 'Regular'
+
+export const claimLine = (card: LogCard) =>
+  card.kind === 'false_call'
+    ? (card.checkNote ?? FALSE_CALL_FALLBACK)
+    : claimed(card)
+
+export const viewerClaimLine = (card: LogCard) =>
+  card.kind === 'false_call' ? `Claimed: ${claimed(card)}` : claimed(card)
+
+export const viewerNote = (card: LogCard) => {
+  if (card.kind === 'false_call') return card.checkNote ?? FALSE_CALL_FALLBACK
+  if (card.kind !== 'flagged') return null
+  return (
+    card.checkNote ??
+    `Our photo check wasn't sure about this one. The ${signed(card.points)} still counts while an admin takes a look.`
+  )
 }
 
 export const timeText = (takenAt: string) => clock.format(new Date(takenAt))
+
+export const viewerTime = (takenAt: string) => {
+  const at = new Date(takenAt)
+  return `${weekday.format(at)} ${clock.format(at)}`
+}
 
 export const dayHeader = (takenAt: string, now: number) => {
   const at = Date.parse(takenAt)
