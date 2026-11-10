@@ -37,12 +37,16 @@ from app.sightings.repo import (
     get_sightings_repo,
 )
 from app.sightings.scoring import InvalidClaim, points_for
-from app.sightings.url_cache import SignedUrlCache, get_url_cache
+from app.sightings.url_cache import (
+    SIGNED_URL_SECONDS,
+    SignedUrlCache,
+    cached_signed_urls,
+    get_url_cache,
+)
 from app.verification.runner import get_verification_runner
 
 MAX_PHOTO_BYTES = 8 * 1024 * 1024
 MAX_CLOCK_SKEW = timedelta(minutes=5)
-SIGNED_URL_SECONDS = 3600
 
 router = APIRouter()
 
@@ -226,31 +230,12 @@ def get_sightings(
     week = repo.week_at(now)
     log = repo.week_log(week, user.id if mine else None)
     paths = [s.photo_path for s in log]
-    urls = _cached_signed_urls(store, cache, paths + [thumb_path(p) for p in paths], now)
+    urls = cached_signed_urls(store, cache, paths + [thumb_path(p) for p in paths], now)
     return SightingsLogOut(
         starts_at=week.starts_at,
         ends_at=week.ends_at,
         sightings=[_logged_out(s, user.id, urls) for s in log],
     )
-
-
-def _cached_signed_urls(
-    store: PhotoStore, cache: SignedUrlCache, paths: list[str], now: datetime
-) -> dict[str, str | None]:
-    urls = {p: cache.get(p, now) for p in paths}
-    fresh = _signed_urls(store, [p for p, url in urls.items() if url is None])
-    expires_at = now + timedelta(seconds=SIGNED_URL_SECONDS)
-    for path, url in fresh.items():
-        if url:
-            cache.put(path, url, expires_at, now)
-    return urls | {p: url for p, url in fresh.items() if url}
-
-
-def _signed_urls(store: PhotoStore, paths: list[str]) -> dict[str, str | None]:
-    try:
-        return store.signed_urls(paths, SIGNED_URL_SECONDS)
-    except StorageUnavailable:
-        return {}
 
 
 def _logged_out(

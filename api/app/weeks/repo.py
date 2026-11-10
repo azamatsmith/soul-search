@@ -40,9 +40,26 @@ class PgWeeksRepo:
         current = self._sightings.week_at(now)
         return CloseOut(closed=tuple(row[0] for row in ended), current_week_id=current.id)
 
+    def refresh_results(self, week_id: UUID) -> None:
+        row = self._conn.execute(
+            "select starts_at from public.weeks where id = %s and closed_at is not null for update",
+            (week_id,),
+        ).fetchone()
+        if row:
+            self._conn.execute(
+                "update public.weeks set results = %s where id = %s",
+                (Jsonb(self._results(row[0])), week_id),
+            )
+
     def _close(self, week_id: UUID, starts_at: datetime, now: datetime) -> None:
+        self._conn.execute(
+            "update public.weeks set closed_at = %s, results = %s where id = %s",
+            (now, Jsonb(self._results(starts_at)), week_id),
+        )
+
+    def _results(self, starts_at: datetime) -> list[dict[str, object]]:
         board = self._sightings.leaderboard(self._sightings.week_at(starts_at))
-        results = [
+        return [
             {
                 "player_id": str(row.player_id),
                 "display_name": row.display_name,
@@ -52,10 +69,6 @@ class PgWeeksRepo:
             }
             for row in board.rows
         ]
-        self._conn.execute(
-            "update public.weeks set closed_at = %s, results = %s where id = %s",
-            (now, Jsonb(results), week_id),
-        )
 
 
 def get_weeks_repo(conn: Conn) -> WeeksRepo:
