@@ -10,12 +10,12 @@ from app.auth.tokens import CurrentUser
 from app.clock import get_now
 from app.errors import ApiError
 from app.me.players_repo import PlayersRepo, get_players_repo
+from app.sightings.photo_meta import CleanPhoto, InvalidPhoto, clean_photo
 from app.sightings.photo_store import PhotoStore, StorageUnavailable, get_photo_store
 from app.sightings.repo import NewSighting, Period, Sighting, SightingsRepo, get_sightings_repo
 from app.sightings.scoring import InvalidClaim, points_for
 
 MAX_PHOTO_BYTES = 8 * 1024 * 1024
-JPEG_MAGIC = b"\xff\xd8\xff"
 MAX_CLOCK_SKEW = timedelta(minutes=5)
 SIGNED_URL_SECONDS = 3600
 
@@ -125,13 +125,16 @@ def get_standing(user: User, repo: Repo, store: Store, now: Now) -> StandingOut:
     )
 
 
-def _read_photo(photo: UploadFile) -> bytes:
+def _read_photo(photo: UploadFile) -> CleanPhoto:
     data = photo.file.read(MAX_PHOTO_BYTES + 1)
     if len(data) > MAX_PHOTO_BYTES:
         raise ApiError(413, "photo_too_large")
-    if photo.content_type != "image/jpeg" or not data.startswith(JPEG_MAGIC):
+    if photo.content_type != "image/jpeg":
         raise ApiError(422, "invalid_photo")
-    return data
+    try:
+        return clean_photo(data)
+    except InvalidPhoto as error:
+        raise ApiError(422, "invalid_photo") from error
 
 
 def _check_location(latitude: float | None, longitude: float | None) -> None:
@@ -169,7 +172,9 @@ def post_sighting(
     if taken_at.tzinfo is None or taken_at > now + MAX_CLOCK_SKEW:
         raise ApiError(422, "invalid_request")
     _check_location(latitude, longitude)
-    data = _read_photo(photo)
+    cleaned = _read_photo(photo)
+    if latitude is None:
+        latitude, longitude = cleaned.latitude, cleaned.longitude
     if players.get(user.id) is None:
         raise ApiError(404, "no_player")
 
@@ -190,7 +195,7 @@ def post_sighting(
 
     path = f"{user.id}/{sighting_id}.jpg"
     try:
-        store.upload(path, data)
+        store.upload(path, cleaned.data)
     except StorageUnavailable as error:
         raise ApiError(502, "storage_unavailable") from error
 
