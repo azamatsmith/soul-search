@@ -15,6 +15,7 @@ from app.sightings.repo import (
 )
 from app.verification.outcome import CheckResult, Claim, Outcome
 from app.verification.repo import PendingSighting
+from app.weeks.repo import CloseOut
 
 
 class FakeAttemptsRepo:
@@ -225,3 +226,15 @@ class FakePhotoChecker:
             raise self.fail
         assert self.result
         return self.result
+
+
+class FakeWeeksRepo:
+    def __init__(self, current_week_id: UUID) -> None:
+        self.current_week_id = current_week_id
+        self.ended: list[UUID] = []
+        self.calls: list[datetime] = []
+
+    def close_ended(self, now: datetime) -> CloseOut:
+        self.calls.append(now)
+        closed, self.ended = tuple(self.ended), []
+        return CloseOut(closed=closed, current_week_id=self.current_week_id)

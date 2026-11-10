@@ -56,6 +56,7 @@ Sign in with a seeded email such as `bob@example.test`, then read the 6-digit co
 | `SUPABASE_JWT_SECRET` | api | `api/.env.local` | Set in the Render dashboard, only if the project still uses the legacy JWT secret |
 | `DATABASE_URL` | api | local stack | Set in the Render dashboard, using the transaction pooler connection string |
 | `ANTHROPIC_API_KEY` | api | `api/.env.local` | Set in the Render dashboard |
+| `CLOSE_OUT_SECRET` | api | `local-close-out-secret` | Set in the Render dashboard to a long random value, and store the same value in the project's Vault as `close_out_secret` (see Weekly close-out) |
 
 Staging and production values are configured on each host, never committed.
 

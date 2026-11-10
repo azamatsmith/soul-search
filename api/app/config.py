@@ -16,6 +16,7 @@ class Settings:
     supabase_jwt_secret: str | None
     database_url: str
     anthropic_api_key: str
+    close_out_secret: str
 
 
 def _require(name: str) -> str:
@@ -32,6 +33,7 @@ def get_settings() -> Settings:
         supabase_jwt_secret=os.environ.get("SUPABASE_JWT_SECRET") or None,
         database_url=_require("DATABASE_URL"),
         anthropic_api_key=_require("ANTHROPIC_API_KEY"),
+        close_out_secret=_require("CLOSE_OUT_SECRET"),
     )
 
 
