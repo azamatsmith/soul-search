@@ -64,3 +64,23 @@ jobs:
         working-directory: api
       - run: uv run pytest -m db
         working-directory: api
+
+  migrate:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [web, api, db]
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: production-migrations
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npx supabase db push --remote="$PRODUCTION_DB_URL" --skip-vault --yes
+        env:
+          PRODUCTION_DB_URL: ${{ secrets.PRODUCTION_DB_URL }}
