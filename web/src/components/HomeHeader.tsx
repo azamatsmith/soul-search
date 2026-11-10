@@ -35,8 +35,8 @@ export const HomeHeader = ({
       <div className={`${styles.stat} ${styles.rankStat}`}>
         <span className={styles.label}>Rank</span>
         {standing.rank === null ? (
-          <span className={styles.rank}>
-            <span aria-label="No rank yet">-</span>{' '}
+          <span className={styles.unranked}>
+            <span className={styles.hint}>Snap a Soul to get ranked</span>
             <span className={styles.of}>{standing.total_players} players</span>
           </span>
         ) : (

@@ -140,10 +140,10 @@ describe('TakePhotoScreen', () => {
         'Your first one is out there. Regular Souls are +2, special ones +5.',
       ),
     ).toBeInTheDocument()
-    const rank = screen.getByLabelText('No rank yet')
-    expect(
-      within(rank.parentElement!).getByText('23 players'),
-    ).toBeInTheDocument()
+    const header = within(screen.getByRole('banner'))
+    expect(header.getByText('Snap a Soul to get ranked')).toBeInTheDocument()
+    expect(header.getByText('23 players')).toBeInTheDocument()
+    expect(header.queryByText('-')).not.toBeInTheDocument()
   })
 
   it('names a running challenge', async () => {

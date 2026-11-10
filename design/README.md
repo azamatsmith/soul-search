@@ -182,7 +182,7 @@ Screens, in order:
 - **05 / 05b / 05c Sighting photo**: full-screen dark viewer (`--c-camera`), **Close** button (56px), photo (pinch to zoom), bottom cream sheet with name, time, claim, status chip. Flagged adds a note: "Our photo check wasn't sure about the stripes. The +2 still counts while an admin takes a look." False call adds an orange note: "Our photo check says this isn't a Kia Soul, so it counts as −1."
 
 ### Empty, loading and error states: `Soul Search Empty - Error States.dc.html` (#8, #10)
-- **Home · no Souls yet**: points 0, rank "—" "23 players", card "No Souls yet this week" / "Your first one is out there. Regular Souls are +1, special ones +2."
+- **Home · no Souls yet**: points 0, rank shows small text "Snap a Soul to get ranked" over "23 players" (the app replaces the mockup's dash, which read as missing data), card "No Souls yet this week" / "Your first one is out there. Regular Souls are +1, special ones +2."
 - **Home · loading**: header placeholders in forest-deep. The camera button works while scores load.
 - **Lists · loading**: gray placeholder rows/cards (`--c-cream-deep`) in the real layout; pulse opacity .6↔1 over 1.2s (skip it if reduced motion is on).
 - **Empty**: dashed gold circle with a serif "S", serif title, body text, orange **"Take a photo"**. Leaderboard: "No scores yet this week" / "Nobody has spotted a Soul since Monday. The first photo puts you on top." Sightings: "No sightings yet" / "Photos from everyone in the group show up here as soon as they're sent."
