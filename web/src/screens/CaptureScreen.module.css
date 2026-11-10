@@ -1,0 +1,18 @@
+.light,
+.dark {
+  height: 100%;
+  padding-top: env(safe-area-inset-top);
+}
+
+.dark {
+  background: var(--c-camera);
+}
+
+.nativeCamera {
+  display: none;
+}
+
+.message {
+  position: fixed;
+  inset: auto var(--gutter) calc(var(--s-8) * 2) var(--gutter);
+}

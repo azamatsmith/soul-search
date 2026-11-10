@@ -6,8 +6,18 @@ import { getMe } from './lib/api'
 import { routes } from './routes'
 
 vi.mock('./hooks/useSession', () => ({ useSession: vi.fn() }))
-vi.mock('./lib/api', () => ({ getMe: vi.fn() }))
+vi.mock('./lib/api', () => ({
+  getMe: vi.fn(),
+  getPeriod: vi.fn(() => new Promise(() => {})),
+  getStanding: vi.fn(() => new Promise(() => {})),
+}))
 vi.mock('./lib/supabase', () => ({ supabase: { auth: {} } }))
+vi.mock('./lib/camera', () => ({
+  hasSeenCameraIntro: () => false,
+  markCameraIntroSeen: vi.fn(),
+  openCamera: vi.fn(),
+  stopCamera: vi.fn(),
+}))
 
 const renderAt = (path: string) =>
   render(
@@ -58,5 +68,20 @@ describe('routes', () => {
     expect(
       await screen.findByRole('heading', { name: 'Scores' }),
     ).toBeInTheDocument()
+  })
+
+  it('opens the photo flow full screen from the camera button', async () => {
+    renderAt('/')
+    fireEvent.click(
+      await screen.findByRole('link', { name: 'Take photo of a Soul' }),
+    )
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Soul Search needs your camera',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('navigation', { name: 'Main' }),
+    ).not.toBeInTheDocument()
   })
 })

@@ -7,9 +7,11 @@ export interface AvatarButtonProps {
 }
 
 export const AvatarButton = ({ name }: AvatarButtonProps) => (
-  <Link aria-label="Settings" className={styles.button} to="/settings">
-    <span aria-hidden className={styles.avatar}>
-      {initialOf(name)}
-    </span>
+  <Link
+    aria-label="Settings and profile"
+    className={styles.button}
+    to="/settings"
+  >
+    <span aria-hidden>{initialOf(name)}</span>
   </Link>
 )

@@ -14,6 +14,11 @@
   --c-gold-soft: #e6d5ac;
   --c-on-dark: #fffcf5;
   --c-camera: #16110d;
+  --c-on-camera-soft: rgba(255, 252, 245, 0.12);
+  --c-on-camera-line: rgba(255, 252, 245, 0.4);
+  --c-on-camera-ring: rgba(255, 252, 245, 0.3);
+  --c-alien-green: #9bc53d;
+  --c-brown-paint: #6e4b30;
 
   --f-display: 'Young Serif', Georgia, serif;
   --f-body: 'Figtree', system-ui, sans-serif;
@@ -34,6 +39,7 @@
   --s-6: 32px;
   --s-7: 48px;
   --s-8: 72px;
+  --gutter: 20px;
 
   --r-sm: 8px;
   --r-md: 14px;
@@ -44,6 +50,23 @@
   --tap-lg: 72px;
 
   --avatar-lg: 56px;
+  --camera-button: 250px;
+  --camera-glyph-w: 64px;
+  --camera-glyph-h: 48px;
+  --camera-lens: 22px;
+  --thumb: 64px;
+  --shutter: 96px;
+  --bracket: 40px;
+  --intro-icon: 120px;
+  --step-number: 40px;
+  --claim-min: 88px;
+  --radio: 28px;
+  --radio-dot: 12px;
+  --chip-dot: 14px;
+  --points-badge: 40px;
+  --t-score: 56px;
+  --t-camera: 30px;
+  --placeholder-line: 12px;
   --badge: 32px;
   --switch-w: 64px;
   --switch-h: 36px;
@@ -53,6 +76,9 @@
   --rule-thin: 1px solid var(--c-gold-soft);
   --shadow-card: 0 1px 0 var(--c-gold-soft), 0 6px 18px rgba(58, 38, 24, 0.07);
   --shadow-knob: 0 1px 3px rgba(58, 38, 24, 0.3);
+  --shadow-camera:
+    0 0 0 10px var(--c-orange-tint), 0 0 0 12px var(--c-gold-soft),
+    inset 0 -6px 0 var(--c-orange-deep), 0 14px 30px rgba(148, 62, 19, 0.35);
   --stripes: repeating-linear-gradient(
     135deg,
     var(--c-cream-deep) 0 8px,
@@ -75,6 +101,8 @@
   --t-label: 15px;
   --tap-min: 64px;
   --tap-lg: 80px;
+  --t-score: 62px;
+  --t-camera: 34px;
 }
 
 *,

@@ -1,0 +1,50 @@
+.button {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  align-items: center;
+  justify-content: center;
+  width: var(--camera-button);
+  height: var(--camera-button);
+  border-radius: var(--r-pill);
+  background: var(--c-orange);
+  box-shadow: var(--shadow-camera);
+  color: var(--c-on-dark);
+  text-decoration: none;
+  transition: transform 0.1s;
+}
+
+.button:hover {
+  color: var(--c-on-dark);
+}
+
+.button:active {
+  transform: scale(0.97);
+}
+
+.glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--camera-glyph-w);
+  height: var(--camera-glyph-h);
+  border: 4px solid currentcolor;
+  border-radius: var(--r-md);
+}
+
+.lens {
+  width: var(--camera-lens);
+  height: var(--camera-lens);
+  border: 4px solid currentcolor;
+  border-radius: var(--r-pill);
+}
+
+.label {
+  font: 400 var(--t-camera) / 1.1 var(--f-display);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}
