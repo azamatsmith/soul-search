@@ -55,6 +55,7 @@
 
   --avatar-lg: 56px;
   --avatar-md: 40px;
+  --thumb: 76px;
   --rank-w: calc(var(--t-h3) * 1.4);
   --camera-button: 250px;
   --camera-glyph-w: 64px;
