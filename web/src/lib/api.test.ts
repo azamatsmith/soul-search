@@ -4,6 +4,7 @@ import {
   getLeaderboard,
   getMe,
   getPeriod,
+  getSightings,
   getStanding,
   postSighting,
   putTextSize,
@@ -280,6 +281,8 @@ describe('api', () => {
     ['getPeriod', '/period', getPeriod],
     ['getStanding', '/me/standing', getStanding],
     ['getLeaderboard', '/leaderboard?scope=all', () => getLeaderboard('all')],
+    ['getSightings', '/sightings?mine=false', () => getSightings(false)],
+    ['getSightings', '/sightings?mine=true', () => getSightings(true)],
   ])('%s gets %s with the bearer token', async (_name, path, load) => {
     signedIn('tok')
     const fetchMock = stubFetch(() => respond(200, { points: 3 }))
