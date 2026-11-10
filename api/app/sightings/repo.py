@@ -65,6 +65,21 @@ class Standing:
     last_photo_path: str | None
 
 
+@dataclass(frozen=True)
+class LeaderboardEntry:
+    player_id: UUID
+    display_name: str
+    points: int
+    count: int
+    rank: int
+
+
+@dataclass(frozen=True)
+class Leaderboard:
+    rows: tuple[LeaderboardEntry, ...]
+    total_players: int
+
+
 class SightingsRepo(Protocol):
     def period_at(self, at: datetime) -> Period: ...
 
@@ -75,6 +90,8 @@ class SightingsRepo(Protocol):
     def insert(self, new: NewSighting) -> Sighting: ...
 
     def standing(self, player_id: UUID, period: Period) -> Standing: ...
+
+    def leaderboard(self, week: Period | None) -> Leaderboard: ...
 
 
 class PgSightingsRepo:
@@ -211,6 +228,23 @@ class PgSightingsRepo:
             next_rank=next_rank,
             points_behind_next=behind,
             last_photo_path=last_photo,
+        )
+
+    def leaderboard(self, week: Period | None) -> Leaderboard:
+        where = "week_id = %(period)s" if week else "true"
+        rows = self._conn.execute(
+            f"""
+            with {_ranked_cte(where)}
+            select id, display_name, points, count, rank from ranked
+            order by rank, lower(display_name)
+            """,
+            {"period": week.id if week else None},
+        ).fetchall()
+        total = self._conn.execute("select count(*) from public.players").fetchone()
+        assert total
+        return Leaderboard(
+            rows=tuple(LeaderboardEntry(*row) for row in rows),
+            total_players=total[0],
         )
 
     def _settings(self) -> Rules:
