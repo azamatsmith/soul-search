@@ -1,6 +1,6 @@
 from dataclasses import replace
-from datetime import UTC, datetime
-from uuid import UUID
+from datetime import UTC, datetime, timedelta
+from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
@@ -9,14 +9,23 @@ from app.auth.attempts_repo import get_attempts_repo
 from app.auth.tokens import CurrentUser, get_current_user
 from app.clock import get_now
 from app.main import create_app
+from app.me.players_repo import Player, get_players_repo
 from app.sightings.photo_store import StorageUnavailable, get_photo_store
-from app.sightings.repo import Period, get_sightings_repo
+from app.sightings.repo import Period, Sighting, get_sightings_repo
 from app.sightings.scoring import Rules
-from tests.fakes import EMPTY_STANDING, FakeAttemptsRepo, FakePhotoStore, FakeSightingsRepo
+from tests.fakes import (
+    EMPTY_STANDING,
+    FakeAttemptsRepo,
+    FakePhotoStore,
+    FakePlayersRepo,
+    FakeSightingsRepo,
+)
 
 NOW = datetime(2026, 11, 10, 18, tzinfo=UTC)
 BOB_ID = UUID("b2222222-2222-2222-2222-222222222222")
 BOB = CurrentUser(id=BOB_ID, email="bob@example.test")
+BOB_PLAYER = Player(id=BOB_ID, display_name="Bob", is_admin=False, text_size="standard")
+ALICE_ID = UUID("a1111111-1111-1111-1111-111111111111")
 RULES = Rules(
     regular=1,
     special=2,
@@ -33,6 +42,7 @@ WEEK = Period(
     closed=False,
     rules=RULES,
 )
+JPEG = b"\xff\xd8\xff\xe0fake-jpeg"
 
 
 class Harness:
@@ -42,10 +52,21 @@ class Harness:
         app = create_app()
         app.dependency_overrides[get_current_user] = lambda: BOB
         app.dependency_overrides[get_attempts_repo] = lambda: FakeAttemptsRepo({BOB.email})
+        app.dependency_overrides[get_players_repo] = lambda: FakePlayersRepo([BOB_PLAYER])
         app.dependency_overrides[get_sightings_repo] = lambda: repo
         app.dependency_overrides[get_photo_store] = lambda: self.store
         app.dependency_overrides[get_now] = lambda: NOW
         self.client = TestClient(app)
+
+    def post(self, *, photo: bytes = JPEG, content_type: str = "image/jpeg", **fields: object):
+        data: dict[str, object] = {
+            "id": str(uuid4()),
+            "claim_type": "regular",
+            "taken_at": (NOW - timedelta(minutes=1)).isoformat(),
+            **fields,
+        }
+        files = {"photo": ("photo.jpg", photo, content_type)}
+        return self.client.post("/sightings", data=data, files=files)
 
 
 @pytest.fixture
@@ -127,3 +148,184 @@ def test_endpoints_require_sign_in():
 
     assert client.get("/period").status_code == 401
     assert client.get("/me/standing").status_code == 401
+
+
+def test_post_regular_sighting_uploads_and_scores(harness: Harness):
+    sighting_id = uuid4()
+
+    response = harness.post(id=str(sighting_id), latitude="47.6", longitude="-122.3")
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["sighting"]["id"] == str(sighting_id)
+    assert body["sighting"]["points"] == 1
+    assert body["sighting"]["status"] == "waiting_review"
+    assert body["period_points"] == 1
+    path = f"{BOB_ID}/{sighting_id}.jpg"
+    assert harness.store.uploads == {path: JPEG}
+    (new,) = harness.repo.inserted
+    assert (new.photo_path, new.week_id, new.challenge_id) == (path, WEEK.id, None)
+    assert (new.latitude, new.longitude) == (47.6, -122.3)
+
+
+def test_post_special_uses_bonus_points(harness: Harness):
+    response = harness.post(claim_type="special", categories=["Brown paint", "Alien Green"])
+
+    assert response.json()["sighting"]["points"] == 3
+    assert harness.repo.inserted[0].categories == ("Brown paint", "Alien Green")
+
+
+def test_post_during_challenge_tags_challenge():
+    challenge = replace(WEEK, kind="challenge", name="Brown Week")
+    harness = Harness(FakeSightingsRepo(challenge))
+
+    harness.post()
+
+    (new,) = harness.repo.inserted
+    assert (new.week_id, new.challenge_id) == (None, challenge.id)
+
+
+def test_post_for_closed_week_falls_into_current_period():
+    closed = replace(WEEK, id=uuid4(), closed=True)
+    harness = Harness(FakeSightingsRepo(closed, closed_fallback=WEEK))
+    taken_at = NOW - timedelta(days=8)
+
+    harness.post(taken_at=taken_at.isoformat())
+
+    assert harness.repo.period_requests == [taken_at, NOW]
+    assert harness.repo.inserted[0].week_id == WEEK.id
+
+
+def test_post_for_ended_challenge_falls_into_current_period():
+    ended = replace(
+        WEEK,
+        kind="challenge",
+        id=uuid4(),
+        name="Thanksgiving Dash",
+        ends_at=NOW - timedelta(minutes=30),
+    )
+    harness = Harness(FakeSightingsRepo(ended, closed_fallback=WEEK))
+    taken_at = NOW - timedelta(hours=1)
+
+    harness.post(taken_at=taken_at.isoformat())
+
+    assert harness.repo.period_requests == [taken_at, NOW]
+    (new,) = harness.repo.inserted
+    assert (new.week_id, new.challenge_id) == (WEEK.id, None)
+
+
+def test_post_same_id_again_returns_existing_without_reupload(harness: Harness):
+    sighting_id = str(uuid4())
+    harness.post(id=sighting_id)
+    harness.store.uploads.clear()
+
+    response = harness.post(id=sighting_id, claim_type="special", categories=["Alien Green"])
+
+    assert response.status_code == 200
+    assert response.json()["sighting"]["points"] == 1
+    assert harness.store.uploads == {}
+    assert len(harness.repo.inserted) == 1
+
+
+def test_post_with_another_players_id_is_rejected(harness: Harness):
+    taken = uuid4()
+    harness.repo.sightings[taken] = Sighting(
+        id=taken,
+        player_id=ALICE_ID,
+        photo_path=f"{ALICE_ID}/{taken}.jpg",
+        taken_at=NOW,
+        claim_type="regular",
+        categories=(),
+        points=1,
+        status="counted",
+        flagged=False,
+    )
+
+    response = harness.post(id=str(taken))
+
+    assert response.status_code == 409
+    assert response.json() == {"error": "conflict"}
+    assert harness.store.uploads == {}
+
+
+@pytest.mark.parametrize(
+    "fields",
+    [
+        {"claim_type": "special"},
+        {"claim_type": "special", "categories": ["Purple"]},
+        {"claim_type": "regular", "categories": ["Alien Green"]},
+    ],
+    ids=["no-category", "unknown-category", "regular-with-category"],
+)
+def test_post_invalid_claim_is_rejected(harness: Harness, fields: dict[str, object]):
+    response = harness.post(**fields)
+
+    assert response.status_code == 422
+    assert response.json() == {"error": "invalid_claim"}
+    assert harness.store.uploads == {}
+
+
+@pytest.mark.parametrize(
+    ("photo", "content_type"),
+    [(b"GIF89a", "image/jpeg"), (JPEG, "image/png"), (b"", "image/jpeg")],
+    ids=["not-jpeg-bytes", "wrong-type", "empty"],
+)
+def test_post_non_jpeg_is_rejected(harness: Harness, photo: bytes, content_type: str):
+    response = harness.post(photo=photo, content_type=content_type)
+
+    assert response.status_code == 422
+    assert response.json() == {"error": "invalid_photo"}
+
+
+def test_post_oversized_photo_is_rejected(harness: Harness):
+    response = harness.post(photo=JPEG + b"0" * (8 * 1024 * 1024))
+
+    assert response.status_code == 413
+    assert response.json() == {"error": "photo_too_large"}
+
+
+@pytest.mark.parametrize(
+    "fields",
+    [
+        {"taken_at": (NOW + timedelta(minutes=10)).isoformat()},
+        {"taken_at": "2026-11-10T10:00:00"},
+        {"latitude": "47.6"},
+        {"latitude": "91", "longitude": "0"},
+        {"latitude": "0", "longitude": "-181"},
+    ],
+    ids=["future", "naive-time", "lat-only", "lat-range", "lng-range"],
+)
+def test_post_invalid_fields_are_rejected(harness: Harness, fields: dict[str, object]):
+    response = harness.post(**fields)
+
+    assert response.status_code == 422
+    assert harness.repo.inserted == []
+
+
+def test_post_storage_down_returns_502_and_saves_nothing(harness: Harness):
+    harness.store.fail = StorageUnavailable("down")
+
+    response = harness.post()
+
+    assert response.status_code == 502
+    assert response.json() == {"error": "storage_unavailable"}
+    assert harness.repo.inserted == []
+
+
+def test_post_without_player_is_rejected():
+    harness = Harness(FakeSightingsRepo(WEEK))
+    harness.client.app.dependency_overrides[get_players_repo] = lambda: FakePlayersRepo()
+
+    response = harness.post()
+
+    assert response.status_code == 404
+    assert response.json() == {"error": "no_player"}
+
+
+def test_post_then_standing_includes_the_new_photo(harness: Harness):
+    harness.post()
+
+    body = harness.client.get("/me/standing").json()
+
+    assert body["last_photo_url"].startswith(f"https://signed.test/{BOB_ID}/")
+    assert body["points"] == 1

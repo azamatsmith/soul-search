@@ -10,6 +10,10 @@ from app.db import get_conn
 from app.sightings.periods import week_bounds
 from app.sightings.scoring import Rules
 
+SIGHTING_COLUMNS = (
+    "id, player_id, photo_path, taken_at, claim_type, categories, points, status, flagged"
+)
+
 
 @dataclass(frozen=True)
 class Period:
@@ -20,6 +24,34 @@ class Period:
     ends_at: datetime
     closed: bool
     rules: Rules
+
+
+@dataclass(frozen=True)
+class NewSighting:
+    id: UUID
+    player_id: UUID
+    photo_path: str
+    taken_at: datetime
+    claim_type: str
+    categories: tuple[str, ...]
+    points: int
+    latitude: float | None
+    longitude: float | None
+    week_id: UUID | None
+    challenge_id: UUID | None
+
+
+@dataclass(frozen=True)
+class Sighting:
+    id: UUID
+    player_id: UUID
+    photo_path: str
+    taken_at: datetime
+    claim_type: str
+    categories: tuple[str, ...]
+    points: int
+    status: str
+    flagged: bool
 
 
 @dataclass(frozen=True)
@@ -35,6 +67,10 @@ class Standing:
 
 class SightingsRepo(Protocol):
     def period_at(self, at: datetime) -> Period: ...
+
+    def find(self, sighting_id: UUID) -> Sighting | None: ...
+
+    def insert(self, new: NewSighting) -> Sighting: ...
 
     def standing(self, player_id: UUID, period: Period) -> Standing: ...
 
@@ -93,6 +129,42 @@ class PgSightingsRepo:
             closed=closed_at is not None,
             rules=settings,
         )
+
+    def find(self, sighting_id: UUID) -> Sighting | None:
+        row = self._conn.execute(
+            f"select {SIGHTING_COLUMNS} from public.sightings where id = %s", (sighting_id,)
+        ).fetchone()
+        return _sighting(row) if row else None
+
+    def insert(self, new: NewSighting) -> Sighting:
+        row = self._conn.execute(
+            f"""
+            insert into public.sightings (
+              id, player_id, photo_path, taken_at, claim_type, categories, points,
+              latitude, longitude, week_id, challenge_id
+            ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            on conflict (id) do nothing
+            returning {SIGHTING_COLUMNS}
+            """,
+            (
+                new.id,
+                new.player_id,
+                new.photo_path,
+                new.taken_at,
+                new.claim_type,
+                list(new.categories),
+                new.points,
+                new.latitude,
+                new.longitude,
+                new.week_id,
+                new.challenge_id,
+            ),
+        ).fetchone()
+        if row:
+            return _sighting(row)
+        existing = self.find(new.id)
+        assert existing
+        return existing
 
     def standing(self, player_id: UUID, period: Period) -> Standing:
         column = "week_id" if period.kind == "week" else "challenge_id"
@@ -167,6 +239,31 @@ class PgSightingsRepo:
             categories=tuple(categories),
             bonuses={},
         )
+
+
+def _sighting(row: tuple) -> Sighting:
+    (
+        sighting_id,
+        player_id,
+        photo_path,
+        taken_at,
+        claim_type,
+        categories,
+        points,
+        status,
+        flagged,
+    ) = row
+    return Sighting(
+        id=sighting_id,
+        player_id=player_id,
+        photo_path=photo_path,
+        taken_at=taken_at,
+        claim_type=claim_type,
+        categories=tuple(categories),
+        points=points,
+        status=status,
+        flagged=flagged,
+    )
 
 
 def get_sightings_repo(conn: Annotated[psycopg.Connection, Depends(get_conn)]) -> SightingsRepo:

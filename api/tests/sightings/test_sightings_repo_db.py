@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
@@ -5,7 +6,7 @@ import psycopg
 import pytest
 from psycopg.types.json import Jsonb
 
-from app.sightings.repo import PgSightingsRepo
+from app.sightings.repo import NewSighting, PgSightingsRepo
 from app.sightings.scoring import Rules
 
 pytestmark = pytest.mark.db
@@ -37,6 +38,22 @@ def add_sighting(
         (player_id, path, taken_at, points, period_id),
     )
     return path
+
+
+def new_sighting(player_id: UUID, period_id: UUID, kind: str = "week", points: int = 1):
+    return NewSighting(
+        id=uuid4(),
+        player_id=player_id,
+        photo_path=f"{player_id}/{uuid4()}.jpg",
+        taken_at=AT,
+        claim_type="regular",
+        categories=(),
+        points=points,
+        latitude=None,
+        longitude=None,
+        week_id=period_id if kind == "week" else None,
+        challenge_id=period_id if kind == "challenge" else None,
+    )
 
 
 def add_challenge(conn: psycopg.Connection, rules: dict[str, object]) -> UUID:
@@ -94,6 +111,32 @@ def test_challenge_end_is_exclusive(db_conn: psycopg.Connection):
     add_challenge(db_conn, {"regular": 1, "special": 2, "false_call": -1, "bonuses": {}})
 
     assert PgSightingsRepo(db_conn).period_at(AT + timedelta(hours=3)).kind == "week"
+
+
+def test_insert_then_find_returns_the_sighting(db_conn: psycopg.Connection):
+    repo = PgSightingsRepo(db_conn)
+    week = repo.period_at(AT)
+    new = new_sighting(BOB, week.id)
+
+    inserted = repo.insert(new)
+
+    assert inserted.id == new.id
+    assert inserted.player_id == BOB
+    assert inserted.status == "waiting_review"
+    assert repo.find(new.id) == inserted
+
+
+def test_insert_same_id_twice_returns_the_first(db_conn: psycopg.Connection):
+    repo = PgSightingsRepo(db_conn)
+    week = repo.period_at(AT)
+    first = repo.insert(new_sighting(BOB, week.id, points=1))
+    again = replace(new_sighting(BOB, week.id, points=2), id=first.id)
+
+    assert repo.insert(again) == first
+
+
+def test_find_missing_returns_none(db_conn: psycopg.Connection):
+    assert PgSightingsRepo(db_conn).find(uuid4()) is None
 
 
 def test_standing_ranks_players_and_counts_adjustments(db_conn: psycopg.Connection):
