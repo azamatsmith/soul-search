@@ -1,0 +1,30 @@
+.track {
+  display: flex;
+  gap: var(--s-1);
+  padding: var(--s-1);
+  border-radius: var(--r-md);
+  background: var(--c-cream-deep);
+}
+
+.segment {
+  flex: 1;
+  min-height: var(--tap-min);
+  padding: 0 var(--s-3);
+  border: none;
+  border-radius: calc(var(--r-md) - var(--s-1));
+  background: transparent;
+  color: var(--c-ink-muted);
+  font: 700 var(--t-small) / 1.2 var(--f-body);
+  cursor: pointer;
+}
+
+.segment[aria-pressed='true'] {
+  background: var(--c-surface);
+  color: var(--c-forest);
+  box-shadow: var(--shadow-segment);
+}
+
+.segment:focus-visible {
+  outline: 3px solid var(--c-orange);
+  outline-offset: 2px;
+}
