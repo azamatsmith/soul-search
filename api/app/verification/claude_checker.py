@@ -87,8 +87,13 @@ class ClaudePhotoChecker:
         except anthropic.APIStatusError as error:
             retryable = error.status_code in (408, 409, 429) or error.status_code >= 500
             raise CheckFailed(f"Claude API {error.status_code}", retryable=retryable) from error
+        except anthropic.APITimeoutError as error:
+            log.warning("Photo check timed out")
+            raise CheckFailed("Claude API timed out", retryable=True) from error
         except anthropic.APIConnectionError as error:
-            raise CheckFailed("Claude API unreachable", retryable=True) from error
+            message = _unreachable(error)
+            log.warning("Photo check failed: %s", message)
+            raise CheckFailed(message, retryable=True) from error
 
         if response.stop_reason == "refusal":
             log.warning("Photo check refused, request %s", response._request_id)
@@ -104,6 +109,12 @@ class ClaudePhotoChecker:
             plate_number=verdict.plate_number,
             plate_state=verdict.plate_state,
         )
+
+
+def _unreachable(error: anthropic.APIConnectionError) -> str:
+    # Only the cause's type: its message can echo request headers, including the API key.
+    cause = error.__cause__
+    return f"Claude API unreachable ({type(cause).__name__})" if cause else "Claude API unreachable"
 
 
 def _claim_text(claim: Claim) -> str:

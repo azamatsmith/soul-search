@@ -20,7 +20,7 @@ class Settings:
 
 
 def _require(name: str) -> str:
-    value = os.environ.get(name)
+    value = os.environ.get(name, "").strip()
     if not value:
         raise RuntimeError(f"Missing environment variable {name}")
     return value
