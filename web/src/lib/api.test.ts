@@ -3,11 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   addAllowedEmail,
   getLeaderboard,
+  getPointRules,
   getMe,
   getPeriod,
   getSightings,
   getStanding,
   postSighting,
+  putPointRules,
   putTextSize,
   removeAllowedEmail,
   sendCode,
@@ -272,6 +274,37 @@ describe('api', () => {
       'http://localhost:8000/admin/allowed-emails/nora%2B1%40example.com',
     )
     expect(init.method).toBe('DELETE')
+  })
+
+  it('getPointRules reads the admin settings', async () => {
+    signedIn('tok')
+    const rules = {
+      categories: ['Fins'],
+      false_call: -1,
+      regular: 1,
+      special: 2,
+    }
+    const fetchMock = stubFetch(() => respond(200, rules))
+    expect(await getPointRules()).toEqual({ ok: true, data: rules })
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'http://localhost:8000/admin/settings',
+    )
+  })
+
+  it('putPointRules sends the rules and passes invalid_categories through', async () => {
+    signedIn('tok')
+    const rules = { categories: [], false_call: -1, regular: 1, special: 2 }
+    const fetchMock = stubFetch(() =>
+      respond(422, { error: 'invalid_categories' }),
+    )
+    expect(await putPointRules(rules)).toEqual({
+      ok: false,
+      status: 422,
+      error: 'invalid_categories',
+    })
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(init.method).toBe('PUT')
+    expect(init.body).toBe(JSON.stringify(rules))
   })
 
   it('putTextSize passes no_player through', async () => {

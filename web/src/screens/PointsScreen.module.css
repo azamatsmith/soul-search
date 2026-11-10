@@ -1,0 +1,15 @@
+.steppers {
+  display: flex;
+  flex-direction: column;
+}
+
+.note {
+  margin: 0;
+  color: var(--c-ink-muted);
+  font: 500 var(--t-small) / 1.45 var(--f-body);
+  text-wrap: pretty;
+}
+
+.spacer {
+  flex: 1;
+}
