@@ -197,8 +197,8 @@ Entry: **Admin tools** row in Settings, admins only. Every action writes to the 
 - **A2 Flagged photos**: segmented **Flagged (n) | Auto false calls (n)**. Card: photo, player, time, "Claimed: …", the model's note in quotes, chip "Counting +2 for now".
 - **A3 Review**: big photo, "Player's claim" card, "Photo check notes" card, then three full-width actions (72px): **Keep the claim · +2** (forest; clears the flag / overturns), **Change to Regular · +1** (gold border), **Mark as false call · −1** (orange border). For auto false calls the same screen offers **Restore as Regular +1 / Restore as Special +2 / Keep false call**.
 - **A4 Points & categories**: steppers for Regular, Special and False call; list of categories with Remove; "+ Add a category"; note "Changes apply to new photos from now on. Past points stay the same."; sticky **Save changes**.
-- **A5 Allowed emails**: add field + **Add to the list**; note that no invite email is sent; list with status ("Joined · {name}" or "Not signed in yet") and Remove.
-- **A6 Adjust a score**: player picker, "Points now 8 → 11", stepper "Change by", **required** reason (admins only see it), sticky **Save · {name} +3**.
+- **A5 Allowed emails**: add field + **Add to the list**; note that no invite email is sent; list with a status tag under each email (same pill as the Sightings chips: 3px 10px padding, 2px border, Figtree 700 13): **Joined** (forest-tint bg, forest text) followed by the player's name in ink-muted, or **Not signed in yet** (cream bg, 2px dashed ink-muted border, ink-muted text, like "Waiting to send"); then Remove.
+- **A6 Adjust a score**: player picker, "Points now 8 → 11", stepper "Change by", **required** reason (admins only see it), sticky **Save ({name} +3)** (with a minus when taking points away, e.g. "Save (Grandpa Joe −2)").
 - **A7 Change history**: newest first, filter **Everything | Scores only**. Row: admin avatar, "**Matthew** changed …", type chip (Photo / Score / Emails / Rules / Challenge) and time.
 
 ### Challenges: `Soul Search Challenges.dc.html` (#14)
