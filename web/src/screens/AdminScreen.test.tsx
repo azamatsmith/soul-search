@@ -1,16 +1,23 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getAllowedEmails, getPointRules } from '../lib/api'
+import {
+  getAllowedEmails,
+  getPointRules,
+  getReviewQueue,
+  type ReviewItem,
+} from '../lib/api'
 import { AdminScreen } from './AdminScreen'
 
 vi.mock('../lib/api', () => ({
   getAllowedEmails: vi.fn(),
   getPointRules: vi.fn(),
+  getReviewQueue: vi.fn(),
 }))
 
 const load = vi.mocked(getAllowedEmails)
 const loadRules = vi.mocked(getPointRules)
+const loadQueue = vi.mocked(getReviewQueue)
 
 const renderAdmin = () => {
   const router = createMemoryRouter(
@@ -25,6 +32,21 @@ describe('AdminScreen', () => {
     load.mockReset()
     loadRules.mockReset()
     loadRules.mockResolvedValue({ ok: false, status: 0, error: 'network' })
+    loadQueue.mockReset()
+    loadQueue.mockResolvedValue({ ok: false, status: 0, error: 'network' })
+  })
+
+  it('links to flagged photos with a count badge', async () => {
+    load.mockResolvedValue({ ok: true, data: { emails: [] } })
+    const flagged = { id: 'a' } as ReviewItem
+    loadQueue.mockResolvedValue({
+      ok: true,
+      data: { false_calls: [], flagged: [flagged, { ...flagged, id: 'b' }] },
+    })
+    renderAdmin()
+    const row = screen.getByRole('link', { name: /Flagged photos/ })
+    expect(row).toHaveAttribute('href', '/admin/flagged')
+    expect(await within(row).findByText('2')).toBeInTheDocument()
   })
 
   it('links to points and categories with the current rules', async () => {

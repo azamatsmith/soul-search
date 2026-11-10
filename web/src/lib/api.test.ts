@@ -7,7 +7,9 @@ import {
   getMe,
   getPeriod,
   getSightings,
+  getReviewItem,
   getStanding,
+  postReview,
   postSighting,
   putPointRules,
   putTextSize,
@@ -418,5 +420,35 @@ describe('api', () => {
     const form = init.body as FormData
     expect(form.has('latitude')).toBe(false)
     expect(form.has('categories')).toBe(false)
+  })
+
+  it('getReviewItem reads one photo waiting for review', async () => {
+    signedIn('tok')
+    const fetchMock = stubFetch(() => respond(200, { id: 's1' }))
+    expect(await getReviewItem('s1')).toEqual({ ok: true, data: { id: 's1' } })
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'http://localhost:8000/admin/review/s1',
+    )
+  })
+
+  it('postReview sends the action and passes already_reviewed through', async () => {
+    signedIn('tok')
+    const fetchMock = stubFetch(() =>
+      respond(409, { error: 'already_reviewed' }),
+    )
+    expect(await postReview('s1', 'special', 'Brown paint')).toEqual({
+      ok: false,
+      status: 409,
+      error: 'already_reviewed',
+    })
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ]
+    expect(url).toBe('http://localhost:8000/admin/review/s1')
+    expect(init.method).toBe('POST')
+    expect(init.body).toBe(
+      JSON.stringify({ action: 'special', category: 'Brown paint' }),
+    )
   })
 })
