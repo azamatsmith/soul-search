@@ -206,6 +206,28 @@ export const getPeriod = () =>
 export const getStanding = () =>
   request<Standing>('/me/standing', 'GET', undefined, true)
 
+export type LeaderboardScope = 'all' | 'week'
+
+export interface LeaderboardEntry {
+  count: number
+  display_name: string
+  is_me: boolean
+  player_id: string
+  points: number
+  rank: number
+}
+
+export interface Leaderboard {
+  ends_at: string | null
+  rows: LeaderboardEntry[]
+  scope: LeaderboardScope
+  starts_at: string | null
+  total_players: number
+}
+
+export const getLeaderboard = (scope: LeaderboardScope) =>
+  request<Leaderboard>(`/leaderboard?scope=${scope}`, 'GET', undefined, true)
+
 export interface SightingOut {
   id: string
   taken_at: string

@@ -5,7 +5,13 @@ export interface ApiResource<T> {
   status: 'loading' | 'ready' | 'error'
   data: T | null
   error: ApiErrorCode | null
+  refresh: () => void
   retry: () => void
+}
+
+interface Attempt {
+  count: number
+  quiet: boolean
 }
 
 interface Loaded<T> {
@@ -13,28 +19,46 @@ interface Loaded<T> {
   result: ApiResult<T>
 }
 
+interface Good<T> {
+  data: T
+}
+
 export const useApiResource = <T>(
   load: () => Promise<ApiResult<T>>,
 ): ApiResource<T> => {
-  const [attempt, setAttempt] = useState(0)
+  const [attempt, setAttempt] = useState<Attempt>({ count: 0, quiet: false })
   const [loaded, setLoaded] = useState<Loaded<T> | null>(null)
+  const [lastGood, setLastGood] = useState<Good<T> | null>(null)
 
   useEffect(() => {
     let active = true
     load().then((result) => {
-      if (active) setLoaded({ attempt, result })
+      if (!active) return
+      setLoaded({ attempt: attempt.count, result })
+      if (result.ok) setLastGood({ data: result.data })
     })
     return () => {
       active = false
     }
   }, [load, attempt])
 
-  const retry = () => setAttempt((count) => count + 1)
-  const result = loaded?.attempt === attempt ? loaded.result : null
+  const retry = () =>
+    setAttempt((current) => ({ count: current.count + 1, quiet: false }))
+  const refresh = () =>
+    setAttempt((current) => ({
+      count: current.count + 1,
+      quiet: lastGood !== null,
+    }))
+  const controls = { refresh, retry }
 
-  if (!result) return { status: 'loading', data: null, error: null, retry }
-  if (!result.ok) {
-    return { status: 'error', data: null, error: result.error, retry }
+  if (attempt.quiet && lastGood) {
+    return { status: 'ready', data: lastGood.data, error: null, ...controls }
   }
-  return { status: 'ready', data: result.data, error: null, retry }
+  const result = loaded?.attempt === attempt.count ? loaded.result : null
+  if (!result)
+    return { status: 'loading', data: null, error: null, ...controls }
+  if (!result.ok) {
+    return { status: 'error', data: null, error: result.error, ...controls }
+  }
+  return { status: 'ready', data: result.data, error: null, ...controls }
 }
