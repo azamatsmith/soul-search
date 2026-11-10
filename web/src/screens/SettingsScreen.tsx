@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Button } from '../components/Button'
+import { CountBadge } from '../components/CountBadge'
 import { FormError } from '../components/FormError'
 import { ProfileCard } from '../components/ProfileCard'
 import { PushedScreen } from '../components/PushedScreen'
@@ -74,9 +75,7 @@ export const SettingsScreen = () => {
               subtitle={flaggedText(flagged)}
               title="Admin tools"
               to="/admin"
-              trailing={
-                flagged > 0 && <span className={styles.badge}>{flagged}</span>
-              }
+              trailing={<CountBadge count={flagged} />}
             />
           </div>
         </section>
