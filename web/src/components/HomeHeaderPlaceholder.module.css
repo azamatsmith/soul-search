@@ -24,13 +24,6 @@
   gap: var(--s-2);
 }
 
-.block {
-  display: block;
-  border-radius: var(--r-sm);
-  background: var(--c-forest-deep);
-  animation: pulse 1.2s ease-in-out infinite alternate;
-}
-
 .kicker {
   width: calc(var(--placeholder-line) * 12.5);
   height: var(--placeholder-line);
@@ -49,20 +42,4 @@
 .rank {
   width: calc(var(--t-h1) * 2.4);
   height: var(--t-h1);
-}
-
-@keyframes pulse {
-  from {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0.6;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .block {
-    animation: none;
-  }
 }

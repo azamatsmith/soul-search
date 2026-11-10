@@ -1,4 +1,5 @@
 import { AvatarButton } from './AvatarButton'
+import { Shimmer } from './Shimmer'
 import styles from './HomeHeaderPlaceholder.module.css'
 
 export interface HomeHeaderPlaceholderProps {
@@ -13,14 +14,14 @@ export const HomeHeaderPlaceholder = ({ name }: HomeHeaderPlaceholderProps) => (
   >
     <div className={styles.row}>
       <div className={styles.lines}>
-        <span className={`${styles.block} ${styles.kicker}`} />
-        <span className={`${styles.block} ${styles.left}`} />
+        <Shimmer className={styles.kicker} tone="dark" />
+        <Shimmer className={styles.left} tone="dark" />
       </div>
       <AvatarButton name={name} />
     </div>
     <div className={`${styles.row} ${styles.scores}`}>
-      <span className={`${styles.block} ${styles.points}`} />
-      <span className={`${styles.block} ${styles.rank}`} />
+      <Shimmer className={styles.points} tone="dark" />
+      <Shimmer className={styles.rank} tone="dark" />
     </div>
   </header>
 )
