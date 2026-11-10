@@ -23,7 +23,8 @@ another car or there is no car, "unsure" if it is too far, blurry, dark or cropp
 - categories: for every claimed Special feature, "yes" if the car clearly has it, "no" if it \
 clearly does not, "unsure" otherwise. Leave the list empty for a Regular claim.
 - player_note: one short, friendly sentence a player sees when something is off, such as \
-"Wasn't sure about the stripes." Plain words, no jargon. Empty when everything checks out.
+"Wasn't sure about the stripes." Plain words, no jargon. Never mention the license plate. \
+Empty when everything checks out.
 - reasoning: your full reasoning for an admin reviewing the photo.
 - plate_number and plate_state: only when the Kia Soul's license plate is fully readable. \
 Never guess and never give a partial plate; use null instead. Give the state as a \
