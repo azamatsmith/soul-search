@@ -4,6 +4,7 @@ import {
   getMe,
   getPeriod,
   getStanding,
+  postSighting,
   putTextSize,
   sendCode,
   verifyCode,
@@ -288,5 +289,58 @@ describe('api', () => {
     expect(url).toBe(`http://localhost:8000${path}`)
     expect(init.method).toBe('GET')
     expect(new Headers(init.headers).get('Authorization')).toBe('Bearer tok')
+  })
+
+  it('postSighting sends the photo and claim as multipart form data', async () => {
+    signedIn('tok')
+    const fetchMock = stubFetch(() => respond(201, { period_points: 4 }))
+    const photo = new Blob(['jpeg'], { type: 'image/jpeg' })
+
+    const result = await postSighting({
+      categories: ['Alien Green', 'Brown paint'],
+      claimType: 'special',
+      id: 's1',
+      location: { latitude: 47.6, longitude: -122.3 },
+      photo,
+      takenAt: '2026-11-10T20:00:00.000Z',
+    })
+
+    expect(result).toEqual({ ok: true, data: { period_points: 4 } })
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ]
+    expect(url).toBe('http://localhost:8000/sightings')
+    expect(init.method).toBe('POST')
+    const headers = new Headers(init.headers)
+    expect(headers.get('Authorization')).toBe('Bearer tok')
+    expect(headers.get('Content-Type')).toBeNull()
+    const form = init.body as FormData
+    expect(form.get('id')).toBe('s1')
+    expect(form.get('claim_type')).toBe('special')
+    expect(form.getAll('categories')).toEqual(['Alien Green', 'Brown paint'])
+    expect(form.get('taken_at')).toBe('2026-11-10T20:00:00.000Z')
+    expect(form.get('latitude')).toBe('47.6')
+    expect(form.get('longitude')).toBe('-122.3')
+    expect(form.get('photo')).toBeInstanceOf(Blob)
+  })
+
+  it('postSighting leaves out location when there is none', async () => {
+    signedIn('tok')
+    const fetchMock = stubFetch(() => respond(201, {}))
+
+    await postSighting({
+      categories: [],
+      claimType: 'regular',
+      id: 's2',
+      location: null,
+      photo: new Blob(['jpeg'], { type: 'image/jpeg' }),
+      takenAt: '2026-11-10T20:00:00.000Z',
+    })
+
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    const form = init.body as FormData
+    expect(form.has('latitude')).toBe(false)
+    expect(form.has('categories')).toBe(false)
   })
 })

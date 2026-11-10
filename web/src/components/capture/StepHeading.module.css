@@ -17,3 +17,7 @@
   color: var(--c-forest);
   font: 400 var(--t-h1) / 1.1 var(--f-display);
 }
+
+.small {
+  font-size: var(--t-h2);
+}

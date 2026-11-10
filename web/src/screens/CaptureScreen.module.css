@@ -11,3 +11,8 @@
 .nativeCamera {
   display: none;
 }
+
+.message {
+  position: fixed;
+  inset: auto var(--gutter) calc(var(--s-8) * 2) var(--gutter);
+}
