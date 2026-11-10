@@ -6,6 +6,7 @@ from app.admin.audit_repo import AuditEntry
 from app.admin.emails_repo import AllowedEmail
 from app.admin.review import Decision, ReviewItem
 from app.admin.rules_repo import PointRules
+from app.admin.scores_repo import PlayerScore
 from app.auth.lockout import AttemptState
 from app.auth.supabase_auth import AuthSession
 from app.me.players_repo import NameTaken, Player
@@ -303,3 +304,23 @@ class FakeReviewRepo:
             return False
         self.resolved[sighting_id] = (decision, admin_id)
         return True
+
+
+class FakeScoresRepo:
+    def __init__(self, players: list[PlayerScore]) -> None:
+        self.scores = {player.id: player for player in players}
+        self.adjustments: list[tuple[UUID, UUID, Period, int, str]] = []
+
+    def players(self, period: Period) -> tuple[PlayerScore, ...]:
+        return tuple(self.scores.values())
+
+    def points(self, player_id: UUID, period: Period) -> int | None:
+        player = self.scores.get(player_id)
+        return player.points if player else None
+
+    def adjust(
+        self, player_id: UUID, admin_id: UUID, period: Period, change: int, reason: str
+    ) -> None:
+        self.adjustments.append((player_id, admin_id, period, change, reason))
+        player = self.scores[player_id]
+        self.scores[player_id] = replace(player, points=player.points + change)
