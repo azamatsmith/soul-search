@@ -8,6 +8,7 @@ from app.auth.routes import router as auth_router
 from app.config import check_settings, get_cors_origin_regex, get_cors_origins
 from app.errors import UnhandledErrorMiddleware, register_error_handler
 from app.me.routes import router as me_router
+from app.sightings.routes import router as sightings_router
 
 
 @asynccontextmanager
@@ -30,6 +31,7 @@ def create_app() -> FastAPI:
     register_error_handler(app)
     app.include_router(auth_router)
     app.include_router(me_router)
+    app.include_router(sightings_router)
 
     @app.get("/health")
     def health() -> dict[str, str]:

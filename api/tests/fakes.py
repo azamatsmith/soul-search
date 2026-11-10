@@ -5,6 +5,7 @@ from uuid import UUID
 from app.auth.lockout import AttemptState
 from app.auth.supabase_auth import AuthSession
 from app.me.players_repo import NameTaken, Player
+from app.sightings.repo import Period
 
 
 class FakeAttemptsRepo:
@@ -75,3 +76,13 @@ class FakePlayersRepo:
 
     def flagged_count(self) -> int:
         return self.flagged
+
+
+class FakeSightingsRepo:
+    def __init__(self, period: Period) -> None:
+        self.period = period
+        self.period_requests: list[datetime] = []
+
+    def period_at(self, at: datetime) -> Period:
+        self.period_requests.append(at)
+        return self.period
