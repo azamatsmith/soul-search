@@ -1,3 +1,5 @@
+from collections.abc import Mapping
+
 import httpx
 
 from app.config import get_settings
@@ -42,6 +44,17 @@ class PhotoStore:
         )
         return f"{self._storage_url}{response.json()['signedURL']}"
 
+    def signed_urls(self, paths: list[str], expires_in: int) -> dict[str, str | None]:
+        if not paths:
+            return {}
+        response = self._send(
+            "POST", f"/object/sign/{BUCKET}", json={"expiresIn": expires_in, "paths": paths}
+        )
+        return {
+            item["path"]: f"{self._storage_url}{item['signedURL']}" if item["signedURL"] else None
+            for item in response.json()
+        }
+
     def _send(
         self,
         method: str,
@@ -49,7 +62,7 @@ class PhotoStore:
         *,
         content: bytes | None = None,
         headers: dict[str, str] | None = None,
-        json: dict[str, object] | None = None,
+        json: Mapping[str, object] | None = None,
     ) -> httpx.Response:
         try:
             response = self._client.request(
