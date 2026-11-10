@@ -79,6 +79,17 @@ Production sign-in codes are sent through [Resend](https://resend.com) as custom
 5. Under Authentication, Email Templates, set both "Magic Link" and "Confirm signup" to the contents of `supabase/templates/code.html`, with the subject "Your Soul Search code". The template shows the code (`{{ .Token }}`), not a link.
 6. Under Authentication, Rate Limits, keep "Token verifications" at 30 per 5 minutes per IP or lower. The API locks an email after 5 wrong codes, but Supabase's own verify endpoint is public, so this per-IP limit is the backstop for anyone calling Supabase directly.
 
+### Weekly close-out
+
+A pg_cron job runs every hour at :05 and calls the API's `POST /close-out`, which closes every week that has ended, saves its final standings and opens the current week. It does nothing until the URL and shared secret are stored in the project's Vault. Set them once per Supabase project in the SQL editor, using the same secret as `CLOSE_OUT_SECRET` on Render:
+
+```sql
+select vault.create_secret('https://soul-search-api.onrender.com/close-out', 'close_out_url');
+select vault.create_secret('<CLOSE_OUT_SECRET>', 'close_out_secret');
+```
+
+Check recent calls with `select status_code, content from net._http_response order by created desc limit 5;`.
+
 Production web app: https://soulsearchapp.netlify.app
 
 Production API: https://soul-search-api.onrender.com (health check at `/health`).

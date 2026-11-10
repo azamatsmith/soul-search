@@ -2,7 +2,7 @@
 
 Soul Search is an installable phone web app (PWA) for iPhone and Android backed by a FastAPI service and Supabase. The PWA talks to FastAPI for everything except keeping its session fresh, which supabase-js does directly with Supabase Auth. FastAPI is the only part that reads and writes data and talks to the Claude vision API.
 
-Sign-in, the database schema, both deploys, photo capture, scoring, the leaderboard and background photo verification are built; the weekly close-out is still planned. Each issue that lands updates this page.
+Sign-in, the database schema, both deploys, photo capture, scoring, the leaderboard, background photo verification and the weekly close-out are built. Each issue that lands updates this page.
 
 ## System
 
@@ -126,11 +126,13 @@ sequenceDiagram
     participant api as FastAPI
     participant db as Postgres
 
-    cron->>api: Just after Monday 00:00 Pacific, call close-out with the shared secret
-    api->>api: Work out the Pacific-time week boundary, handling daylight saving
-    api->>db: Save full final standings to the week's results
-    api->>db: Open the next week
-    Note over cron,api: Safe to run twice
+    cron->>db: Every hour at :05, read the close-out URL and secret from Vault
+    cron->>api: POST /close-out with the shared secret
+    api->>db: Lock every open week whose Pacific Monday 00:00 end has passed
+    api->>db: Save each one's final standings to results and set closed_at
+    api->>db: Make sure the current week exists
+    Note over cron,api: Safe to run twice. A missed hour is caught up on the next run
+    Note over api,db: Challenge points stay out because they belong to the challenge, not the week
 ```
 
 ## Environments
