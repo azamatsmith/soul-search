@@ -1,0 +1,16 @@
+.days,
+.day,
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.days {
+  gap: var(--s-4);
+}
+
+.cards {
+  margin: 0;
+  padding: 0;
+}

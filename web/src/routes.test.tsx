@@ -10,6 +10,7 @@ vi.mock('./lib/api', () => ({
   getLeaderboard: vi.fn(() => new Promise(() => {})),
   getMe: vi.fn(),
   getPeriod: vi.fn(() => new Promise(() => {})),
+  getSightings: vi.fn(() => new Promise(() => {})),
   getStanding: vi.fn(() => new Promise(() => {})),
   postSighting: vi.fn(),
 }))

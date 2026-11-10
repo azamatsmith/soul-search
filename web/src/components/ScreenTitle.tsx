@@ -3,14 +3,14 @@ import styles from './ScreenTitle.module.css'
 
 interface ScreenTitleProps {
   action?: ReactNode
-  kicker: string
+  kicker?: string
   title: string
 }
 
 export const ScreenTitle = ({ action, kicker, title }: ScreenTitleProps) => (
   <header className={styles.header}>
     <div className={styles.text}>
-      <p className={styles.kicker}>{kicker}</p>
+      {kicker && <p className={styles.kicker}>{kicker}</p>}
       <h1 className={styles.title}>{title}</h1>
     </div>
     {action}
