@@ -3,7 +3,7 @@
 .cards {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--s-3);
 }
 
 .days {

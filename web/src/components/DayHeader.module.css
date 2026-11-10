@@ -1,9 +1,9 @@
 .header {
   display: flex;
-  gap: 10px;
+  gap: var(--s-3);
   align-items: center;
   margin: 0;
-  padding: 6px var(--s-1) 0;
+  padding: var(--s-2) var(--s-1) 0;
 }
 
 .label {

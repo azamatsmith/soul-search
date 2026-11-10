@@ -2,7 +2,7 @@
 .day {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--s-3);
 }
 
 .list {
@@ -12,7 +12,7 @@
 .header {
   width: 40%;
   height: var(--t-label);
-  margin: 6px var(--s-1) 0;
+  margin: var(--s-2) var(--s-1) 0;
   border-radius: var(--r-sm);
 }
 
@@ -20,7 +20,7 @@
   display: flex;
   gap: var(--s-3);
   align-items: center;
-  padding: 10px;
+  padding: var(--s-3);
   border-radius: var(--r-md);
   background: var(--c-surface);
   box-shadow: var(--shadow-card);
