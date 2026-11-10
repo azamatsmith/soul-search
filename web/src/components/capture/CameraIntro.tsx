@@ -1,3 +1,4 @@
+import { isAndroid } from '../../lib/platform'
 import { Button } from '../Button'
 import styles from './CameraIntro.module.css'
 
@@ -20,7 +21,8 @@ export const CameraIntro = ({ onContinue, onNotNow }: CameraIntroProps) => (
         tap Take photo.
       </p>
       <p className={styles.next}>
-        Next, your iPhone will ask. Tap <b>Allow</b>.
+        Next, your {isAndroid() ? 'phone' : 'iPhone'} will ask. Tap <b>Allow</b>
+        .
       </p>
     </div>
     <Button onClick={onContinue}>Continue</Button>
