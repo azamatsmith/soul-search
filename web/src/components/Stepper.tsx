@@ -2,6 +2,7 @@ import { signedPoints } from '../lib/signedPoints'
 import styles from './Stepper.module.css'
 
 export interface StepperProps {
+  hint?: string
   label: string
   max: number
   min: number
@@ -9,7 +10,14 @@ export interface StepperProps {
   value: number
 }
 
-export const Stepper = ({ label, max, min, onChange, value }: StepperProps) => {
+export const Stepper = ({
+  hint = 'Points each',
+  label,
+  max,
+  min,
+  onChange,
+  value,
+}: StepperProps) => {
   const handleLessClick = () => onChange(value - 1)
   const handleMoreClick = () => onChange(value + 1)
 
@@ -17,7 +25,7 @@ export const Stepper = ({ label, max, min, onChange, value }: StepperProps) => {
     <div className={styles.row}>
       <span className={styles.text}>
         <span className={styles.label}>{label}</span>
-        <span className={styles.hint}>Points each</span>
+        <span className={styles.hint}>{hint}</span>
       </span>
       <button
         aria-label={`Less for ${label}`}
