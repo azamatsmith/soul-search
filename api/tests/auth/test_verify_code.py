@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 
 import pytest
@@ -135,3 +136,19 @@ def test_verify_unknown_email_403(auth_harness: AuthHarness):
     assert response.status_code == 403
     assert response.json() == {"error": "not_allowed"}
     assert auth_harness.attempts.states == {}
+
+
+def test_verify_auth_unavailable_is_logged(
+    auth_harness: AuthHarness, caplog: pytest.LogCaptureFixture
+):
+    auth_harness.attempts.states[BOB] = JUST_SENT
+    auth_harness.supabase.next_verify = AuthUnavailable(
+        "POST http://supabase.test/auth/v1/otp returned 500"
+    )
+
+    with caplog.at_level(logging.WARNING):
+        verify(auth_harness)
+
+    messages = [record.getMessage() for record in caplog.records]
+    assert any("POST http://supabase.test/auth/v1/otp returned 500" in m for m in messages)
+    assert not any(BOB in m for m in messages)

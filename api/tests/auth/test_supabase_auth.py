@@ -118,3 +118,41 @@ def test_connection_error_raises_unavailable():
 
     with pytest.raises(AuthUnavailable):
         make_auth(handler).verify_code("bob@example.test", "123456")
+
+
+def test_unavailable_reason_names_request_status_and_code_but_not_email():
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/admin/users"):
+            return httpx.Response(200, json={})
+        return httpx.Response(500, json={"error_code": "unexpected_failure"})
+
+    with pytest.raises(AuthUnavailable) as caught:
+        make_auth(handler).send_code("bob@example.test")
+
+    assert str(caught.value) == (
+        "POST http://supabase.test/auth/v1/otp returned 500 (unexpected_failure)"
+    )
+    assert "bob@example.test" not in str(caught.value)
+
+
+def test_unavailable_reason_shows_wrong_base_path():
+    auth = SupabaseAuth(
+        "http://supabase.test/rest/v1",
+        "secret",
+        transport=httpx.MockTransport(lambda _: httpx.Response(404, text="Not Found")),
+    )
+
+    with pytest.raises(AuthUnavailable) as caught:
+        auth.send_code("bob@example.test")
+
+    assert str(caught.value) == "POST http://supabase.test/rest/v1/auth/v1/admin/users returned 404"
+
+
+def test_unavailable_reason_for_connection_error_names_request():
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("no such host", request=request)
+
+    with pytest.raises(AuthUnavailable) as caught:
+        make_auth(handler).verify_code("bob@example.test", "123456")
+
+    assert str(caught.value) == "POST http://supabase.test/auth/v1/verify failed: no such host"
