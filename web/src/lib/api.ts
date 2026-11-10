@@ -65,6 +65,11 @@ const ERROR_CODES = [
   'name_taken',
   'no_player',
   'invalid_request',
+  'not_admin',
+  'invalid_email',
+  'already_allowed',
+  'not_found',
+  'cannot_remove_self',
   'network',
   'unknown',
 ] as const
@@ -133,7 +138,7 @@ const refreshedToken = async (): Promise<TokenResult> => {
 
 const send = async (
   path: string,
-  method: 'GET' | 'POST' | 'PUT',
+  method: 'DELETE' | 'GET' | 'POST' | 'PUT',
   body: unknown,
   token: string | null,
 ): Promise<Response | null> => {
@@ -170,7 +175,7 @@ const toResult = async <T>(
 
 const request = async <T>(
   path: string,
-  method: 'GET' | 'POST' | 'PUT',
+  method: 'DELETE' | 'GET' | 'POST' | 'PUT',
   body: unknown,
   auth: boolean,
 ): Promise<ApiResult<T>> => {
@@ -292,3 +297,26 @@ export const postSighting = (sighting: NewSighting) => {
   form.set('photo', sighting.photo, 'photo.jpg')
   return request<PostSightingResult>('/sightings', 'POST', form, true)
 }
+
+export interface AllowedEmail {
+  display_name: string | null
+  email: string
+}
+
+export interface AllowedEmails {
+  emails: AllowedEmail[]
+}
+
+export const getAllowedEmails = () =>
+  request<AllowedEmails>('/admin/allowed-emails', 'GET', undefined, true)
+
+export const addAllowedEmail = (email: string) =>
+  request<AllowedEmail>('/admin/allowed-emails', 'POST', { email }, true)
+
+export const removeAllowedEmail = (email: string) =>
+  request<null>(
+    `/admin/allowed-emails/${encodeURIComponent(email)}`,
+    'DELETE',
+    undefined,
+    true,
+  )
