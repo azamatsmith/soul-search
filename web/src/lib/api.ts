@@ -70,6 +70,8 @@ const ERROR_CODES = [
   'already_allowed',
   'not_found',
   'cannot_remove_self',
+  'invalid_points',
+  'invalid_categories',
   'network',
   'unknown',
 ] as const
@@ -320,3 +322,16 @@ export const removeAllowedEmail = (email: string) =>
     undefined,
     true,
   )
+
+export interface PointRules {
+  categories: string[]
+  false_call: number
+  regular: number
+  special: number
+}
+
+export const getPointRules = () =>
+  request<PointRules>('/admin/settings', 'GET', undefined, true)
+
+export const putPointRules = (rules: PointRules) =>
+  request<PointRules>('/admin/settings', 'PUT', rules, true)

@@ -1,4 +1,5 @@
 import type { LoggedSighting } from './api'
+import { signedPoints } from './signedPoints'
 
 export type CardKind =
   'counted' | 'false_call' | 'flagged' | 'special' | 'waiting'
@@ -22,7 +23,6 @@ export interface DayGroup {
 }
 
 const PACIFIC = 'America/Los_Angeles'
-const MINUS = '−'
 
 const dateKey = new Intl.DateTimeFormat('en-CA', {
   day: '2-digit',
@@ -58,19 +58,16 @@ export const cardKind = ({
   return claim_type === 'special' ? 'special' : 'counted'
 }
 
-const signed = (points: number) =>
-  points < 0 ? `${MINUS}${-points}` : `+${points}`
-
 export const chipText = ({ kind, points }: LogCard) => {
   switch (kind) {
     case 'counted':
-      return `${signed(points)} Counted`
+      return `${signedPoints(points)} Counted`
     case 'special':
-      return `${signed(points)} Special`
+      return `${signedPoints(points)} Special`
     case 'flagged':
-      return `${signed(points)} · Flagged for a second look`
+      return `${signedPoints(points)} · Flagged for a second look`
     case 'false_call':
-      return `${signed(points)} False call`
+      return `${signedPoints(points)} False call`
     case 'waiting':
       return 'Waiting to send'
   }
@@ -94,7 +91,7 @@ export const viewerNote = (card: LogCard) => {
   if (card.kind !== 'flagged') return null
   return (
     card.checkNote ??
-    `Our photo check wasn't sure about this one. The ${signed(card.points)} still counts while an admin takes a look.`
+    `Our photo check wasn't sure about this one. The ${signedPoints(card.points)} still counts while an admin takes a look.`
   )
 }
 

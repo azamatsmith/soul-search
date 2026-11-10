@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from app.admin.audit_repo import AuditEntry, AuditRepo, get_audit_repo
 from app.admin.emails_repo import AllowedEmail, AllowedEmailsRepo, get_allowed_emails_repo
 from app.admin.guard import get_admin_user
+from app.admin.rules_repo import PointRules, PointRulesRepo, get_point_rules_repo
 from app.auth.tokens import CurrentUser
 from app.errors import ApiError
 
@@ -15,8 +16,10 @@ router = APIRouter(prefix="/admin")
 Admin = Annotated[CurrentUser, Depends(get_admin_user)]
 Emails = Annotated[AllowedEmailsRepo, Depends(get_allowed_emails_repo)]
 Audit = Annotated[AuditRepo, Depends(get_audit_repo)]
+Rules = Annotated[PointRulesRepo, Depends(get_point_rules_repo)]
 
 EMAIL_PATTERN = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
+MAX_CATEGORY_LENGTH = 24
 
 
 class AllowedEmailOut(BaseModel):
@@ -68,3 +71,61 @@ def remove_allowed_email(email: str, admin: Admin, emails: Emails, audit: Audit)
         raise ApiError(404, "not_found")
     audit.record(AuditEntry(admin_id=admin.id, type="emails", before={"email": email}, after=None))
     return Response(status_code=204)
+
+
+class PointRulesBody(BaseModel):
+    regular: int
+    special: int
+    false_call: int
+    categories: list[str]
+
+
+def rules_body(rules: PointRules) -> PointRulesBody:
+    return PointRulesBody(
+        regular=rules.regular,
+        special=rules.special,
+        false_call=rules.false_call,
+        categories=list(rules.categories),
+    )
+
+
+def valid_categories(names: list[str]) -> tuple[str, ...]:
+    categories = tuple(name.strip() for name in names)
+    lowered = {name.lower() for name in categories}
+    if not categories or len(lowered) != len(categories):
+        raise ApiError(422, "invalid_categories")
+    if any(not 1 <= len(name) <= MAX_CATEGORY_LENGTH for name in categories):
+        raise ApiError(422, "invalid_categories")
+    return categories
+
+
+@router.get("/settings")
+def get_point_rules(_admin: Admin, rules: Rules) -> PointRulesBody:
+    return rules_body(rules.get())
+
+
+@router.put("/settings")
+def put_point_rules(
+    body: PointRulesBody, admin: Admin, rules: Rules, audit: Audit
+) -> PointRulesBody:
+    in_range = 1 <= body.regular <= 10 and 1 <= body.special <= 10 and -10 <= body.false_call <= 0
+    if not in_range:
+        raise ApiError(422, "invalid_points")
+    updated = PointRules(
+        regular=body.regular,
+        special=body.special,
+        false_call=body.false_call,
+        categories=valid_categories(body.categories),
+    )
+    before = rules.get()
+    rules.save(updated)
+    after = rules_body(updated)
+    audit.record(
+        AuditEntry(
+            admin_id=admin.id,
+            type="rules",
+            before=rules_body(before).model_dump(),
+            after=after.model_dump(),
+        )
+    )
+    return after

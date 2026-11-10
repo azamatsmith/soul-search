@@ -4,6 +4,7 @@ from uuid import UUID
 
 from app.admin.audit_repo import AuditEntry
 from app.admin.emails_repo import AllowedEmail
+from app.admin.rules_repo import PointRules
 from app.auth.lockout import AttemptState
 from app.auth.supabase_auth import AuthSession
 from app.me.players_repo import NameTaken, Player
@@ -266,3 +267,14 @@ class FakeAuditRepo:
 
     def record(self, entry: AuditEntry) -> None:
         self.entries.append(entry)
+
+
+class FakePointRulesRepo:
+    def __init__(self, rules: PointRules) -> None:
+        self.rules = rules
+
+    def get(self) -> PointRules:
+        return self.rules
+
+    def save(self, rules: PointRules) -> None:
+        self.rules = rules
