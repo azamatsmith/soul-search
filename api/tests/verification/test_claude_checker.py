@@ -140,3 +140,27 @@ def test_api_errors_become_check_failures(error: Exception, retryable: bool):
         checker_with(StubMessages(error=error)).check(b"jpeg", SPECIAL)
 
     assert failure.value.retryable is retryable
+
+
+REQUEST = httpx2.Request("POST", "https://api.anthropic.test/v1/messages")
+
+
+def test_connection_failures_name_the_cause_without_its_message():
+    error = anthropic.APIConnectionError(request=REQUEST)
+    error.__cause__ = httpx2.LocalProtocolError("Illegal header value b'Bearer sk-ant-secret '")
+
+    with pytest.raises(CheckFailed) as failure:
+        checker_with(StubMessages(error=error)).check(b"jpeg", SPECIAL)
+
+    assert str(failure.value) == "Claude API unreachable (LocalProtocolError)"
+    assert "sk-ant" not in str(failure.value)
+
+
+def test_timeouts_say_so():
+    with pytest.raises(CheckFailed) as failure:
+        checker_with(StubMessages(error=anthropic.APITimeoutError(request=REQUEST))).check(
+            b"jpeg", SPECIAL
+        )
+
+    assert str(failure.value) == "Claude API timed out"
+    assert failure.value.retryable is True
