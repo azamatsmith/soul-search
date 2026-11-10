@@ -40,14 +40,14 @@ class SupabaseAuth:
         if response.status_code == 429:
             raise TooSoon
         if response.is_error:
-            raise AuthUnavailable(f"send failed with {response.status_code}")
+            raise _unavailable(response)
 
     def verify_code(self, email: str, code: str) -> AuthSession | None:
         response = self._post("/verify", {"type": "email", "email": email, "token": code})
         if response.status_code in REJECTED_STATUSES:
             return None
         if response.is_error:
-            raise AuthUnavailable(f"verify failed with {response.status_code}")
+            raise _unavailable(response)
         body = response.json()
         return AuthSession(
             access_token=body["access_token"],
@@ -61,20 +61,28 @@ class SupabaseAuth:
         if response.status_code == 422 and _error_code(response) == "email_exists":
             return
         if response.is_error:
-            raise AuthUnavailable(f"create user failed with {response.status_code}")
+            raise _unavailable(response)
 
     def _post(self, path: str, payload: dict[str, object]) -> httpx.Response:
         try:
             return self._client.post(path, json=payload)
         except httpx.HTTPError as error:
-            raise AuthUnavailable(str(error)) from error
+            raise AuthUnavailable(f"POST {error.request.url} failed: {error}") from error
 
 
 def _error_code(response: httpx.Response) -> str | None:
     try:
-        return response.json().get("error_code")
+        body = response.json()
     except ValueError:
         return None
+    return body.get("error_code") if isinstance(body, dict) else None
+
+
+def _unavailable(response: httpx.Response) -> AuthUnavailable:
+    request = response.request
+    reason = f"{request.method} {request.url} returned {response.status_code}"
+    code = _error_code(response)
+    return AuthUnavailable(f"{reason} ({code})" if code else reason)
 
 
 def get_supabase_auth() -> SupabaseAuth:

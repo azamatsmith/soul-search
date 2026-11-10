@@ -1,3 +1,4 @@
+import logging
 from dataclasses import asdict, replace
 from datetime import UTC, datetime
 from typing import Annotated
@@ -18,6 +19,7 @@ from app.auth.supabase_auth import AuthUnavailable, SupabaseAuth, TooSoon, get_s
 from app.clock import get_now
 from app.errors import ApiError
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth")
 
 Attempts = Annotated[AttemptsRepo, Depends(get_attempts_repo)]
@@ -63,6 +65,7 @@ def send_code(body: SendCodeBody, attempts: Attempts, auth: Auth, now: Now) -> R
     except TooSoon as error:
         raise ApiError(429, "too_soon") from error
     except AuthUnavailable as error:
+        logger.warning("Supabase auth unavailable: %s", error)
         raise ApiError(502, "auth_unavailable") from error
     attempts.save(email, replace(state, code_sent_at=now), now)
     return Response(status_code=204)
@@ -87,6 +90,7 @@ def verify_code(body: VerifyCodeBody, attempts: Attempts, auth: Auth, now: Now) 
     try:
         session = auth.verify_code(email, body.code)
     except AuthUnavailable as error:
+        logger.warning("Supabase auth unavailable: %s", error)
         raise ApiError(502, "auth_unavailable") from error
     if session is not None:
         attempts.save(email, register_success(state), now)
