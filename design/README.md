@@ -32,8 +32,10 @@ Defined once as CSS variables in every HTML file (`:root`). Implement them as a 
 | `--c-cream` | `#FAF4E8` | Page background |
 | `--c-surface` | `#FFFCF5` | Cards, sheets, tab bar, inputs |
 | `--c-cream-deep` | `#F1E7D3` | Segmented-control track, disabled, placeholders |
+| `--c-cream-shine` | `#FBF6EC` | Shimmer highlight on cream-deep placeholders |
 | `--c-forest` | `#1F4A33` | Headers, primary buttons, active states |
 | `--c-forest-deep` | `#143424` | Primary pressed / button bottom bevel |
+| `--c-forest-shine` | `#24533A` | Shimmer highlight on forest-deep placeholders (green header) |
 | `--c-forest-tint` | `#E3EBE2` | Success surfaces, "you" row highlight, selected tiles |
 | `--c-orange` | `#B9501C` | Accent: camera button, alerts, active-tab bar, kickers |
 | `--c-orange-deep` | `#943E13` | Orange pressed / bevel; text on orange-tint |
@@ -211,7 +213,7 @@ Entry: **Admin tools** row in Settings, admins only. Every action writes to the 
 ### Loading
 Two patterns, one for each kind of wait. Both are in `Soul Hunt Design System.dc.html` (section 06).
 - **Rolling car** (network waits with no layout to show: checking a sign-in code, sending a photo, any full-screen wait). A small boxy car (inline SVG, 64×44 viewBox: `--c-forest` body, `--c-forest-tint` windows, `--c-ink` wheels with `--c-gold-soft` hub bars, `--c-orange` tail light) on a 3px dashed `--c-gold` road. It drives left to right across its container in 2.4s ease-in-out, looping; wheels rotate every 0.5s. Inline size: 40×28 car on a 96×34 road. When progress is known (Sending), don't loop: position the car at the progress value on top of the progress bar. It's a generic car, not any real model; keep it that way. Always pair it with a visible text label and `role="status"`; the car itself is `aria-hidden`.
-- **Shimmer** (lists and cards whose layout is known: Leaderboard, Sightings, Home header). Placeholders in `--c-cream-deep` (`--c-forest-deep` on the green header) in the real layout, with a lighter band (`#FBF6EC`, or `#24533A` on dark) sweeping left to right, 1.6s linear, infinite.
+- **Shimmer** (lists and cards whose layout is known: Leaderboard, Sightings, Home header). Placeholders in `--c-cream-deep` (`--c-forest-deep` on the green header) in the real layout, with a lighter band (`--c-cream-shine`, or `--c-forest-shine` on dark) sweeping left to right, 1.6s linear, infinite.
 - **Reduced motion** (`prefers-reduced-motion: reduce`): the car parks centered with still wheels; placeholders don't move. Labels stay.
 - Animate with `transform` in production (the prototypes animate `left` for simplicity).
 

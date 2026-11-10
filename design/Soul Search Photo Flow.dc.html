@@ -13,7 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
 :root{
---c-cream:#FAF4E8;--c-surface:#FFFCF5;--c-cream-deep:#F1E7D3;
+--c-cream:#FAF4E8;--c-surface:#FFFCF5;--c-cream-deep:#F1E7D3;--c-cream-shine:#FBF6EC;--c-forest-shine:#24533A;
 --c-forest:#1F4A33;--c-forest-deep:#143424;--c-forest-tint:#E3EBE2;
 --c-orange:#B9501C;--c-orange-deep:#943E13;--c-orange-tint:#F8E2D2;
 --c-ink:#3A2618;--c-ink-muted:#6B5443;--c-gold:#C9A35A;--c-gold-soft:#E6D5AC;
@@ -32,8 +32,8 @@ body{margin:0;background:#E9E1D0;color:var(--c-ink);font-family:var(--f-body);-w
 a{color:var(--c-forest);text-decoration-color:var(--c-gold)}a:hover{color:var(--c-orange)}
 *{box-sizing:border-box}
 /* Loading: rolling car + shimmer */
-.sk{background:linear-gradient(100deg,var(--c-cream-deep) 30%,#FBF6EC 50%,var(--c-cream-deep) 70%) var(--c-cream-deep)!important;background-size:250% 100%!important;animation:sk-shimmer 1.6s linear infinite}
-.sk-dark{background:linear-gradient(100deg,var(--c-forest-deep) 30%,#24533A 50%,var(--c-forest-deep) 70%) var(--c-forest-deep)!important;background-size:250% 100%!important;animation:sk-shimmer 1.6s linear infinite}
+.sk{background:linear-gradient(100deg,var(--c-cream-deep) 30%,var(--c-cream-shine) 50%,var(--c-cream-deep) 70%) var(--c-cream-deep)!important;background-size:250% 100%!important;animation:sk-shimmer 1.6s linear infinite}
+.sk-dark{background:linear-gradient(100deg,var(--c-forest-deep) 30%,var(--c-forest-shine) 50%,var(--c-forest-deep) 70%) var(--c-forest-deep)!important;background-size:250% 100%!important;animation:sk-shimmer 1.6s linear infinite}
 .road{position:relative;display:block;overflow:hidden;border-bottom:3px dashed var(--c-gold)}
 .car{position:absolute;bottom:3px;left:0;display:block;animation:car-drive 2.4s ease-in-out infinite}
 .car svg{display:block}
