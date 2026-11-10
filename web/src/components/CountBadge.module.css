@@ -1,0 +1,11 @@
+.badge {
+  flex: none;
+  min-width: var(--badge);
+  height: var(--badge);
+  padding: 0 var(--s-2);
+  border-radius: var(--r-pill);
+  background: var(--c-orange);
+  color: var(--c-on-dark);
+  font: 700 var(--t-small) / var(--badge) var(--f-body);
+  text-align: center;
+}

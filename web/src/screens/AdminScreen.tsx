@@ -1,7 +1,8 @@
+import { CountBadge } from '../components/CountBadge'
 import { PushedScreen } from '../components/PushedScreen'
 import { SettingsRow } from '../components/SettingsRow'
 import { useApiResource } from '../hooks/useApiResource'
-import { getAllowedEmails, getPointRules } from '../lib/api'
+import { getAllowedEmails, getPointRules, getReviewQueue } from '../lib/api'
 import { peopleCount } from '../lib/peopleCount'
 import { rulesSummary } from '../lib/rulesSummary'
 import styles from './AdminScreen.module.css'
@@ -9,6 +10,7 @@ import styles from './AdminScreen.module.css'
 export const AdminScreen = () => {
   const emails = useApiResource(getAllowedEmails)
   const rules = useApiResource(getPointRules)
+  const queue = useApiResource(getReviewQueue)
   const emailsSubtitle = emails.data
     ? peopleCount(emails.data.emails.length)
     : 'Who can sign in'
@@ -24,6 +26,12 @@ export const AdminScreen = () => {
       title="Admin tools"
     >
       <div className={styles.card}>
+        <SettingsRow
+          subtitle="Waiting for a person to look"
+          title="Flagged photos"
+          to="/admin/flagged"
+          trailing={<CountBadge count={queue.data?.flagged.length ?? 0} />}
+        />
         <SettingsRow
           subtitle={rulesSubtitle}
           title="Points & categories"

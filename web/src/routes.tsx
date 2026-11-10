@@ -7,7 +7,9 @@ import { AdminScreen } from './screens/AdminScreen'
 import { AllowedEmailsScreen } from './screens/AllowedEmailsScreen'
 import { CaptureScreen } from './screens/CaptureScreen'
 import { ChangeNameScreen } from './screens/ChangeNameScreen'
+import { FlaggedPhotosScreen } from './screens/FlaggedPhotosScreen'
 import { PointsScreen } from './screens/PointsScreen'
+import { ReviewPhotoScreen } from './screens/ReviewPhotoScreen'
 import { ScoresScreen } from './screens/ScoresScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { SightingsScreen } from './screens/SightingsScreen'
@@ -32,6 +34,8 @@ export const routes: RouteObject[] = [
         children: [
           { path: '/admin', element: <AdminScreen /> },
           { path: '/admin/emails', element: <AllowedEmailsScreen /> },
+          { path: '/admin/flagged', element: <FlaggedPhotosScreen /> },
+          { path: '/admin/flagged/:id', element: <ReviewPhotoScreen /> },
           { path: '/admin/points', element: <PointsScreen /> },
         ],
       },

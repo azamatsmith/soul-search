@@ -72,6 +72,8 @@ const ERROR_CODES = [
   'cannot_remove_self',
   'invalid_points',
   'invalid_categories',
+  'invalid_category',
+  'already_reviewed',
   'network',
   'unknown',
 ] as const
@@ -335,3 +337,51 @@ export const getPointRules = () =>
 
 export const putPointRules = (rules: PointRules) =>
   request<PointRules>('/admin/settings', 'PUT', rules, true)
+
+export interface ReviewItem {
+  categories: string[]
+  check_note: string | null
+  claim_type: 'regular' | 'special'
+  display_name: string
+  id: string
+  photo_url: string | null
+  points: number
+  status: 'counted' | 'false_call'
+  taken_at: string
+  thumb_url: string | null
+  verification_notes: string | null
+}
+
+export interface ReviewDetail extends ReviewItem {
+  rules: Rules
+}
+
+export type ReviewAction = 'false_call' | 'keep' | 'regular' | 'special'
+
+export const getReviewItem = (id: string) =>
+  request<ReviewDetail>(
+    `/admin/review/${encodeURIComponent(id)}`,
+    'GET',
+    undefined,
+    true,
+  )
+
+export const postReview = (
+  id: string,
+  action: ReviewAction,
+  category: string | null,
+) =>
+  request<null>(
+    `/admin/review/${encodeURIComponent(id)}`,
+    'POST',
+    { action, category },
+    true,
+  )
+
+export interface ReviewQueue {
+  false_calls: ReviewItem[]
+  flagged: ReviewItem[]
+}
+
+export const getReviewQueue = () =>
+  request<ReviewQueue>('/admin/review', 'GET', undefined, true)
