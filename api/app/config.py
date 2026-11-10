@@ -1,4 +1,5 @@
 import os
+import re
 from dataclasses import dataclass
 
 
@@ -29,3 +30,14 @@ def get_settings() -> Settings:
 def get_cors_origins() -> list[str]:
     raw = os.environ.get("CORS_ORIGINS", "http://localhost:5173")
     return [origin.strip() for origin in raw.split(",") if origin.strip()]
+
+
+def get_cors_origin_regex() -> str | None:
+    raw = os.environ.get("CORS_ORIGIN_REGEX", "").strip()
+    if not raw:
+        return None
+    try:
+        re.compile(raw)
+    except re.error as error:
+        raise RuntimeError(f"Invalid CORS_ORIGIN_REGEX: {error}") from error
+    return raw
