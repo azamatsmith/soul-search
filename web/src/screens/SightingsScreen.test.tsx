@@ -1,4 +1,11 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useQueuedSightings } from '../hooks/useQueuedSightings'
@@ -8,7 +15,7 @@ import {
   type LoggedSighting,
   type SightingsLog,
 } from '../lib/api'
-import type { QueuedSighting } from '../lib/uploadQueue'
+import { type QueuedSighting, UPLOADS_FLUSHED } from '../lib/uploadQueue'
 import { SightingsScreen } from './SightingsScreen'
 
 vi.mock('../lib/api', () => ({ getSightings: vi.fn() }))
@@ -187,5 +194,19 @@ describe('SightingsScreen', () => {
 
     expect(await screen.findByText('2 this week')).toBeInTheDocument()
     expect(screen.queryByText('Waiting to send')).toBeNull()
+  })
+  it('reloads the log as soon as queued photos are sent', async () => {
+    serve(EVERYONE)
+    renderLog()
+    await screen.findByText('Marcus T.')
+    const before = vi.mocked(getSightings).mock.calls.length
+
+    act(() => {
+      window.dispatchEvent(new Event(UPLOADS_FLUSHED))
+    })
+
+    await waitFor(() =>
+      expect(vi.mocked(getSightings).mock.calls.length).toBeGreaterThan(before),
+    )
   })
 })

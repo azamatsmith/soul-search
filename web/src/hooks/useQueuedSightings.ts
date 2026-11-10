@@ -3,8 +3,8 @@ import {
   deviceQueue,
   type QueuedSighting,
   type QueueStore,
-  UPLOADS_FLUSHED,
 } from '../lib/uploadQueue'
+import { useUploadsFlushed } from './useUploadsFlushed'
 
 export const useQueuedSightings = (
   playerId: string,
@@ -27,13 +27,8 @@ export const useQueuedSightings = (
     }
   }, [playerId, store, version])
 
-  useEffect(() => {
-    const handleFlushed = () => setVersion((v) => v + 1)
-    window.addEventListener(UPLOADS_FLUSHED, handleFlushed)
-    return () => window.removeEventListener(UPLOADS_FLUSHED, handleFlushed)
-  }, [])
-
   const reload = () => setVersion((v) => v + 1)
+  useUploadsFlushed(reload)
 
   return { items, reload }
 }

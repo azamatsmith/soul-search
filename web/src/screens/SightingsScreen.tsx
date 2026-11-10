@@ -10,6 +10,7 @@ import { useAutoRefresh } from '../hooks/useAutoRefresh'
 import { useMeContext } from '../hooks/useMeContext'
 import { useNow } from '../hooks/useNow'
 import { useQueuedSightings } from '../hooks/useQueuedSightings'
+import { useUploadsFlushed } from '../hooks/useUploadsFlushed'
 import { useWaitingCards } from '../hooks/useWaitingCards'
 import { getSightings, type LoggedSighting } from '../lib/api'
 import { cardKind, groupByDay, type LogCard } from '../lib/sightingsCopy'
@@ -53,6 +54,7 @@ export const SightingsScreen = () => {
     queue.reload()
   }
   useAutoRefresh(handleRefresh)
+  useUploadsFlushed(handleRefresh)
 
   const sent = log.data?.sightings ?? []
   const sentIds = new Set(sent.map((s) => s.id))
