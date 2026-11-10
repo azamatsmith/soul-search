@@ -102,3 +102,18 @@ def test_app_refuses_to_start_with_bad_settings(monkeypatch: pytest.MonkeyPatch)
 def test_app_starts_with_good_settings():
     with TestClient(create_app()) as client:
         assert client.get("/health").status_code == 200
+
+
+@pytest.mark.usefixtures("production_env")
+def test_trims_whitespace_pasted_around_secrets(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", " sk-ant-key\n")
+
+    assert check_settings().anthropic_api_key == "sk-ant-key"
+
+
+@pytest.mark.usefixtures("production_env")
+def test_blank_secrets_count_as_missing(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", " \n")
+
+    with pytest.raises(RuntimeError, match="ANTHROPIC_API_KEY"):
+        check_settings()
