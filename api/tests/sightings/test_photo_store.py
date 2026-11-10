@@ -4,7 +4,7 @@ from collections.abc import Callable
 import httpx
 import pytest
 
-from app.sightings.photo_store import PhotoStore, StorageUnavailable
+from app.sightings.photo_store import PhotoStore, StorageUnavailable, thumb_path
 
 
 def make_store(handler: Callable[[httpx.Request], httpx.Response]) -> PhotoStore:
@@ -75,3 +75,7 @@ def test_download_returns_the_photo_bytes():
 def test_download_error_raises_unavailable():
     with pytest.raises(StorageUnavailable):
         make_store(lambda _r: httpx.Response(404)).download("p/s.jpg")
+
+
+def test_thumb_path_sits_next_to_the_photo():
+    assert thumb_path("p1/abc.jpg") == "p1/abc.thumb.jpg"

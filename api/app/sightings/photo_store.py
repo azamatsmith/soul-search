@@ -5,6 +5,10 @@ from app.config import get_settings
 BUCKET = "photos"
 
 
+def thumb_path(photo_path: str) -> str:
+    return f"{photo_path.removesuffix('.jpg')}.thumb.jpg"
+
+
 class StorageUnavailable(Exception):
     pass
 

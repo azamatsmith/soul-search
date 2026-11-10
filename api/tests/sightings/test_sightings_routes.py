@@ -172,7 +172,7 @@ def test_post_regular_sighting_uploads_and_scores(harness: Harness):
     assert body["sighting"]["status"] == "waiting_review"
     assert body["period_points"] == 1
     path = f"{BOB_ID}/{sighting_id}.jpg"
-    assert list(harness.store.uploads) == [path]
+    assert list(harness.store.uploads) == [path, f"{BOB_ID}/{sighting_id}.thumb.jpg"]
     (new,) = harness.repo.inserted
     assert (new.photo_path, new.week_id, new.challenge_id) == (path, WEEK.id, None)
     assert (new.latitude, new.longitude) == (47.6, -122.3)
@@ -184,8 +184,9 @@ def test_post_strips_exif_and_keeps_its_location(harness: Harness):
     (new,) = harness.repo.inserted
     assert new.latitude == pytest.approx(47.6)
     assert new.longitude == pytest.approx(-122.33)
-    (stored,) = harness.store.uploads.values()
-    assert dict(Image.open(io.BytesIO(stored)).getexif()) == {}
+    assert len(harness.store.uploads) == 2
+    for stored in harness.store.uploads.values():
+        assert dict(Image.open(io.BytesIO(stored)).getexif()) == {}
 
 
 def test_post_prefers_phone_location_over_exif(harness: Harness):

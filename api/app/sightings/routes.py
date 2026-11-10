@@ -22,7 +22,12 @@ from app.clock import get_now
 from app.errors import ApiError
 from app.me.players_repo import PlayersRepo, get_players_repo
 from app.sightings.photo_meta import CleanPhoto, InvalidPhoto, clean_photo
-from app.sightings.photo_store import PhotoStore, StorageUnavailable, get_photo_store
+from app.sightings.photo_store import (
+    PhotoStore,
+    StorageUnavailable,
+    get_photo_store,
+    thumb_path,
+)
 from app.sightings.repo import (
     NewSighting,
     Period,
@@ -262,6 +267,7 @@ def post_sighting(
     path = f"{user.id}/{sighting_id}.jpg"
     try:
         store.upload(path, cleaned.data)
+        store.upload(thumb_path(path), cleaned.thumbnail)
     except StorageUnavailable as error:
         raise ApiError(502, "storage_unavailable") from error
 
