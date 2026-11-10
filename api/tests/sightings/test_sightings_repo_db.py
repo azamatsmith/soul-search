@@ -56,6 +56,23 @@ def new_sighting(player_id: UUID, period_id: UUID, kind: str = "week", points: i
     )
 
 
+def add_adjustment(
+    conn: psycopg.Connection,
+    player_id: UUID,
+    period_id: UUID,
+    *,
+    change: int,
+    kind: str = "week",
+) -> None:
+    conn.execute(
+        f"""
+        insert into public.score_adjustments (player_id, admin_id, {kind}_id, change, reason)
+        values (%s, %s, %s, %s, 'test')
+        """,
+        (player_id, ALICE, period_id, change),
+    )
+
+
 def add_challenge(conn: psycopg.Connection, rules: dict[str, object]) -> UUID:
     row = conn.execute(
         """
@@ -146,13 +163,7 @@ def test_standing_ranks_players_and_counts_adjustments(db_conn: psycopg.Connecti
         add_sighting(db_conn, ALICE, week.id)
     add_sighting(db_conn, BOB, week.id, points=2)
     add_sighting(db_conn, CAROL, week.id)
-    db_conn.execute(
-        """
-        insert into public.score_adjustments (player_id, admin_id, week_id, change, reason)
-        values (%s, %s, %s, -1, 'test')
-        """,
-        (ALICE, ALICE, week.id),
-    )
+    add_adjustment(db_conn, ALICE, week.id, change=-1)
 
     standing = repo.standing(BOB, week)
 
@@ -221,3 +232,131 @@ def test_standing_only_counts_its_period(db_conn: psycopg.Connection):
 
     assert repo.standing(BOB, week).points == 1
     assert repo.standing(BOB, repo.period_at(AT)).points == 5
+
+
+def test_week_at_ignores_running_challenge(db_conn: psycopg.Connection):
+    repo = PgSightingsRepo(db_conn)
+    add_challenge(db_conn, {"regular": 1, "special": 2, "false_call": -1, "bonuses": {}})
+
+    week = repo.week_at(AT)
+
+    assert (week.kind, week.starts_at) == ("week", WEEK_START)
+
+
+def test_standing_ranks_adjustment_only_player(db_conn: psycopg.Connection):
+    repo = PgSightingsRepo(db_conn)
+    week = repo.period_at(AT)
+    add_sighting(db_conn, ALICE, week.id, points=3)
+    add_adjustment(db_conn, BOB, week.id, change=1)
+
+    standing = repo.standing(BOB, week)
+
+    assert (standing.points, standing.count, standing.rank) == (1, 0, 2)
+
+
+def test_standing_ranks_false_call_player_among_participants_only(db_conn: psycopg.Connection):
+    repo = PgSightingsRepo(db_conn)
+    week = repo.period_at(AT)
+    add_sighting(db_conn, ALICE, week.id)
+    add_sighting(db_conn, BOB, week.id, points=-1)
+
+    assert repo.standing(BOB, week).rank == 2
+
+
+NO_BONUS_RULES = {"regular": 1, "special": 2, "false_call": -1, "bonuses": {}}
+
+
+def _week_and_challenge_setup(conn: psycopg.Connection, repo: PgSightingsRepo):
+    week = repo.week_at(AT)
+    challenge_id = add_challenge(conn, NO_BONUS_RULES)
+    add_sighting(conn, ALICE, week.id)
+    add_sighting(conn, BOB, challenge_id, kind="challenge", points=5)
+    add_adjustment(conn, BOB, challenge_id, change=2, kind="challenge")
+    return week
+
+
+def test_leaderboard_week_excludes_challenge_points(db_conn: psycopg.Connection):
+    repo = PgSightingsRepo(db_conn)
+    week = _week_and_challenge_setup(db_conn, repo)
+
+    board = repo.leaderboard(week)
+
+    assert [(r.player_id, r.points, r.rank) for r in board.rows] == [(ALICE, 1, 1)]
+
+
+def test_leaderboard_all_time_includes_weeks_challenges_and_adjustments(
+    db_conn: psycopg.Connection,
+):
+    repo = PgSightingsRepo(db_conn)
+    before = {r.player_id: r.points for r in repo.leaderboard(None).rows}
+    _week_and_challenge_setup(db_conn, repo)
+
+    after = {r.player_id: r.points for r in repo.leaderboard(None).rows}
+
+    assert after[BOB] - before.get(BOB, 0) == 7
+    assert after[ALICE] - before.get(ALICE, 0) == 1
+
+
+def test_leaderboard_ties_share_rank_and_sort_by_name(db_conn: psycopg.Connection):
+    repo = PgSightingsRepo(db_conn)
+    week = repo.week_at(AT)
+    add_sighting(db_conn, BOB, week.id)
+    add_sighting(db_conn, ALICE, week.id)
+
+    names = dict(
+        db_conn.execute(
+            "select id, display_name from public.players where id in (%s, %s)", (ALICE, BOB)
+        ).fetchall()
+    )
+    expected = sorted(names.values(), key=str.lower)
+
+    board = repo.leaderboard(week)
+
+    assert [(r.display_name, r.rank) for r in board.rows] == [(name, 1) for name in expected]
+
+
+def test_leaderboard_false_call_lowers_points_not_count(db_conn: psycopg.Connection):
+    repo = PgSightingsRepo(db_conn)
+    week = repo.week_at(AT)
+    add_sighting(db_conn, BOB, week.id)
+    path = add_sighting(db_conn, BOB, week.id, points=-1)
+    db_conn.execute(
+        "update public.sightings set status = 'false_call' where photo_path = %s", (path,)
+    )
+
+    (row,) = repo.leaderboard(week).rows
+
+    assert (row.points, row.count) == (0, 1)
+
+
+def test_leaderboard_lists_only_participants_and_counts_everyone(db_conn: psycopg.Connection):
+    repo = PgSightingsRepo(db_conn)
+    week = repo.week_at(AT)
+    add_sighting(db_conn, ALICE, week.id)
+
+    board = repo.leaderboard(week)
+
+    assert [r.player_id for r in board.rows] == [ALICE]
+    assert board.total_players >= 3
+
+
+def test_leaderboard_false_call_only_player_is_last(db_conn: psycopg.Connection):
+    repo = PgSightingsRepo(db_conn)
+    week = repo.week_at(AT)
+    add_sighting(db_conn, ALICE, week.id)
+    add_sighting(db_conn, BOB, week.id, points=-1)
+
+    board = repo.leaderboard(week)
+
+    assert [(r.player_id, r.rank) for r in board.rows] == [(ALICE, 1), (BOB, 2)]
+
+
+def test_leaderboard_rank_matches_standing(db_conn: psycopg.Connection):
+    repo = PgSightingsRepo(db_conn)
+    week = repo.week_at(AT)
+    add_sighting(db_conn, ALICE, week.id, points=3)
+    add_sighting(db_conn, BOB, week.id)
+    add_sighting(db_conn, CAROL, week.id)
+
+    for row in repo.leaderboard(week).rows:
+        assert repo.standing(row.player_id, week).rank == row.rank

@@ -7,6 +7,7 @@ import { routes } from './routes'
 
 vi.mock('./hooks/useSession', () => ({ useSession: vi.fn() }))
 vi.mock('./lib/api', () => ({
+  getLeaderboard: vi.fn(() => new Promise(() => {})),
   getMe: vi.fn(),
   getPeriod: vi.fn(() => new Promise(() => {})),
   getStanding: vi.fn(() => new Promise(() => {})),
@@ -54,7 +55,7 @@ describe('routes', () => {
   it.each([
     ['/', 'Take photo'],
     ['/sightings', 'Sightings'],
-    ['/scores', 'Scores'],
+    ['/scores', 'Leaderboard'],
   ])('shows the %s screen with the tab bar', async (path, title) => {
     renderAt(path)
     expect(
@@ -67,7 +68,7 @@ describe('routes', () => {
     renderAt('/')
     fireEvent.click(await screen.findByRole('link', { name: 'Scores' }))
     expect(
-      await screen.findByRole('heading', { name: 'Scores' }),
+      await screen.findByRole('heading', { name: 'Leaderboard' }),
     ).toBeInTheDocument()
   })
 

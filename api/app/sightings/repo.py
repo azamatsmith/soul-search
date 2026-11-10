@@ -65,14 +65,33 @@ class Standing:
     last_photo_path: str | None
 
 
+@dataclass(frozen=True)
+class LeaderboardEntry:
+    player_id: UUID
+    display_name: str
+    points: int
+    count: int
+    rank: int
+
+
+@dataclass(frozen=True)
+class Leaderboard:
+    rows: tuple[LeaderboardEntry, ...]
+    total_players: int
+
+
 class SightingsRepo(Protocol):
     def period_at(self, at: datetime) -> Period: ...
+
+    def week_at(self, at: datetime) -> Period: ...
 
     def find(self, sighting_id: UUID) -> Sighting | None: ...
 
     def insert(self, new: NewSighting) -> Sighting: ...
 
     def standing(self, player_id: UUID, period: Period) -> Standing: ...
+
+    def leaderboard(self, week: Period | None) -> Leaderboard: ...
 
 
 class PgSightingsRepo:
@@ -106,6 +125,12 @@ class PgSightingsRepo:
                     bonuses=rules.get("bonuses", {}),
                 ),
             )
+        return self._week_at(at, settings)
+
+    def week_at(self, at: datetime) -> Period:
+        return self._week_at(at, self._settings())
+
+    def _week_at(self, at: datetime, settings: Rules) -> Period:
         start, end = week_bounds(at)
         self._conn.execute(
             """
@@ -170,24 +195,7 @@ class PgSightingsRepo:
         column = "week_id" if period.kind == "week" else "challenge_id"
         row = self._conn.execute(
             f"""
-            with totals as (
-              select p.id,
-                coalesce(s.points, 0) + coalesce(a.points, 0) as points,
-                coalesce(s.count, 0) as count
-              from public.players p
-              left join (
-                select player_id, sum(points) as points,
-                  count(*) filter (where status <> 'false_call') as count
-                from public.sightings where {column} = %(period)s group by player_id
-              ) s on s.player_id = p.id
-              left join (
-                select player_id, sum(change) as points
-                from public.score_adjustments where {column} = %(period)s group by player_id
-              ) a on a.player_id = p.id
-            ),
-            ranked as (
-              select *, rank() over (order by points desc) as rank from totals
-            ),
+            with {_ranked_cte(f"{column} = %(period)s")},
             me as (select * from ranked where id = %(player)s)
             select
               coalesce(me.points, 0),
@@ -212,15 +220,31 @@ class PgSightingsRepo:
         ).fetchone()
         assert row
         points, count, rank, total, next_rank, behind, last_photo = row
-        has_sightings = last_photo is not None
         return Standing(
             points=points,
             count=count,
-            rank=rank if has_sightings else None,
+            rank=rank,
             total_players=total,
-            next_rank=next_rank if has_sightings else None,
-            points_behind_next=behind if has_sightings else None,
+            next_rank=next_rank,
+            points_behind_next=behind,
             last_photo_path=last_photo,
+        )
+
+    def leaderboard(self, week: Period | None) -> Leaderboard:
+        where = "week_id = %(period)s" if week else "true"
+        rows = self._conn.execute(
+            f"""
+            with {_ranked_cte(where)}
+            select id, display_name, points, count, rank from ranked
+            order by rank, lower(display_name)
+            """,
+            {"period": week.id if week else None},
+        ).fetchall()
+        total = self._conn.execute("select count(*) from public.players").fetchone()
+        assert total
+        return Leaderboard(
+            rows=tuple(LeaderboardEntry(*row) for row in rows),
+            total_players=total[0],
         )
 
     def _settings(self) -> Rules:
@@ -239,6 +263,30 @@ class PgSightingsRepo:
             categories=tuple(categories),
             bonuses={},
         )
+
+
+def _ranked_cte(where: str) -> str:
+    return f"""
+    s as (
+      select player_id, sum(points) as points,
+        count(*) filter (where status <> 'false_call') as count
+      from public.sightings where {where} group by player_id
+    ),
+    a as (
+      select player_id, sum(change) as points
+      from public.score_adjustments where {where} group by player_id
+    ),
+    totals as (
+      select p.id, p.display_name,
+        coalesce(s.points, 0) + coalesce(a.points, 0) as points,
+        coalesce(s.count, 0) as count
+      from public.players p
+      left join s on s.player_id = p.id
+      left join a on a.player_id = p.id
+      where s.player_id is not null or a.player_id is not null
+    ),
+    ranked as (select *, rank() over (order by points desc) as rank from totals)
+    """
 
 
 def _sighting(row: tuple) -> Sighting:

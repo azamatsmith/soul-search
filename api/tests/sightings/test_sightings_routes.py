@@ -13,7 +13,7 @@ from app.clock import get_now
 from app.main import create_app
 from app.me.players_repo import Player, get_players_repo
 from app.sightings.photo_store import StorageUnavailable, get_photo_store
-from app.sightings.repo import Period, Sighting, get_sightings_repo
+from app.sightings.repo import Leaderboard, LeaderboardEntry, Period, Sighting, get_sightings_repo
 from app.sightings.scoring import Rules
 from tests.fakes import (
     EMPTY_STANDING,
@@ -151,6 +151,7 @@ def test_endpoints_require_sign_in():
 
     assert client.get("/period").status_code == 401
     assert client.get("/me/standing").status_code == 401
+    assert client.get("/leaderboard?scope=week").status_code == 401
 
 
 def test_post_regular_sighting_uploads_and_scores(harness: Harness):
@@ -354,3 +355,74 @@ def test_post_then_standing_includes_the_new_photo(harness: Harness):
 
     assert body["last_photo_url"].startswith(f"https://signed.test/{BOB_ID}/")
     assert body["points"] == 1
+
+
+def entry(player_id: UUID, name: str, points: int, rank: int) -> LeaderboardEntry:
+    return LeaderboardEntry(
+        player_id=player_id, display_name=name, points=points, count=points, rank=rank
+    )
+
+
+WEEK_BOARD = Leaderboard(
+    rows=(entry(ALICE_ID, "Alice", 5, 1), entry(BOB_ID, "Bob", 3, 2)), total_players=23
+)
+
+
+def test_leaderboard_week_returns_rows_and_bounds(harness: Harness):
+    harness.repo.leaderboards[WEEK.id] = WEEK_BOARD
+
+    body = harness.client.get("/leaderboard?scope=week").json()
+
+    assert body == {
+        "scope": "week",
+        "starts_at": "2026-11-09T08:00:00Z",
+        "ends_at": "2026-11-16T08:00:00Z",
+        "total_players": 23,
+        "rows": [
+            {
+                "player_id": str(ALICE_ID),
+                "display_name": "Alice",
+                "points": 5,
+                "count": 5,
+                "rank": 1,
+                "is_me": False,
+            },
+            {
+                "player_id": str(BOB_ID),
+                "display_name": "Bob",
+                "points": 3,
+                "count": 3,
+                "rank": 2,
+                "is_me": True,
+            },
+        ],
+    }
+
+
+def test_leaderboard_week_uses_week_even_during_challenge():
+    repo = FakeSightingsRepo(replace(WEEK, kind="challenge", id=uuid4(), name="Brown Week"))
+    repo.week = WEEK
+    repo.leaderboards[WEEK.id] = WEEK_BOARD
+
+    body = Harness(repo).client.get("/leaderboard?scope=week").json()
+
+    assert (body["starts_at"], len(body["rows"])) == ("2026-11-09T08:00:00Z", 2)
+
+
+def test_leaderboard_all_has_no_bounds(harness: Harness):
+    harness.repo.leaderboards[None] = Leaderboard(
+        rows=(entry(BOB_ID, "Bob", 40, 1),), total_players=23
+    )
+
+    body = harness.client.get("/leaderboard?scope=all").json()
+
+    assert (body["scope"], body["starts_at"], body["ends_at"]) == ("all", None, None)
+    assert [row["points"] for row in body["rows"]] == [40]
+
+
+@pytest.mark.parametrize("query", ["?scope=month", ""])
+def test_leaderboard_rejects_unknown_scope(harness: Harness, query: str):
+    response = harness.client.get(f"/leaderboard{query}")
+
+    assert response.status_code == 422
+    assert response.json() == {"error": "invalid_request"}

@@ -5,7 +5,7 @@ from uuid import UUID
 from app.auth.lockout import AttemptState
 from app.auth.supabase_auth import AuthSession
 from app.me.players_repo import NameTaken, Player
-from app.sightings.repo import NewSighting, Period, Sighting, Standing
+from app.sightings.repo import Leaderboard, NewSighting, Period, Sighting, Standing
 
 
 class FakeAttemptsRepo:
@@ -97,12 +97,21 @@ class FakeSightingsRepo:
         self.sightings: dict[UUID, Sighting] = {}
         self.inserted: list[NewSighting] = []
         self.period_requests: list[datetime] = []
+        self.week: Period | None = None
+        self.leaderboards: dict[UUID | None, Leaderboard] = {}
 
     def period_at(self, at: datetime) -> Period:
         self.period_requests.append(at)
         if self.closed_fallback and len(self.period_requests) > 1:
             return self.closed_fallback
         return self.period
+
+    def week_at(self, at: datetime) -> Period:
+        return self.week or self.period
+
+    def leaderboard(self, week: Period | None) -> Leaderboard:
+        key = week.id if week else None
+        return self.leaderboards.get(key, Leaderboard(rows=(), total_players=3))
 
     def find(self, sighting_id: UUID) -> Sighting | None:
         return self.sightings.get(sighting_id)

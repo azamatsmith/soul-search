@@ -1,0 +1,27 @@
+.avatar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--avatar-md);
+  height: var(--avatar-md);
+  border-radius: var(--r-pill);
+  color: var(--c-on-dark);
+  font: 400 var(--t-small) / 1 var(--f-display);
+}
+
+.forest {
+  background: var(--c-forest);
+}
+
+.orange {
+  background: var(--c-orange);
+}
+
+.inkMuted {
+  background: var(--c-ink-muted);
+}
+
+.ink {
+  background: var(--c-ink);
+}

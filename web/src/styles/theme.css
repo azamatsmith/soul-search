@@ -54,6 +54,8 @@
   --tap-lg: 72px;
 
   --avatar-lg: 56px;
+  --avatar-md: 40px;
+  --rank-w: calc(var(--t-h3) * 1.4);
   --camera-button: 250px;
   --camera-glyph-w: 64px;
   --camera-glyph-h: 48px;
@@ -71,6 +73,8 @@
   --sending-photo: 200px;
   --progress: 14px;
   --result-icon: 96px;
+  --empty-mark: 88px;
+  --t-empty-mark: 40px;
   --t-result: 72px;
   --t-score: 56px;
   --t-camera: 30px;
@@ -84,6 +88,7 @@
   --rule-thin: 1px solid var(--c-gold-soft);
   --shadow-card: 0 1px 0 var(--c-gold-soft), 0 6px 18px rgba(58, 38, 24, 0.07);
   --shadow-knob: 0 1px 3px rgba(58, 38, 24, 0.3);
+  --shadow-segment: 0 1px 3px rgba(58, 38, 24, 0.15);
   --shadow-camera:
     0 0 0 10px var(--c-orange-tint), 0 0 0 12px var(--c-gold-soft),
     inset 0 -6px 0 var(--c-orange-deep), 0 14px 30px rgba(148, 62, 19, 0.35);

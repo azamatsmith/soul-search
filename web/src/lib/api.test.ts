@@ -1,6 +1,7 @@
 import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  getLeaderboard,
   getMe,
   getPeriod,
   getStanding,
@@ -278,6 +279,7 @@ describe('api', () => {
   it.each([
     ['getPeriod', '/period', getPeriod],
     ['getStanding', '/me/standing', getStanding],
+    ['getLeaderboard', '/leaderboard?scope=all', () => getLeaderboard('all')],
   ])('%s gets %s with the bearer token', async (_name, path, load) => {
     signedIn('tok')
     const fetchMock = stubFetch(() => respond(200, { points: 3 }))
