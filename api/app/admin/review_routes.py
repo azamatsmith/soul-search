@@ -13,7 +13,8 @@ from app.auth.tokens import CurrentUser
 from app.clock import get_now
 from app.errors import ApiError
 from app.sightings.photo_store import PhotoStore, get_photo_store, thumb_path
-from app.sightings.scoring import InvalidClaim
+from app.sightings.routes import RulesOut
+from app.sightings.scoring import InvalidClaim, Rules
 from app.sightings.url_cache import SignedUrlCache, cached_signed_urls, get_url_cache
 
 router = APIRouter(prefix="/admin/review")
@@ -38,6 +39,10 @@ class ReviewItemOut(BaseModel):
     verification_notes: str | None
     photo_url: str | None
     thumb_url: str | None
+
+
+class ReviewDetailOut(ReviewItemOut):
+    rules: RulesOut
 
 
 class ReviewQueueOut(BaseModel):
@@ -73,6 +78,16 @@ def items_out(
     ]
 
 
+def rules_out(rules: Rules) -> RulesOut:
+    return RulesOut(
+        regular=rules.regular,
+        special=rules.special,
+        false_call=rules.false_call,
+        categories=list(rules.categories),
+        bonuses=dict(rules.bonuses),
+    )
+
+
 def snapshot(decision: Decision, flagged: bool) -> dict[str, object]:
     return {
         "status": decision.status,
@@ -106,9 +121,10 @@ def get_queue(
 @router.get("/{sighting_id}")
 def get_item(
     sighting_id: UUID, _admin: Admin, review: Review, store: Store, cache: UrlCache, now: Now
-) -> ReviewItemOut:
-    (out,) = items_out((waiting_item(review, sighting_id),), store, cache, now)
-    return out
+) -> ReviewDetailOut:
+    item = waiting_item(review, sighting_id)
+    (out,) = items_out((item,), store, cache, now)
+    return ReviewDetailOut(**out.model_dump(), rules=rules_out(review.rules_for(item)))
 
 
 @router.post("/{sighting_id}", status_code=204)

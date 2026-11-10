@@ -124,11 +124,19 @@ def test_queue_falls_back_to_the_photo_when_there_is_no_thumb(admin: Harness):
     assert false_call["thumb_url"] == "https://signed.test/b/false.jpg?ttl=3600"
 
 
-def test_get_one_returns_the_item(admin: Harness):
+def test_get_one_returns_the_item_with_its_rules(admin: Harness):
     response = admin.client.get(f"/admin/review/{FALSE_CALL.id}")
 
     assert response.status_code == 200
-    assert response.json()["status"] == "false_call"
+    body = response.json()
+    assert body["status"] == "false_call"
+    assert body["rules"] == {
+        "regular": 1,
+        "special": 2,
+        "false_call": -1,
+        "categories": ["Alien Green", "Racing stripes"],
+        "bonuses": {},
+    }
 
 
 def test_get_one_that_is_not_waiting_is_404(admin: Harness):
