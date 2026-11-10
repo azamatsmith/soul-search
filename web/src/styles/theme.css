@@ -14,6 +14,9 @@
   --c-gold-soft: #e6d5ac;
   --c-on-dark: #fffcf5;
   --c-camera: #16110d;
+  --c-on-camera-soft: rgba(255, 252, 245, 0.12);
+  --c-on-camera-line: rgba(255, 252, 245, 0.4);
+  --c-on-camera-ring: rgba(255, 252, 245, 0.3);
 
   --f-display: 'Young Serif', Georgia, serif;
   --f-body: 'Figtree', system-ui, sans-serif;
@@ -50,6 +53,10 @@
   --camera-glyph-h: 48px;
   --camera-lens: 22px;
   --thumb: 64px;
+  --shutter: 96px;
+  --bracket: 40px;
+  --intro-icon: 120px;
+  --step-number: 40px;
   --t-score: 56px;
   --t-camera: 30px;
   --placeholder-line: 12px;

@@ -1,0 +1,66 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  min-height: 100%;
+  padding: var(--s-5) var(--s-5) var(--s-6);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--s-4);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--intro-icon);
+  height: var(--intro-icon);
+  border-radius: var(--r-pill);
+  background: var(--c-forest-tint);
+}
+
+.glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--camera-glyph-w);
+  height: var(--camera-glyph-h);
+  border: 5px solid var(--c-forest);
+  border-radius: var(--r-md);
+}
+
+.lens {
+  width: var(--camera-lens);
+  height: var(--camera-lens);
+  border: 5px solid var(--c-forest);
+  border-radius: var(--r-pill);
+}
+
+.title {
+  margin: 0;
+  color: var(--c-forest);
+  font: 400 var(--t-h1) / 1.1 var(--f-display);
+  text-wrap: balance;
+}
+
+.why,
+.next {
+  margin: 0;
+  font: 500 var(--t-body) / 1.45 var(--f-body);
+  text-wrap: pretty;
+}
+
+.why {
+  color: var(--c-ink-muted);
+}
+
+.next {
+  font-weight: 600;
+}
