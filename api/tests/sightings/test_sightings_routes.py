@@ -15,6 +15,7 @@ from app.me.players_repo import Player, get_players_repo
 from app.sightings.photo_store import StorageUnavailable, get_photo_store
 from app.sightings.repo import Leaderboard, LeaderboardEntry, Period, Sighting, get_sightings_repo
 from app.sightings.scoring import Rules
+from app.verification.runner import get_verification_runner
 from tests.fakes import (
     EMPTY_STANDING,
     FakeAttemptsRepo,
@@ -52,6 +53,7 @@ class Harness:
     def __init__(self, repo: FakeSightingsRepo) -> None:
         self.repo = repo
         self.store = FakePhotoStore()
+        self.verification_runs = 0
         app = create_app()
         app.dependency_overrides[get_current_user] = lambda: BOB
         app.dependency_overrides[get_attempts_repo] = lambda: FakeAttemptsRepo({BOB.email})
@@ -59,7 +61,11 @@ class Harness:
         app.dependency_overrides[get_sightings_repo] = lambda: repo
         app.dependency_overrides[get_photo_store] = lambda: self.store
         app.dependency_overrides[get_now] = lambda: NOW
+        app.dependency_overrides[get_verification_runner] = lambda: self.run_verification
         self.client = TestClient(app)
+
+    def run_verification(self) -> None:
+        self.verification_runs += 1
 
     def post(self, *, photo: bytes = JPEG, content_type: str = "image/jpeg", **fields: object):
         data: dict[str, object] = {
@@ -246,6 +252,37 @@ def test_post_same_id_again_returns_existing_without_reupload(harness: Harness):
     assert response.json()["sighting"]["points"] == 1
     assert harness.store.uploads == {}
     assert len(harness.repo.inserted) == 1
+
+
+def test_post_starts_verification_once_per_new_sighting(harness: Harness):
+    sighting_id = str(uuid4())
+
+    harness.post(id=sighting_id)
+    harness.post(id=sighting_id)
+
+    assert harness.verification_runs == 1
+
+
+def test_post_does_not_verify_when_the_upload_fails(harness: Harness):
+    harness.store.fail = StorageUnavailable("down")
+
+    harness.post()
+
+    assert harness.verification_runs == 0
+
+
+def test_post_response_never_includes_plate_or_admin_notes(harness: Harness):
+    sighting = harness.post().json()["sighting"]
+
+    assert set(sighting) == {
+        "id",
+        "taken_at",
+        "claim_type",
+        "categories",
+        "points",
+        "status",
+        "flagged",
+    }
 
 
 def test_post_with_another_players_id_is_rejected(harness: Harness):
