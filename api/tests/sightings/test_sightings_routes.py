@@ -209,10 +209,10 @@ def test_post_prefers_phone_location_over_exif(harness: Harness):
 
 
 def test_post_special_uses_bonus_points(harness: Harness):
-    response = harness.post(claim_type="special", categories=["Brown paint", "Alien Green"])
+    response = harness.post(claim_type="special", categories=["Brown paint"])
 
     assert response.json()["sighting"]["points"] == 3
-    assert harness.repo.inserted[0].categories == ("Brown paint", "Alien Green")
+    assert harness.repo.inserted[0].categories == ("Brown paint",)
 
 
 def test_post_during_challenge_tags_challenge():
@@ -325,8 +325,9 @@ def test_post_with_another_players_id_is_rejected(harness: Harness):
         {"claim_type": "special"},
         {"claim_type": "special", "categories": ["Purple"]},
         {"claim_type": "regular", "categories": ["Alien Green"]},
+        {"claim_type": "special", "categories": ["Alien Green", "Brown paint"]},
     ],
-    ids=["no-category", "unknown-category", "regular-with-category"],
+    ids=["no-category", "unknown-category", "regular-with-category", "several-categories"],
 )
 def test_post_invalid_claim_is_rejected(harness: Harness, fields: dict[str, object]):
     response = harness.post(**fields)
