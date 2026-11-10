@@ -30,11 +30,12 @@ With your Docker runtime running, `make db-start` starts the local Supabase stac
 
 ### Signing in locally
 
-The API needs two keys from the local stack. Run `npx supabase status` and copy them into `api/.env.local`:
+The API needs two keys from the local stack and a Claude API key for photo checks. Run `npx supabase status` and copy the first two into `api/.env.local`, then add your own Anthropic API key:
 
 ```sh
 SUPABASE_SECRET_KEY=<SECRET_KEY from supabase status>
 SUPABASE_JWT_SECRET=<JWT_SECRET from supabase status>
+ANTHROPIC_API_KEY=<your Anthropic API key>
 ```
 
 Sign in with a seeded email such as `bob@example.test`, then read the 6-digit code in the mail catcher at http://localhost:54324.
@@ -54,6 +55,7 @@ Sign in with a seeded email such as `bob@example.test`, then read the 6-digit co
 | `SUPABASE_SECRET_KEY` | api | `api/.env.local` | Set in the Render dashboard |
 | `SUPABASE_JWT_SECRET` | api | `api/.env.local` | Set in the Render dashboard, only if the project still uses the legacy JWT secret |
 | `DATABASE_URL` | api | local stack | Set in the Render dashboard, using the transaction pooler connection string |
+| `ANTHROPIC_API_KEY` | api | `api/.env.local` | Set in the Render dashboard |
 
 Staging and production values are configured on each host, never committed.
 

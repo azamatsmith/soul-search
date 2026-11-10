@@ -2,7 +2,7 @@
 
 Soul Search is an installable phone web app (PWA) for iPhone and Android backed by a FastAPI service and Supabase. The PWA talks to FastAPI for everything except keeping its session fresh, which supabase-js does directly with Supabase Auth. FastAPI is the only part that reads and writes data and talks to the Claude vision API.
 
-Sign-in, the database schema and both deploys are built; photo capture, verification, scoring and the weekly close-out are still planned. Each issue that lands updates this page.
+Sign-in, the database schema, both deploys, photo capture, scoring, the leaderboard and background photo verification are built; the weekly close-out is still planned. Each issue that lands updates this page.
 
 ## System
 
@@ -98,7 +98,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant api as FastAPI background task
+    participant api as FastAPI background worker
     participant storage as Supabase Storage
     participant claude as Claude vision API
     participant db as Postgres
@@ -114,7 +114,8 @@ sequenceDiagram
         api->>db: Mark as counted
     end
     api->>db: Save the short player note and the full reasoning
-    Note over api,claude: Retries if the API call fails
+    Note over api,claude: Runs right after each send and every minute. Failed checks retry with backoff (1 min up to 6 h); after 8 tries the photo is counted and flagged for an admin
+    Note over api,db: A readable license plate is saved for admins only
 ```
 
 ### Weekly close-out
