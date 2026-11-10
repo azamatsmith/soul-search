@@ -16,4 +16,4 @@ export const claimPoints = (
 export const sendLabel = (points: number | null) =>
   points === null
     ? 'Pick what makes it special'
-    : `Send · +${points} ${points === 1 ? 'point' : 'points'}`
+    : `Send for ${points} ${points === 1 ? 'point' : 'points'}`

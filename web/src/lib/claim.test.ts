@@ -34,7 +34,7 @@ describe('sendLabel', () => {
   })
 
   it('shows the points to be earned', () => {
-    expect(sendLabel(1)).toBe('Send · +1 point')
-    expect(sendLabel(3)).toBe('Send · +3 points')
+    expect(sendLabel(1)).toBe('Send for 1 point')
+    expect(sendLabel(3)).toBe('Send for 3 points')
   })
 })
