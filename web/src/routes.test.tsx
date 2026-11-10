@@ -10,6 +10,7 @@ vi.mock('./lib/api', () => ({
   getMe: vi.fn(),
   getPeriod: vi.fn(() => new Promise(() => {})),
   getStanding: vi.fn(() => new Promise(() => {})),
+  postSighting: vi.fn(),
 }))
 vi.mock('./lib/supabase', () => ({ supabase: { auth: {} } }))
 vi.mock('./lib/camera', () => ({

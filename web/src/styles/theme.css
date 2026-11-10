@@ -17,6 +17,8 @@
   --c-on-camera-soft: rgba(255, 252, 245, 0.12);
   --c-on-camera-line: rgba(255, 252, 245, 0.4);
   --c-on-camera-ring: rgba(255, 252, 245, 0.3);
+  --c-on-forest-soft: rgba(255, 252, 245, 0.1);
+  --c-gold-halo: rgba(201, 163, 90, 0.35);
   --c-alien-green: #9bc53d;
   --c-brown-paint: #6e4b30;
 
@@ -64,6 +66,10 @@
   --radio-dot: 12px;
   --chip-dot: 14px;
   --points-badge: 40px;
+  --sending-photo: 200px;
+  --progress: 14px;
+  --result-icon: 96px;
+  --t-result: 72px;
   --t-score: 56px;
   --t-camera: 30px;
   --placeholder-line: 12px;
