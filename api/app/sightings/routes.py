@@ -22,8 +22,14 @@ from app.clock import get_now
 from app.errors import ApiError
 from app.me.players_repo import PlayersRepo, get_players_repo
 from app.sightings.photo_meta import CleanPhoto, InvalidPhoto, clean_photo
-from app.sightings.photo_store import PhotoStore, StorageUnavailable, get_photo_store
+from app.sightings.photo_store import (
+    PhotoStore,
+    StorageUnavailable,
+    get_photo_store,
+    thumb_path,
+)
 from app.sightings.repo import (
+    LoggedSighting,
     NewSighting,
     Period,
     Sighting,
@@ -31,6 +37,7 @@ from app.sightings.repo import (
     get_sightings_repo,
 )
 from app.sightings.scoring import InvalidClaim, points_for
+from app.sightings.url_cache import SignedUrlCache, get_url_cache
 from app.verification.runner import get_verification_runner
 
 MAX_PHOTO_BYTES = 8 * 1024 * 1024
@@ -44,6 +51,7 @@ Repo = Annotated[SightingsRepo, Depends(get_sightings_repo)]
 Store = Annotated[PhotoStore, Depends(get_photo_store)]
 Players = Annotated[PlayersRepo, Depends(get_players_repo)]
 Now = Annotated[datetime, Depends(get_now)]
+UrlCache = Annotated[SignedUrlCache, Depends(get_url_cache)]
 Verify = Annotated[Callable[[], None], Depends(get_verification_runner)]
 
 
@@ -99,6 +107,27 @@ class LeaderboardOut(BaseModel):
     ends_at: datetime | None
     total_players: int
     rows: list[LeaderboardRowOut]
+
+
+class LoggedSightingOut(BaseModel):
+    id: UUID
+    player_id: UUID
+    display_name: str
+    is_me: bool
+    taken_at: datetime
+    claim_type: str
+    categories: list[str]
+    points: int
+    status: str
+    flagged: bool
+    check_note: str | None
+    thumb_url: str | None
+
+
+class SightingsLogOut(BaseModel):
+    starts_at: datetime
+    ends_at: datetime
+    sightings: list[LoggedSightingOut]
 
 
 class PostSightingOut(BaseModel):
@@ -189,6 +218,59 @@ def get_leaderboard(
     )
 
 
+@router.get("/sightings")
+def get_sightings(
+    user: User, repo: Repo, store: Store, cache: UrlCache, now: Now, mine: bool = False
+) -> SightingsLogOut:
+    week = repo.week_at(now)
+    log = repo.week_log(week, user.id if mine else None)
+    urls = _cached_photo_urls(store, cache, [s.photo_path for s in log], now)
+    return SightingsLogOut(
+        starts_at=week.starts_at,
+        ends_at=week.ends_at,
+        sightings=[_logged_out(s, user.id, urls.get(s.photo_path)) for s in log],
+    )
+
+
+def _cached_photo_urls(
+    store: PhotoStore, cache: SignedUrlCache, photo_paths: list[str], now: datetime
+) -> dict[str, str | None]:
+    urls: dict[str, str | None] = {p: cache.get(p, now) for p in photo_paths}
+    fresh = _photo_urls(store, [p for p, url in urls.items() if url is None])
+    expires_at = now + timedelta(seconds=SIGNED_URL_SECONDS)
+    for path, url in fresh.items():
+        if url:
+            cache.put(path, url, expires_at, now)
+    return urls | {p: url for p, url in fresh.items() if url}
+
+
+def _photo_urls(store: PhotoStore, photo_paths: list[str]) -> dict[str, str | None]:
+    try:
+        thumbs = store.signed_urls([thumb_path(p) for p in photo_paths], SIGNED_URL_SECONDS)
+        urls = {p: thumbs.get(thumb_path(p)) for p in photo_paths}
+        missing = [p for p, url in urls.items() if url is None]
+        return urls | store.signed_urls(missing, SIGNED_URL_SECONDS)
+    except StorageUnavailable:
+        return {}
+
+
+def _logged_out(sighting: LoggedSighting, me: UUID, thumb_url: str | None) -> LoggedSightingOut:
+    return LoggedSightingOut(
+        id=sighting.id,
+        player_id=sighting.player_id,
+        display_name=sighting.display_name,
+        is_me=sighting.player_id == me,
+        taken_at=sighting.taken_at,
+        claim_type=sighting.claim_type,
+        categories=list(sighting.categories),
+        points=sighting.points,
+        status=sighting.status,
+        flagged=sighting.flagged,
+        check_note=sighting.check_note,
+        thumb_url=thumb_url,
+    )
+
+
 def _read_photo(photo: UploadFile) -> CleanPhoto:
     data = photo.file.read(MAX_PHOTO_BYTES + 1)
     if len(data) > MAX_PHOTO_BYTES:
@@ -262,6 +344,7 @@ def post_sighting(
     path = f"{user.id}/{sighting_id}.jpg"
     try:
         store.upload(path, cleaned.data)
+        store.upload(thumb_path(path), cleaned.thumbnail)
     except StorageUnavailable as error:
         raise ApiError(502, "storage_unavailable") from error
 

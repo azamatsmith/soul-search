@@ -54,6 +54,21 @@ class Sighting:
 
 
 @dataclass(frozen=True)
+class LoggedSighting:
+    id: UUID
+    player_id: UUID
+    display_name: str
+    photo_path: str
+    taken_at: datetime
+    claim_type: str
+    categories: tuple[str, ...]
+    points: int
+    status: str
+    flagged: bool
+    check_note: str | None
+
+
+@dataclass(frozen=True)
 class Standing:
     points: int
     count: int
@@ -91,6 +106,8 @@ class SightingsRepo(Protocol):
     def standing(self, player_id: UUID, period: Period) -> Standing: ...
 
     def leaderboard(self, week: Period | None) -> Leaderboard: ...
+
+    def week_log(self, week: Period, player_id: UUID | None) -> tuple[LoggedSighting, ...]: ...
 
 
 class PgSightingsRepo:
@@ -244,6 +261,36 @@ class PgSightingsRepo:
         return Leaderboard(
             rows=tuple(LeaderboardEntry(*row) for row in rows),
             total_players=total[0],
+        )
+
+    def week_log(self, week: Period, player_id: UUID | None) -> tuple[LoggedSighting, ...]:
+        rows = self._conn.execute(
+            """
+            select s.id, s.player_id, p.display_name, s.photo_path, s.taken_at, s.claim_type,
+              s.categories, s.points, s.status, s.flagged, s.check_note
+            from public.sightings s
+            join public.players p on p.id = s.player_id
+            where s.week_id = %(week)s
+              and (%(player)s::uuid is null or s.player_id = %(player)s::uuid)
+            order by s.taken_at desc, s.id
+            """,
+            {"week": week.id, "player": player_id},
+        ).fetchall()
+        return tuple(
+            LoggedSighting(
+                id=row[0],
+                player_id=row[1],
+                display_name=row[2],
+                photo_path=row[3],
+                taken_at=row[4],
+                claim_type=row[5],
+                categories=tuple(row[6]),
+                points=row[7],
+                status=row[8],
+                flagged=row[9],
+                check_note=row[10],
+            )
+            for row in rows
         )
 
     def _settings(self) -> Rules:

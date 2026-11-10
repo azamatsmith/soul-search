@@ -1,0 +1,63 @@
+.list,
+.day {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.list {
+  gap: var(--s-4);
+}
+
+.header {
+  width: 40%;
+  height: var(--t-label);
+  margin: var(--s-2) var(--s-1) 0;
+  border-radius: var(--r-sm);
+}
+
+.card {
+  display: flex;
+  gap: var(--s-3);
+  align-items: center;
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.photo {
+  flex: none;
+  width: var(--thumb);
+  height: var(--thumb);
+  border-radius: var(--r-sm);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.name,
+.claim,
+.chip {
+  border-radius: var(--r-sm);
+}
+
+.name {
+  width: 50%;
+  height: var(--t-small);
+}
+
+.claim {
+  width: 70%;
+  height: var(--t-label);
+}
+
+.chip {
+  width: 35%;
+  height: calc(var(--t-label) * 1.6);
+  border-radius: var(--r-pill);
+}

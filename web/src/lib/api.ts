@@ -228,6 +228,32 @@ export interface Leaderboard {
 export const getLeaderboard = (scope: LeaderboardScope) =>
   request<Leaderboard>(`/leaderboard?scope=${scope}`, 'GET', undefined, true)
 
+export type SightingStatus = 'counted' | 'false_call' | 'waiting_review'
+
+export interface LoggedSighting {
+  categories: string[]
+  check_note: string | null
+  claim_type: 'regular' | 'special'
+  display_name: string
+  flagged: boolean
+  id: string
+  is_me: boolean
+  player_id: string
+  points: number
+  status: SightingStatus
+  taken_at: string
+  thumb_url: string | null
+}
+
+export interface SightingsLog {
+  ends_at: string
+  sightings: LoggedSighting[]
+  starts_at: string
+}
+
+export const getSightings = (mine: boolean) =>
+  request<SightingsLog>(`/sightings?mine=${mine}`, 'GET', undefined, true)
+
 export interface SightingOut {
   id: string
   taken_at: string

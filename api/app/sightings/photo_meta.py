@@ -5,11 +5,14 @@ from PIL import ExifTags, Image, ImageOps, UnidentifiedImageError
 
 MAX_PIXELS = 50_000_000
 JPEG_QUALITY = 90
+THUMB_SIZE = 480
+THUMB_QUALITY = 80
 
 
 @dataclass(frozen=True)
 class CleanPhoto:
     data: bytes
+    thumbnail: bytes
     latitude: float | None
     longitude: float | None
 
@@ -30,6 +33,10 @@ def clean_photo(data: bytes, max_pixels: int = MAX_PIXELS) -> CleanPhoto:
         upright = ImageOps.exif_transpose(image).convert("RGB")
         out = io.BytesIO()
         upright.save(out, "JPEG", quality=JPEG_QUALITY)
+        thumb = upright.copy()
+        thumb.thumbnail((THUMB_SIZE, THUMB_SIZE))
+        thumb_out = io.BytesIO()
+        thumb.save(thumb_out, "JPEG", quality=THUMB_QUALITY)
     except (
         Image.DecompressionBombError,
         UnidentifiedImageError,
@@ -38,7 +45,9 @@ def clean_photo(data: bytes, max_pixels: int = MAX_PIXELS) -> CleanPhoto:
         ValueError,
     ) as error:
         raise InvalidPhoto from error
-    return CleanPhoto(data=out.getvalue(), latitude=latitude, longitude=longitude)
+    return CleanPhoto(
+        data=out.getvalue(), thumbnail=thumb_out.getvalue(), latitude=latitude, longitude=longitude
+    )
 
 
 def _location(gps: dict[int, object]) -> tuple[float | None, float | None]:

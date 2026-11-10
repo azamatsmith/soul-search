@@ -4,7 +4,7 @@ from collections.abc import Callable
 import httpx
 import pytest
 
-from app.sightings.photo_store import PhotoStore, StorageUnavailable
+from app.sightings.photo_store import PhotoStore, StorageUnavailable, thumb_path
 
 
 def make_store(handler: Callable[[httpx.Request], httpx.Response]) -> PhotoStore:
@@ -75,3 +75,50 @@ def test_download_returns_the_photo_bytes():
 def test_download_error_raises_unavailable():
     with pytest.raises(StorageUnavailable):
         make_store(lambda _r: httpx.Response(404)).download("p/s.jpg")
+
+
+def test_thumb_path_sits_next_to_the_photo():
+    assert thumb_path("p1/abc.jpg") == "p1/abc.thumb.jpg"
+
+
+def test_signed_urls_signs_many_paths_in_one_call():
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(
+            200,
+            json=[
+                {"path": "a.jpg", "signedURL": "/object/sign/photos/a.jpg?token=1", "error": None},
+                {
+                    "path": "b.jpg",
+                    "signedURL": None,
+                    "error": "Either the bucket or object doesn't exist",
+                },
+            ],
+        )
+
+    urls = make_store(handler).signed_urls(["a.jpg", "b.jpg"], 3600)
+
+    (request,) = requests
+    assert request.method == "POST"
+    assert str(request.url) == "http://supabase.test/storage/v1/object/sign/photos"
+    assert json.loads(request.content) == {"expiresIn": 3600, "paths": ["a.jpg", "b.jpg"]}
+    assert urls == {
+        "a.jpg": "http://supabase.test/storage/v1/object/sign/photos/a.jpg?token=1",
+        "b.jpg": None,
+    }
+
+
+def test_signed_urls_with_no_paths_makes_no_request():
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise AssertionError("no request expected")
+
+    assert make_store(handler).signed_urls([], 3600) == {}
+
+
+def test_signed_urls_raises_when_storage_fails():
+    store = make_store(lambda request: httpx.Response(500))
+
+    with pytest.raises(StorageUnavailable):
+        store.signed_urls(["a.jpg"], 3600)

@@ -104,6 +104,10 @@ export const singleFlight = <T>(task: (key: string) => Promise<T>) => {
   }
 }
 
+export const UPLOADS_FLUSHED = 'soul-search:uploads-flushed'
+
 export const flushUploads = singleFlight((playerId) =>
-  flushQueue(deviceQueue, postSighting, playerId),
+  flushQueue(deviceQueue, postSighting, playerId).finally(() => {
+    window.dispatchEvent(new Event(UPLOADS_FLUSHED))
+  }),
 )

@@ -13,8 +13,16 @@ from app.clock import get_now
 from app.main import create_app
 from app.me.players_repo import Player, get_players_repo
 from app.sightings.photo_store import StorageUnavailable, get_photo_store
-from app.sightings.repo import Leaderboard, LeaderboardEntry, Period, Sighting, get_sightings_repo
+from app.sightings.repo import (
+    Leaderboard,
+    LeaderboardEntry,
+    LoggedSighting,
+    Period,
+    Sighting,
+    get_sightings_repo,
+)
 from app.sightings.scoring import Rules
+from app.sightings.url_cache import SignedUrlCache, get_url_cache
 from app.verification.runner import get_verification_runner
 from tests.fakes import (
     EMPTY_STANDING,
@@ -53,8 +61,11 @@ class Harness:
     def __init__(self, repo: FakeSightingsRepo) -> None:
         self.repo = repo
         self.store = FakePhotoStore()
+        self.url_cache = SignedUrlCache()
         self.verification_runs = 0
         app = create_app()
+        self.app = app
+        app.dependency_overrides[get_url_cache] = lambda: self.url_cache
         app.dependency_overrides[get_current_user] = lambda: BOB
         app.dependency_overrides[get_attempts_repo] = lambda: FakeAttemptsRepo({BOB.email})
         app.dependency_overrides[get_players_repo] = lambda: FakePlayersRepo([BOB_PLAYER])
@@ -158,6 +169,7 @@ def test_endpoints_require_sign_in():
     assert client.get("/period").status_code == 401
     assert client.get("/me/standing").status_code == 401
     assert client.get("/leaderboard?scope=week").status_code == 401
+    assert client.get("/sightings").status_code == 401
 
 
 def test_post_regular_sighting_uploads_and_scores(harness: Harness):
@@ -172,7 +184,7 @@ def test_post_regular_sighting_uploads_and_scores(harness: Harness):
     assert body["sighting"]["status"] == "waiting_review"
     assert body["period_points"] == 1
     path = f"{BOB_ID}/{sighting_id}.jpg"
-    assert list(harness.store.uploads) == [path]
+    assert list(harness.store.uploads) == [path, f"{BOB_ID}/{sighting_id}.thumb.jpg"]
     (new,) = harness.repo.inserted
     assert (new.photo_path, new.week_id, new.challenge_id) == (path, WEEK.id, None)
     assert (new.latitude, new.longitude) == (47.6, -122.3)
@@ -184,8 +196,9 @@ def test_post_strips_exif_and_keeps_its_location(harness: Harness):
     (new,) = harness.repo.inserted
     assert new.latitude == pytest.approx(47.6)
     assert new.longitude == pytest.approx(-122.33)
-    (stored,) = harness.store.uploads.values()
-    assert dict(Image.open(io.BytesIO(stored)).getexif()) == {}
+    assert len(harness.store.uploads) == 2
+    for stored in harness.store.uploads.values():
+        assert dict(Image.open(io.BytesIO(stored)).getexif()) == {}
 
 
 def test_post_prefers_phone_location_over_exif(harness: Harness):
@@ -463,3 +476,110 @@ def test_leaderboard_rejects_unknown_scope(harness: Harness, query: str):
 
     assert response.status_code == 422
     assert response.json() == {"error": "invalid_request"}
+
+
+def logged(player_id: UUID, name: str, **changes: object) -> LoggedSighting:
+    sighting_id = uuid4()
+    base = LoggedSighting(
+        id=sighting_id,
+        player_id=player_id,
+        display_name=name,
+        photo_path=f"{player_id}/{sighting_id}.jpg",
+        taken_at=NOW - timedelta(hours=1),
+        claim_type="regular",
+        categories=(),
+        points=1,
+        status="counted",
+        flagged=False,
+        check_note=None,
+    )
+    return replace(base, **changes)
+
+
+def store_photo(harness: Harness, sighting: LoggedSighting, *, thumb: bool = True) -> None:
+    harness.store.uploads[sighting.photo_path] = JPEG
+    if thumb:
+        harness.store.uploads[sighting.photo_path.replace(".jpg", ".thumb.jpg")] = JPEG
+
+
+def test_sightings_lists_the_week_with_thumbnails(harness: Harness):
+    mine = logged(BOB_ID, "Bob")
+    theirs = logged(ALICE_ID, "Alice", status="false_call", points=-1, check_note="not a Soul")
+    harness.repo.logs = [mine, theirs]
+    store_photo(harness, mine)
+    store_photo(harness, theirs)
+
+    body = harness.client.get("/sightings").json()
+
+    assert body["starts_at"] == "2026-11-09T08:00:00Z"
+    assert body["ends_at"] == "2026-11-16T08:00:00Z"
+    first, second = body["sightings"]
+    assert first["id"] == str(mine.id)
+    assert first["is_me"] is True
+    assert first["display_name"] == "Bob"
+    assert first["thumb_url"] == f"https://signed.test/{BOB_ID}/{mine.id}.thumb.jpg?ttl=3600"
+    assert second["is_me"] is False
+    assert second["status"] == "false_call"
+    assert second["check_note"] == "not a Soul"
+
+
+def test_sightings_mine_filters_to_the_caller(harness: Harness):
+    harness.repo.logs = [logged(BOB_ID, "Bob"), logged(ALICE_ID, "Alice")]
+
+    body = harness.client.get("/sightings?mine=true").json()
+
+    assert [s["player_id"] for s in body["sightings"]] == [str(BOB_ID)]
+
+
+def test_sightings_falls_back_to_full_photo_without_thumbnail(harness: Harness):
+    old = logged(BOB_ID, "Bob")
+    harness.repo.logs = [old]
+    store_photo(harness, old, thumb=False)
+
+    (item,) = harness.client.get("/sightings").json()["sightings"]
+
+    assert item["thumb_url"] == f"https://signed.test/{BOB_ID}/{old.id}.jpg?ttl=3600"
+
+
+def test_sightings_still_load_when_storage_is_down(harness: Harness):
+    harness.repo.logs = [logged(BOB_ID, "Bob")]
+    harness.store.fail = StorageUnavailable("down")
+
+    response = harness.client.get("/sightings")
+
+    assert response.status_code == 200
+    assert [s["thumb_url"] for s in response.json()["sightings"]] == [None]
+
+
+def test_sightings_never_include_admin_notes(harness: Harness):
+    harness.repo.logs = [logged(BOB_ID, "Bob")]
+
+    (item,) = harness.client.get("/sightings").json()["sightings"]
+
+    assert "verification_notes" not in item
+    assert "photo_path" not in item
+
+
+def test_sightings_reuse_signed_urls_between_refreshes(harness: Harness):
+    sighting = logged(BOB_ID, "Bob")
+    harness.repo.logs = [sighting]
+    store_photo(harness, sighting)
+    first = harness.client.get("/sightings").json()["sightings"][0]["thumb_url"]
+
+    harness.store.fail = StorageUnavailable("down")
+    again = harness.client.get("/sightings").json()["sightings"][0]["thumb_url"]
+
+    assert again == first
+
+
+def test_sightings_re_sign_urls_close_to_expiry(harness: Harness):
+    sighting = logged(BOB_ID, "Bob")
+    harness.repo.logs = [sighting]
+    store_photo(harness, sighting)
+    harness.client.get("/sightings")
+
+    harness.store.fail = StorageUnavailable("down")
+    harness.app.dependency_overrides[get_now] = lambda: NOW + timedelta(minutes=51)
+    later = harness.client.get("/sightings").json()["sightings"][0]["thumb_url"]
+
+    assert later is None
