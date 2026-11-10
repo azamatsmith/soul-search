@@ -1,0 +1,58 @@
+.row {
+  display: flex;
+  gap: var(--s-3);
+  align-items: center;
+  min-height: var(--tap-min);
+  padding: var(--s-2) var(--s-3);
+  border: 2px solid transparent;
+  border-radius: var(--r-md);
+  list-style: none;
+}
+
+.default {
+  background: var(--c-surface);
+}
+
+.first {
+  border-color: var(--c-gold);
+  background: var(--c-gold-soft);
+}
+
+.me {
+  border-color: var(--c-forest);
+  background: var(--c-forest-tint);
+}
+
+.rank {
+  flex: none;
+  width: var(--rank-w);
+  color: var(--c-ink-muted);
+  font: 400 var(--t-h3) / 1 var(--f-display);
+  text-align: center;
+}
+
+.who {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  color: var(--c-ink);
+  font: 700 var(--t-body) / 1.25 var(--f-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.souls {
+  color: var(--c-ink-muted);
+  font: 500 var(--t-label) / 1.3 var(--f-body);
+}
+
+.points {
+  flex: none;
+  color: var(--c-forest);
+  font: 400 var(--t-h2) / 1 var(--f-display);
+}

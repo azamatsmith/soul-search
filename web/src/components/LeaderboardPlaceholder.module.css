@@ -1,0 +1,54 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: flex;
+  gap: var(--s-3);
+  align-items: center;
+  min-height: var(--tap-min);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  list-style: none;
+}
+
+.rank {
+  flex: none;
+  width: var(--rank-w);
+  height: var(--t-h3);
+}
+
+.avatar {
+  flex: none;
+  width: var(--avatar-md);
+  height: var(--avatar-md);
+  border-radius: var(--r-pill);
+}
+
+.who {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
+.name {
+  width: 60%;
+  height: var(--placeholder-line);
+}
+
+.souls {
+  width: 35%;
+  height: var(--placeholder-line);
+}
+
+.points {
+  flex: none;
+  width: calc(var(--t-h2) * 1.2);
+  height: var(--t-h2);
+}
