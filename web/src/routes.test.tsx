@@ -6,7 +6,11 @@ import { getMe } from './lib/api'
 import { routes } from './routes'
 
 vi.mock('./hooks/useSession', () => ({ useSession: vi.fn() }))
-vi.mock('./lib/api', () => ({ getMe: vi.fn() }))
+vi.mock('./lib/api', () => ({
+  getMe: vi.fn(),
+  getPeriod: vi.fn(() => new Promise(() => {})),
+  getStanding: vi.fn(() => new Promise(() => {})),
+}))
 vi.mock('./lib/supabase', () => ({ supabase: { auth: {} } }))
 
 const renderAt = (path: string) =>

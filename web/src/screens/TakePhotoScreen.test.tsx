@@ -1,8 +1,17 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { createMemoryRouter, Outlet, RouterProvider } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Me } from '../lib/api'
+import {
+  getPeriod,
+  getStanding,
+  type ApiResult,
+  type Me,
+  type Period,
+  type Standing,
+} from '../lib/api'
 import { TakePhotoScreen } from './TakePhotoScreen'
+
+vi.mock('../lib/api', () => ({ getPeriod: vi.fn(), getStanding: vi.fn() }))
 
 const ME: Me = {
   id: '1',
@@ -13,7 +22,46 @@ const ME: Me = {
   flagged_count: null,
 }
 
-const renderTakePhoto = () => {
+const WEEK: Period = {
+  kind: 'week',
+  id: 'w1',
+  name: null,
+  starts_at: '2026-11-09T08:00:00Z',
+  ends_at: '2026-11-16T08:00:00Z',
+  rules: {
+    regular: 1,
+    special: 2,
+    false_call: -1,
+    categories: ['Alien Green'],
+    bonuses: {},
+  },
+}
+
+const STANDING: Standing = {
+  points: 9,
+  count: 6,
+  rank: 4,
+  total_players: 23,
+  next_rank: 3,
+  points_behind_next: 2,
+  last_photo_url: 'https://signed.test/last.jpg',
+}
+
+const EMPTY: Standing = {
+  ...STANDING,
+  points: 0,
+  count: 0,
+  rank: null,
+  next_rank: null,
+  points_behind_next: null,
+  last_photo_url: null,
+}
+
+const ok = <T,>(data: T): Promise<ApiResult<T>> =>
+  Promise.resolve({ ok: true, data })
+const never = <T,>() => new Promise<ApiResult<T>>(() => {})
+
+const renderHome = () => {
   const router = createMemoryRouter(
     [
       {
@@ -26,82 +74,101 @@ const renderTakePhoto = () => {
   render(<RouterProvider router={router} />)
 }
 
-const stubFetch = (impl: () => Promise<unknown>) => {
-  const fetchMock = vi.fn(impl)
-  vi.stubGlobal('fetch', fetchMock)
-  return fetchMock
-}
-
 describe('TakePhotoScreen', () => {
   beforeEach(() => {
-    vi.stubEnv('VITE_API_URL', 'http://localhost:8000')
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date('2026-11-10T20:00:00Z'))
+    vi.mocked(getPeriod).mockReturnValue(ok(WEEK))
+    vi.mocked(getStanding).mockReturnValue(ok(STANDING))
   })
 
   afterEach(() => {
-    vi.unstubAllGlobals()
-    vi.unstubAllEnvs()
+    vi.useRealTimers()
   })
 
-  it('shows the screen title', () => {
-    stubFetch(() => new Promise(() => {}))
-    renderTakePhoto()
+  it('shows the week, time left, points and rank', async () => {
+    renderHome()
+
+    expect(await screen.findByText('Week of Nov 9-15')).toBeInTheDocument()
+    expect(screen.getByText('5 days left')).toBeInTheDocument()
+    expect(await screen.findByText('9')).toBeInTheDocument()
+    expect(screen.getByText('4th')).toBeInTheDocument()
+    expect(screen.getByText('of 23')).toBeInTheDocument()
+  })
+
+  it('summarizes the week with the last photo', async () => {
+    renderHome()
+
+    expect(await screen.findByText('6 Souls this week')).toBeInTheDocument()
+    expect(screen.getByText('2 pts behind 3rd place')).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { name: 'Take photo' }),
-    ).toBeInTheDocument()
+      screen.getByRole('img', { name: 'Your last photo' }),
+    ).toHaveAttribute('src', 'https://signed.test/last.jpg')
   })
 
   it('opens settings from the avatar', () => {
-    stubFetch(() => new Promise(() => {}))
-    renderTakePhoto()
-    const avatar = screen.getByRole('link', { name: 'Settings' })
+    renderHome()
+
+    const avatar = screen.getByRole('link', { name: 'Settings and profile' })
     expect(avatar).toHaveAttribute('href', '/settings')
     expect(avatar).toHaveTextContent('H')
   })
 
-  it('shows checking while the request is pending', () => {
-    stubFetch(() => new Promise(() => {}))
-    renderTakePhoto()
-    expect(screen.getByText('API: checking...')).toBeInTheDocument()
+  it('offers the camera while scores are still loading', () => {
+    vi.mocked(getPeriod).mockReturnValue(never())
+    vi.mocked(getStanding).mockReturnValue(never())
+    renderHome()
+
+    const camera = screen.getByRole('link', { name: 'Take photo of a Soul' })
+    expect(camera).toHaveAttribute('href', '/capture')
+    expect(screen.getByRole('banner')).toHaveAttribute('aria-busy', 'true')
+    expect(screen.queryByText('Your points')).not.toBeInTheDocument()
   })
 
-  it('shows ok when /health responds 200', async () => {
-    stubFetch(() => Promise.resolve({ ok: true, status: 200 }))
-    renderTakePhoto()
-    expect(await screen.findByText('API: ok')).toBeInTheDocument()
-  })
-
-  it('shows unreachable when fetch rejects', async () => {
-    stubFetch(() => Promise.reject(new Error('network down')))
-    renderTakePhoto()
-    expect(await screen.findByText('API: unreachable')).toBeInTheDocument()
-  })
-
-  it('shows unreachable on a non-200 response', async () => {
-    stubFetch(() => Promise.resolve({ ok: false, status: 500 }))
-    renderTakePhoto()
-    expect(await screen.findByText('API: unreachable')).toBeInTheDocument()
-  })
-
-  it('calls /health without a double slash', async () => {
-    vi.stubEnv('VITE_API_URL', 'http://localhost:8000/')
-    const fetchMock = stubFetch(() =>
-      Promise.resolve({ ok: true, status: 200 }),
+  it('shows the empty week with point values from the rules', async () => {
+    vi.mocked(getPeriod).mockReturnValue(
+      ok({ ...WEEK, rules: { ...WEEK.rules, regular: 2, special: 5 } }),
     )
-    renderTakePhoto()
-    await screen.findByText('API: ok')
-    expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:8000/health',
-      expect.anything(),
-    )
+    vi.mocked(getStanding).mockReturnValue(ok(EMPTY))
+    renderHome()
+
+    expect(
+      await screen.findByText('No Souls yet this week'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Your first one is out there. Regular Souls are +2, special ones +5.',
+      ),
+    ).toBeInTheDocument()
+    const rank = screen.getByLabelText('No rank yet')
+    expect(
+      within(rank.parentElement!).getByText('23 players'),
+    ).toBeInTheDocument()
   })
 
-  it('shows unreachable without calling fetch when VITE_API_URL is unset', () => {
-    vi.stubEnv('VITE_API_URL', '')
-    const fetchMock = stubFetch(() =>
-      Promise.resolve({ ok: true, status: 200 }),
+  it('names a running challenge', async () => {
+    vi.mocked(getPeriod).mockReturnValue(
+      ok({ ...WEEK, kind: 'challenge', name: 'Brown Week' }),
     )
-    renderTakePhoto()
-    expect(screen.getByText('API: unreachable')).toBeInTheDocument()
-    expect(fetchMock).not.toHaveBeenCalled()
+    renderHome()
+
+    expect(await screen.findByText('Brown Week')).toBeInTheDocument()
+    expect(await screen.findByText('6 Souls in Brown Week')).toBeInTheDocument()
+  })
+
+  it('lets the player try again when scores fail to load', async () => {
+    vi.mocked(getStanding)
+      .mockReturnValueOnce(
+        Promise.resolve({ ok: false, status: 0, error: 'network' }),
+      )
+      .mockReturnValue(ok(STANDING))
+    renderHome()
+
+    expect(
+      await screen.findByText("Couldn't load your points"),
+    ).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+
+    expect(await screen.findByText('6 Souls this week')).toBeInTheDocument()
   })
 })
