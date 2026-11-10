@@ -66,3 +66,17 @@ def test_png_is_invalid():
 def test_oversized_dimensions_are_invalid():
     with pytest.raises(InvalidPhoto):
         clean_photo(jpeg(size=(40, 20)), max_pixels=799)
+
+
+def test_clean_photo_makes_a_small_upright_thumbnail():
+    cleaned = clean_photo(jpeg(size=(4000, 3000), orientation=6))
+
+    thumb = Image.open(io.BytesIO(cleaned.thumbnail))
+    assert thumb.format == "JPEG"
+    assert thumb.size == (360, 480)
+
+
+def test_clean_photo_does_not_upscale_small_thumbnails():
+    cleaned = clean_photo(jpeg(size=(300, 200)))
+
+    assert Image.open(io.BytesIO(cleaned.thumbnail)).size == (300, 200)
