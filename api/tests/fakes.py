@@ -2,7 +2,7 @@ from dataclasses import replace
 from datetime import datetime
 from uuid import UUID
 
-from app.admin.audit_repo import AuditEntry
+from app.admin.audit_repo import AuditEntry, HistoryEntry
 from app.admin.emails_repo import AllowedEmail
 from app.admin.review import Decision, ReviewItem
 from app.admin.rules_repo import PointRules
@@ -265,11 +265,17 @@ class FakeAllowedEmailsRepo:
 
 
 class FakeAuditRepo:
-    def __init__(self) -> None:
+    def __init__(self, history: tuple[HistoryEntry, ...] = ()) -> None:
         self.entries: list[AuditEntry] = []
+        self.history_entries = history
+        self.scores_only_requests: list[bool] = []
 
     def record(self, entry: AuditEntry) -> None:
         self.entries.append(entry)
+
+    def history(self, scores_only: bool) -> tuple[HistoryEntry, ...]:
+        self.scores_only_requests.append(scores_only)
+        return tuple(e for e in self.history_entries if not scores_only or e.type == "score")
 
 
 class FakePointRulesRepo:
