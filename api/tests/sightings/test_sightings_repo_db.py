@@ -360,3 +360,49 @@ def test_leaderboard_rank_matches_standing(db_conn: psycopg.Connection):
 
     for row in repo.leaderboard(week).rows:
         assert repo.standing(row.player_id, week).rank == row.rank
+
+
+def test_week_log_lists_only_this_weeks_sightings_newest_first(db_conn: psycopg.Connection):
+    repo = PgSightingsRepo(db_conn)
+    week = repo.week_at(AT)
+    last_week = repo.week_at(AT - timedelta(days=7))
+    challenge = add_challenge(db_conn, {"regular": 1, "special": 2, "false_call": -1})
+    older = add_sighting(db_conn, BOB, week.id, taken_at=AT - timedelta(hours=2))
+    newer = add_sighting(db_conn, ALICE, week.id)
+    add_sighting(db_conn, BOB, last_week.id, taken_at=AT - timedelta(days=7))
+    add_sighting(db_conn, BOB, challenge, kind="challenge")
+
+    log = repo.week_log(week, None)
+
+    assert [s.photo_path for s in log] == [newer, older]
+
+
+def test_week_log_filters_to_one_player(db_conn: psycopg.Connection):
+    repo = PgSightingsRepo(db_conn)
+    week = repo.week_at(AT)
+    mine = add_sighting(db_conn, BOB, week.id)
+    add_sighting(db_conn, ALICE, week.id)
+
+    log = repo.week_log(week, BOB)
+
+    assert [s.photo_path for s in log] == [mine]
+
+
+def test_week_log_includes_display_name_and_check_note(db_conn: psycopg.Connection):
+    repo = PgSightingsRepo(db_conn)
+    week = repo.week_at(AT)
+    path = add_sighting(db_conn, BOB, week.id)
+    db_conn.execute(
+        """
+        update public.sightings
+        set check_note = 'not a Kia Soul', verification_notes = 'admin only reasoning'
+        where photo_path = %s
+        """,
+        (path,),
+    )
+
+    (logged,) = repo.week_log(week, None)
+
+    assert logged.display_name == "Bob"
+    assert logged.check_note == "not a Kia Soul"
+    assert not hasattr(logged, "verification_notes")

@@ -5,7 +5,14 @@ from uuid import UUID
 from app.auth.lockout import AttemptState
 from app.auth.supabase_auth import AuthSession
 from app.me.players_repo import NameTaken, Player
-from app.sightings.repo import Leaderboard, NewSighting, Period, Sighting, Standing
+from app.sightings.repo import (
+    Leaderboard,
+    LoggedSighting,
+    NewSighting,
+    Period,
+    Sighting,
+    Standing,
+)
 from app.verification.outcome import CheckResult, Claim, Outcome
 from app.verification.repo import PendingSighting
 
@@ -101,6 +108,7 @@ class FakeSightingsRepo:
         self.period_requests: list[datetime] = []
         self.week: Period | None = None
         self.leaderboards: dict[UUID | None, Leaderboard] = {}
+        self.logs: list[LoggedSighting] = []
 
     def period_at(self, at: datetime) -> Period:
         self.period_requests.append(at)
@@ -114,6 +122,9 @@ class FakeSightingsRepo:
     def leaderboard(self, week: Period | None) -> Leaderboard:
         key = week.id if week else None
         return self.leaderboards.get(key, Leaderboard(rows=(), total_players=3))
+
+    def week_log(self, week: Period, player_id: UUID | None) -> tuple[LoggedSighting, ...]:
+        return tuple(s for s in self.logs if player_id is None or s.player_id == player_id)
 
     def find(self, sighting_id: UUID) -> Sighting | None:
         return self.sightings.get(sighting_id)
