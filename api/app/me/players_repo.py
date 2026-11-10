@@ -1,11 +1,10 @@
 from dataclasses import dataclass
-from typing import Annotated, Protocol
+from typing import Protocol
 from uuid import UUID
 
 import psycopg
-from fastapi import Depends
 
-from app.db import get_conn
+from app.db import Conn
 
 NAME_UNIQUE_CONSTRAINT = "players_display_name_lower_key"
 PLAYER_COLUMNS = "id, display_name, is_admin, text_size"
@@ -75,5 +74,5 @@ class PgPlayersRepo:
         return row[0]
 
 
-def get_players_repo(conn: Annotated[psycopg.Connection, Depends(get_conn)]) -> PlayersRepo:
+def get_players_repo(conn: Conn) -> PlayersRepo:
     return PgPlayersRepo(conn)

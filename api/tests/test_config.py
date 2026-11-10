@@ -20,6 +20,14 @@ def test_accepts_production_settings():
     assert check_settings().supabase_url == "https://jlofvstyscyikdehdsck.supabase.co"
 
 
+@pytest.mark.usefixtures("production_env")
+def test_requires_an_anthropic_api_key(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY")
+
+    with pytest.raises(RuntimeError, match="ANTHROPIC_API_KEY"):
+        check_settings()
+
+
 @pytest.mark.parametrize(
     "url", ["http://127.0.0.1:54321", "http://localhost:54321", "https://ref.supabase.co/"]
 )

@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -9,12 +10,15 @@ from app.config import check_settings, get_cors_origin_regex, get_cors_origins
 from app.errors import UnhandledErrorMiddleware, register_error_handler
 from app.me.routes import router as me_router
 from app.sightings.routes import router as sightings_router
+from app.verification.runner import run_verification, sweep_forever
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     check_settings()
+    sweeper = asyncio.create_task(sweep_forever(run_verification))
     yield
+    sweeper.cancel()
 
 
 def create_app() -> FastAPI:

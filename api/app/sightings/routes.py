@@ -1,8 +1,19 @@
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import Annotated, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, Query, Response, UploadFile, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    Query,
+    Response,
+    UploadFile,
+    status,
+)
 from pydantic import BaseModel
 
 from app.auth.allowed_user import get_allowed_user
@@ -20,6 +31,7 @@ from app.sightings.repo import (
     get_sightings_repo,
 )
 from app.sightings.scoring import InvalidClaim, points_for
+from app.verification.runner import get_verification_runner
 
 MAX_PHOTO_BYTES = 8 * 1024 * 1024
 MAX_CLOCK_SKEW = timedelta(minutes=5)
@@ -32,6 +44,7 @@ Repo = Annotated[SightingsRepo, Depends(get_sightings_repo)]
 Store = Annotated[PhotoStore, Depends(get_photo_store)]
 Players = Annotated[PlayersRepo, Depends(get_players_repo)]
 Now = Annotated[datetime, Depends(get_now)]
+Verify = Annotated[Callable[[], None], Depends(get_verification_runner)]
 
 
 class RulesOut(BaseModel):
@@ -212,6 +225,8 @@ def post_sighting(
     store: Store,
     now: Now,
     response: Response,
+    background: BackgroundTasks,
+    verify: Verify,
     sighting_id: Annotated[UUID, Form(alias="id")],
     photo: Annotated[UploadFile, File()],
     claim_type: Annotated[str, Form()],
@@ -267,4 +282,5 @@ def post_sighting(
     )
     if sighting.player_id != user.id:
         raise ApiError(409, "conflict")
+    background.add_task(verify)
     return _post_result(repo, sighting, period)

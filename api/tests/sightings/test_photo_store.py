@@ -60,3 +60,18 @@ def test_network_error_raises_unavailable():
 def test_upload_error_raises_unavailable():
     with pytest.raises(StorageUnavailable):
         make_store(lambda _r: httpx.Response(500)).upload("p/s.jpg", b"x")
+
+
+def test_download_returns_the_photo_bytes():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.method == "GET"
+        assert str(request.url) == "http://supabase.test/storage/v1/object/photos/p/s.jpg"
+        assert request.headers["authorization"] == "Bearer secret"
+        return httpx.Response(200, content=b"\xff\xd8jpeg")
+
+    assert make_store(handler).download("p/s.jpg") == b"\xff\xd8jpeg"
+
+
+def test_download_error_raises_unavailable():
+    with pytest.raises(StorageUnavailable):
+        make_store(lambda _r: httpx.Response(404)).download("p/s.jpg")

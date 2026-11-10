@@ -6,6 +6,8 @@ from app.auth.lockout import AttemptState
 from app.auth.supabase_auth import AuthSession
 from app.me.players_repo import NameTaken, Player
 from app.sightings.repo import Leaderboard, NewSighting, Period, Sighting, Standing
+from app.verification.outcome import CheckResult, Claim, Outcome
+from app.verification.repo import PendingSighting
 
 
 class FakeAttemptsRepo:
@@ -156,7 +158,51 @@ class FakePhotoStore:
             raise self.fail
         self.uploads[path] = photo
 
+    def download(self, path: str) -> bytes:
+        if self.fail:
+            raise self.fail
+        return self.uploads[path]
+
     def signed_url(self, path: str, expires_in: int) -> str:
         if self.fail:
             raise self.fail
         return f"https://signed.test/{path}?ttl={expires_in}"
+
+
+class FakeVerificationRepo:
+    def __init__(self, pending: list[PendingSighting] | None = None) -> None:
+        self.pending = list(pending or [])
+        self.outcomes: dict[UUID, Outcome] = {}
+        self.retries: dict[UUID, tuple[str, datetime]] = {}
+        self.gave_up: dict[UUID, str] = {}
+        self.commits = 0
+
+    def claim_due(self, now: datetime, limit: int) -> list[PendingSighting]:
+        claimed, self.pending = self.pending[:limit], self.pending[limit:]
+        return claimed
+
+    def save_outcome(self, sighting_id: UUID, outcome: Outcome, now: datetime) -> None:
+        self.outcomes[sighting_id] = outcome
+
+    def schedule_retry(self, sighting_id: UUID, error: str, next_attempt_at: datetime) -> None:
+        self.retries[sighting_id] = (error, next_attempt_at)
+
+    def give_up(self, sighting_id: UUID, error: str, now: datetime) -> None:
+        self.gave_up[sighting_id] = error
+
+    def commit(self) -> None:
+        self.commits += 1
+
+
+class FakePhotoChecker:
+    def __init__(self, result: CheckResult | None = None) -> None:
+        self.result = result
+        self.fail: Exception | None = None
+        self.checked: list[tuple[bytes, Claim]] = []
+
+    def check(self, photo: bytes, claim: Claim) -> CheckResult:
+        self.checked.append((photo, claim))
+        if self.fail:
+            raise self.fail
+        assert self.result
+        return self.result
