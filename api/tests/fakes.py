@@ -5,7 +5,7 @@ from uuid import UUID
 from app.auth.lockout import AttemptState
 from app.auth.supabase_auth import AuthSession
 from app.me.players_repo import NameTaken, Player
-from app.sightings.repo import Period, Standing
+from app.sightings.repo import NewSighting, Period, Sighting, Standing
 
 
 class FakeAttemptsRepo:
@@ -90,14 +90,48 @@ EMPTY_STANDING = Standing(
 
 
 class FakeSightingsRepo:
-    def __init__(self, period: Period) -> None:
+    def __init__(self, period: Period, closed_fallback: Period | None = None) -> None:
         self.period = period
+        self.closed_fallback = closed_fallback
         self.standings: dict[UUID, Standing] = {}
+        self.sightings: dict[UUID, Sighting] = {}
+        self.inserted: list[NewSighting] = []
         self.period_requests: list[datetime] = []
 
     def period_at(self, at: datetime) -> Period:
         self.period_requests.append(at)
+        if self.closed_fallback and len(self.period_requests) > 1:
+            return self.closed_fallback
         return self.period
+
+    def find(self, sighting_id: UUID) -> Sighting | None:
+        return self.sightings.get(sighting_id)
+
+    def insert(self, new: NewSighting) -> Sighting:
+        self.inserted.append(new)
+        existing = self.sightings.get(new.id)
+        if existing:
+            return existing
+        sighting = Sighting(
+            id=new.id,
+            player_id=new.player_id,
+            photo_path=new.photo_path,
+            taken_at=new.taken_at,
+            claim_type=new.claim_type,
+            categories=new.categories,
+            points=new.points,
+            status="waiting_review",
+            flagged=False,
+        )
+        self.sightings[new.id] = sighting
+        before = self.standings.get(new.player_id, EMPTY_STANDING)
+        self.standings[new.player_id] = replace(
+            before,
+            points=before.points + new.points,
+            count=before.count + 1,
+            last_photo_path=new.photo_path,
+        )
+        return sighting
 
     def standing(self, player_id: UUID, period: Period) -> Standing:
         return self.standings.get(player_id, EMPTY_STANDING)
@@ -105,7 +139,13 @@ class FakeSightingsRepo:
 
 class FakePhotoStore:
     def __init__(self) -> None:
+        self.uploads: dict[str, bytes] = {}
         self.fail: Exception | None = None
+
+    def upload(self, path: str, photo: bytes) -> None:
+        if self.fail:
+            raise self.fail
+        self.uploads[path] = photo
 
     def signed_url(self, path: str, expires_in: int) -> str:
         if self.fail:

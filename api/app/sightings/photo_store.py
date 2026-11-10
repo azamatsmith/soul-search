@@ -21,17 +21,40 @@ class PhotoStore:
             transport=transport,
         )
 
+    def upload(self, path: str, photo: bytes) -> None:
+        self._send(
+            "POST",
+            f"/object/{BUCKET}/{path}",
+            content=photo,
+            headers={"Content-Type": "image/jpeg", "x-upsert": "true"},
+        )
+
     def signed_url(self, path: str, expires_in: int) -> str:
-        response = self._post(f"/object/sign/{BUCKET}/{path}", json={"expiresIn": expires_in})
+        response = self._send(
+            "POST", f"/object/sign/{BUCKET}/{path}", json={"expiresIn": expires_in}
+        )
         return f"{self._storage_url}{response.json()['signedURL']}"
 
-    def _post(self, path: str, *, json: dict[str, object]) -> httpx.Response:
+    def _send(
+        self,
+        method: str,
+        path: str,
+        *,
+        content: bytes | None = None,
+        headers: dict[str, str] | None = None,
+        json: dict[str, object] | None = None,
+    ) -> httpx.Response:
         try:
-            response = self._client.post(path, json=json)
+            response = self._client.request(
+                method, path, content=content, headers=headers, json=json
+            )
         except httpx.HTTPError as error:
-            raise StorageUnavailable(f"POST {error.request.url} failed: {error}") from error
+            raise StorageUnavailable(f"{method} {error.request.url} failed: {error}") from error
         if response.is_error:
-            raise StorageUnavailable(f"POST {response.request.url} returned {response.status_code}")
+            request = response.request
+            raise StorageUnavailable(
+                f"{request.method} {request.url} returned {response.status_code}"
+            )
         return response
 
 
