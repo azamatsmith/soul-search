@@ -12,8 +12,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
 :root{
---c-cream:#FAF4E8;--c-surface:#FFFCF5;--c-cream-deep:#F1E7D3;--c-cream-shine:#FBF6EC;--c-forest-shine:#24533A;
---c-forest:#1F4A33;--c-forest-deep:#143424;--c-forest-tint:#E3EBE2;
+--c-cream:#FAF4E8;--c-surface:#FFFCF5;--c-cream-deep:#F1E7D3;--c-cream-shine:#FBF6EC;
+--c-forest:#1F4A33;--c-forest-deep:#143424;--c-forest-shine:#24533A;--c-forest-tint:#E3EBE2;
 --c-orange:#B9501C;--c-orange-deep:#943E13;--c-orange-tint:#F8E2D2;
 --c-ink:#3A2618;--c-ink-muted:#6B5443;--c-gold:#C9A35A;--c-gold-soft:#E6D5AC;
 --c-on-dark:#FFFCF5;
@@ -132,12 +132,12 @@ a{color:var(--c-forest);text-decoration-color:var(--c-gold)}a:hover{color:var(--
 <div style="display:flex;align-items:center;gap:var(--s-2);padding:6px 14px 6px 6px;border-radius:var(--r-pill);background:var(--c-gold-soft)"><span style="min-width:40px;height:40px;border-radius:var(--r-pill);background:var(--c-ink);color:var(--c-gold-soft);font:400 20px/40px var(--f-display);text-align:center">+2</span><span style="font:600 var(--t-small) var(--f-body);color:var(--c-ink)">Special</span></div>
 <div style="display:flex;align-items:center;gap:var(--s-2);padding:6px 14px 6px 6px;border-radius:var(--r-pill);background:var(--c-orange-tint)"><span style="min-width:40px;height:40px;border-radius:var(--r-pill);background:var(--c-orange);color:var(--c-on-dark);font:400 20px/40px var(--f-display);text-align:center">−1</span><span style="font:600 var(--t-small) var(--f-body);color:var(--c-orange-deep)">False call</span></div>
 </div>
-<div style="display:flex;gap:var(--s-2);flex-wrap:wrap">
+<div role="radiogroup" aria-label="Special category" style="display:flex;gap:var(--s-2);flex-wrap:wrap">
 <sc-for list="{{ cats }}" as="c" hint-placeholder-count="4">
-<button onClick="{{ c.toggle }}" aria-pressed="{{ c.on }}" style="min-height:var(--tap-min);padding:0 var(--s-4);border-radius:var(--r-pill);border:2px solid {{ c.border }};background:{{ c.bg }};color:{{ c.fg }};font:600 var(--t-small) var(--f-body);cursor:pointer;display:flex;align-items:center;gap:var(--s-2)"><span style="width:14px;height:14px;border-radius:var(--r-pill);background:{{ c.dot }};border:1px solid rgba(58,38,24,.25)"></span>{{ c.label }}</button>
+<button role="radio" onClick="{{ c.toggle }}" aria-checked="{{ c.on }}" style="min-height:var(--tap-min);padding:0 var(--s-4);border-radius:var(--r-pill);border:2px solid {{ c.border }};background:{{ c.bg }};color:{{ c.fg }};font:600 var(--t-small) var(--f-body);cursor:pointer;display:flex;align-items:center;gap:var(--s-2)"><span style="width:14px;height:14px;border-radius:var(--r-pill);background:{{ c.dot }};border:1px solid rgba(58,38,24,.25)"></span>{{ c.label }}</button>
 </sc-for>
 </div>
-<p style="margin:0;font:400 var(--t-small)/1.45 var(--f-body);color:var(--c-ink-muted)">Chips toggle. Any selection makes the claim worth 2 points total.</p>
+<p style="margin:0;font:400 var(--t-small)/1.45 var(--f-body);color:var(--c-ink-muted)">Pick one. Tapping a chip selects it and clears the others. Any choice makes the claim worth 2 points.</p>
 </div>
 
 <div style="background:var(--c-surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:var(--s-5);display:flex;flex-direction:column;gap:var(--s-4)">
@@ -247,7 +247,7 @@ class Component extends DCLogic {
     const cats = catDefs.map(([k, label, dot]) => {
       const on = s.cats[k];
       return { label, dot, on: String(on), bg: on ? 'var(--c-forest)' : 'var(--c-surface)', fg: on ? 'var(--c-on-dark)' : 'var(--c-ink)', border: on ? 'var(--c-forest)' : 'var(--c-gold)',
-        toggle: () => this.setState(st => ({ cats: { ...st.cats, [k]: !st.cats[k] } })) };
+        toggle: () => this.setState({ cats: { alien: false, stripes: false, graphics: false, brown: false, [k]: true } }) };
     });
     const ups = [
       { title: 'Add photo of the Soul', sub: 'Tap anywhere here to open the camera', glyph: '+', iconBg: 'var(--c-orange)', border: '3px dashed var(--c-gold)', bg: 'var(--c-cream)', pct: '0%', barOpacity: 0 },
@@ -267,8 +267,10 @@ class Component extends DCLogic {
         sw('Cream', '--c-cream', '#FAF4E8', 'Page background', 'var(--c-ink)', 'Ink 12.6:1'),
         sw('Surface', '--c-surface', '#FFFCF5', 'Cards, sheets', 'var(--c-ink)', 'Ink 13.6:1'),
         sw('Cream deep', '--c-cream-deep', '#F1E7D3', 'Tracks, disabled', 'var(--c-ink)', 'Ink 11.2:1'),
+        sw('Cream shine', '--c-cream-shine', '#FBF6EC', 'Shimmer highlight', 'var(--c-ink)', 'Ink 13.3:1'),
         sw('Forest', '--c-forest', '#1F4A33', 'Headers, primary actions', 'var(--c-on-dark)', 'Cream 9.6:1'),
         sw('Forest deep', '--c-forest-deep', '#143424', 'Pressed, timer track', 'var(--c-on-dark)', 'Cream 12.9:1'),
+        sw('Forest shine', '--c-forest-shine', '#24533A', 'Shimmer on green header', 'var(--c-on-dark)', 'Cream 8.6:1'),
         sw('Burnt orange', '--c-orange', '#B9501C', 'Accents, alerts, camera', 'var(--c-on-dark)', 'Cream 4.9:1'),
         sw('Orange tint', '--c-orange-tint', '#F8E2D2', 'Warning surfaces', 'var(--c-orange-deep)', 'Orange-deep 5.8:1'),
         sw('Ink', '--c-ink', '#3A2618', 'Body text', 'var(--c-on-dark)', 'on cream 12.6:1'),
