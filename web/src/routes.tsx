@@ -4,6 +4,7 @@ import { RedirectIfSignedIn } from './components/RedirectIfSignedIn'
 import { RequireAdmin } from './components/RequireAdmin'
 import { RequireAuth } from './components/RequireAuth'
 import { AdminScreen } from './screens/AdminScreen'
+import { CaptureScreen } from './screens/CaptureScreen'
 import { ChangeNameScreen } from './screens/ChangeNameScreen'
 import { ScoresScreen } from './screens/ScoresScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
@@ -21,6 +22,7 @@ export const routes: RouteObject[] = [
     element: <RequireAuth />,
     children: [
       { path: '/welcome', element: <WelcomeScreen /> },
+      { path: '/capture', element: <CaptureScreen /> },
       { path: '/settings', element: <SettingsScreen /> },
       { path: '/settings/name', element: <ChangeNameScreen /> },
       {
