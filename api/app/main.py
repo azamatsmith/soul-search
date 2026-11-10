@@ -11,6 +11,7 @@ from app.errors import UnhandledErrorMiddleware, register_error_handler
 from app.me.routes import router as me_router
 from app.sightings.routes import router as sightings_router
 from app.verification.runner import run_verification, sweep_forever
+from app.weeks.routes import router as weeks_router
 
 
 @asynccontextmanager
@@ -36,6 +37,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(me_router)
     app.include_router(sightings_router)
+    app.include_router(weeks_router)
 
     @app.get("/health")
     def health() -> dict[str, str]:

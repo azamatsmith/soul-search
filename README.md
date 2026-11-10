@@ -56,6 +56,7 @@ Sign in with a seeded email such as `bob@example.test`, then read the 6-digit co
 | `SUPABASE_JWT_SECRET` | api | `api/.env.local` | Set in the Render dashboard, only if the project still uses the legacy JWT secret |
 | `DATABASE_URL` | api | local stack | Set in the Render dashboard, using the transaction pooler connection string |
 | `ANTHROPIC_API_KEY` | api | `api/.env.local` | Set in the Render dashboard |
+| `CLOSE_OUT_SECRET` | api | `local-close-out-secret` | Set in the Render dashboard to a long random value, and store the same value in the project's Vault as `close_out_secret` (see Weekly close-out) |
 
 Staging and production values are configured on each host, never committed.
 
@@ -77,6 +78,17 @@ Production sign-in codes are sent through [Resend](https://resend.com) as custom
 4. Under Authentication, Providers, Email, set the email OTP expiry to `600` seconds and the OTP length to `6`.
 5. Under Authentication, Email Templates, set both "Magic Link" and "Confirm signup" to the contents of `supabase/templates/code.html`, with the subject "Your Soul Search code". The template shows the code (`{{ .Token }}`), not a link.
 6. Under Authentication, Rate Limits, keep "Token verifications" at 30 per 5 minutes per IP or lower. The API locks an email after 5 wrong codes, but Supabase's own verify endpoint is public, so this per-IP limit is the backstop for anyone calling Supabase directly.
+
+### Weekly close-out
+
+A pg_cron job runs every hour at :05 and calls the API's `POST /close-out`, which closes every week that has ended, saves its final standings and opens the current week. It does nothing until the URL and shared secret are stored in the project's Vault. Set them once per Supabase project in the SQL editor, using the same secret as `CLOSE_OUT_SECRET` on Render:
+
+```sql
+select vault.create_secret('https://soul-search-api.onrender.com/close-out', 'close_out_url');
+select vault.create_secret('<CLOSE_OUT_SECRET>', 'close_out_secret');
+```
+
+Check recent calls with `select status_code, content from net._http_response order by created desc limit 5;`.
 
 Production web app: https://soulsearchapp.netlify.app
 
