@@ -52,6 +52,13 @@ export const useCapture = () => {
 
   const choosePhoto = () => setStep('claim')
 
+  const startOver = () => {
+    setPhoto(null)
+    setClaimType(null)
+    setCategories([])
+    setStep('camera')
+  }
+
   const toggleCategory = (category: string) =>
     setCategories((current) =>
       current.includes(category)
@@ -69,6 +76,7 @@ export const useCapture = () => {
     retake,
     retryCamera,
     setClaimType,
+    startOver,
     step,
     toggleCategory,
     choosePhoto,

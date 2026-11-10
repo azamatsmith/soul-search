@@ -14,7 +14,6 @@ export interface ClaimFormProps {
   onSend: () => void
   photoUrl: string
   rules: Rules
-  sending: boolean
 }
 
 export const ClaimForm = ({
@@ -25,7 +24,6 @@ export const ClaimForm = ({
   onSend,
   photoUrl,
   rules,
-  sending,
 }: ClaimFormProps) => {
   const points = claimPoints(rules, claimType, categories)
 
@@ -85,7 +83,7 @@ export const ClaimForm = ({
         )}
       </div>
       <footer className={styles.footer}>
-        <Button disabled={points === null || sending} onClick={onSend}>
+        <Button disabled={points === null} onClick={onSend}>
           {sendLabel(points)}
         </Button>
         <p className={styles.footnote}>

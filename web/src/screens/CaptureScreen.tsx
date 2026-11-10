@@ -1,16 +1,21 @@
-import { useRef, useState, type ChangeEvent } from 'react'
+import { useRef, type ChangeEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { CameraBlocked } from '../components/capture/CameraBlocked'
 import { CameraIntro } from '../components/capture/CameraIntro'
 import { CameraViewfinder } from '../components/capture/CameraViewfinder'
 import { ClaimForm } from '../components/capture/ClaimForm'
+import { NotSentStep } from '../components/capture/NotSentStep'
 import { PhotoReview } from '../components/capture/PhotoReview'
+import { SavedStep } from '../components/capture/SavedStep'
+import { SendingStep } from '../components/capture/SendingStep'
 import { FormError } from '../components/FormError'
 import { useApiResource } from '../hooks/useApiResource'
 import { useCameraStream } from '../hooks/useCameraStream'
 import { useCapture } from '../hooks/useCapture'
 import { useLocation } from '../hooks/useLocation'
-import { getPeriod, postSighting } from '../lib/api'
+import { useMeContext } from '../hooks/useMeContext'
+import { useSendSighting } from '../hooks/useSendSighting'
+import { getPeriod } from '../lib/api'
 import { fileToJpeg, frameToJpeg } from '../lib/photo'
 import styles from './CaptureScreen.module.css'
 
@@ -21,8 +26,8 @@ export const CaptureScreen = () => {
   const location = useLocation(capture.step !== 'intro')
   const period = useApiResource(getPeriod)
   const nativeCamera = useRef<HTMLInputElement>(null)
-  const [sending, setSending] = useState(false)
-  const [sendFailed, setSendFailed] = useState(false)
+  const { me } = useMeContext()
+  const sender = useSendSighting(me.id)
 
   const goHome = () => navigate('/')
   const openNativeCamera = () => nativeCamera.current?.click()
@@ -40,9 +45,7 @@ export const CaptureScreen = () => {
   const handleSend = async () => {
     const { categories, claimType, photo } = capture
     if (!photo || !claimType) return
-    setSending(true)
-    setSendFailed(false)
-    const result = await postSighting({
+    await sender.send({
       categories: claimType === 'special' ? categories : [],
       claimType,
       id: photo.id,
@@ -50,12 +53,32 @@ export const CaptureScreen = () => {
       photo: photo.blob,
       takenAt: photo.takenAt,
     })
-    setSending(false)
-    if (result.ok) goHome()
-    else setSendFailed(true)
+  }
+
+  const handleSnapAnother = () => {
+    sender.reset()
+    capture.startOver()
   }
 
   const blocked = camera.status === 'denied' || camera.status === 'unavailable'
+  const photoUrl = capture.photo?.url ?? ''
+
+  if (sender.status === 'sending') return <SendingStep photoUrl={photoUrl} />
+  if (sender.status === 'failed') {
+    return <NotSentStep onLater={goHome} onTryAgain={sender.retry} />
+  }
+  if (sender.status === 'saved' && sender.saved) {
+    return (
+      <SavedStep
+        challengeName={period.data?.name ?? null}
+        claimType={sender.saved.sighting.claim_type}
+        onDone={goHome}
+        onSnapAnother={handleSnapAnother}
+        periodPoints={sender.saved.period_points}
+        points={sender.saved.sighting.points}
+      />
+    )
+  }
 
   return (
     <div
@@ -106,7 +129,6 @@ export const CaptureScreen = () => {
           onSend={handleSend}
           photoUrl={capture.photo.url}
           rules={period.data.rules}
-          sending={sending}
         />
       )}
       {capture.step === 'claim' && period.status === 'error' && (
@@ -116,10 +138,10 @@ export const CaptureScreen = () => {
           </FormError>
         </div>
       )}
-      {sendFailed && (
+      {sender.status === 'rejected' && (
         <div className={styles.message}>
-          <FormError title="Your photo didn't send">
-            Check your Wi-Fi or signal, then try again.
+          <FormError title="This photo can't be used">
+            Please take it again.
           </FormError>
         </div>
       )}

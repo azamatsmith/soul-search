@@ -1,5 +1,5 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { createMemoryRouter, RouterProvider } from 'react-router'
+import { act, fireEvent, render, screen } from '@testing-library/react'
+import { createMemoryRouter, Outlet, RouterProvider } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getPeriod, postSighting, type Period } from '../lib/api'
 import {
@@ -8,6 +8,7 @@ import {
   openCamera,
 } from '../lib/camera'
 import { fileToJpeg, frameToJpeg } from '../lib/photo'
+import { deviceQueue, type QueuedSighting } from '../lib/uploadQueue'
 import { CaptureScreen } from './CaptureScreen'
 
 vi.mock('../lib/api', () => ({ getPeriod: vi.fn(), postSighting: vi.fn() }))
@@ -18,6 +19,10 @@ vi.mock('../lib/camera', () => ({
   stopCamera: vi.fn(),
 }))
 vi.mock('../lib/photo', () => ({ fileToJpeg: vi.fn(), frameToJpeg: vi.fn() }))
+vi.mock('../lib/uploadQueue', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../lib/uploadQueue')>()),
+  deviceQueue: { add: vi.fn(), all: vi.fn(), remove: vi.fn() },
+}))
 
 const PERIOD: Period = {
   kind: 'week',
@@ -40,7 +45,10 @@ const renderCapture = () => {
   const router = createMemoryRouter(
     [
       { path: '/', element: <p>Home screen</p> },
-      { path: '/capture', element: <CaptureScreen /> },
+      {
+        element: <Outlet context={{ me: { id: 'p1' }, setMe: vi.fn() }} />,
+        children: [{ path: '/capture', element: <CaptureScreen /> }],
+      },
     ],
     { initialEntries: ['/capture'] },
   )
@@ -49,6 +57,27 @@ const renderCapture = () => {
 
 const click = (name: string | RegExp) =>
   fireEvent.click(screen.getByRole('button', { name }))
+
+const SAVED = {
+  ok: true as const,
+  data: {
+    period_points: 7,
+    sighting: {
+      id: 's',
+      taken_at: '',
+      claim_type: 'special' as const,
+      categories: ['Brown paint'],
+      points: 3,
+      status: 'waiting_review',
+      flagged: false,
+    },
+  },
+}
+
+const pickBrownSpecial = () => {
+  fireEvent.click(screen.getByRole('radio', { name: /Special Soul/ }))
+  click('Brown paint')
+}
 
 const reachClaimStep = async () => {
   renderCapture()
@@ -68,6 +97,8 @@ describe('CaptureScreen', () => {
     vi.mocked(frameToJpeg).mockResolvedValue(PHOTO)
     vi.mocked(fileToJpeg).mockResolvedValue(PHOTO)
     vi.mocked(getPeriod).mockResolvedValue({ ok: true, data: PERIOD })
+    vi.mocked(deviceQueue.add).mockResolvedValue()
+    vi.mocked(deviceQueue.remove).mockResolvedValue()
     vi.stubGlobal('navigator', { ...navigator, geolocation: undefined })
     vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue()
   })
@@ -232,41 +263,124 @@ describe('CaptureScreen', () => {
     ).toBeDisabled()
   })
 
-  it('sends the claim and goes home', async () => {
-    vi.mocked(postSighting).mockResolvedValue({
-      ok: true,
-      data: {
-        period_points: 3,
-        sighting: {
-          id: 's',
-          taken_at: '',
-          claim_type: 'special',
-          categories: ['Brown paint'],
-          points: 3,
-          status: 'waiting_review',
-          flagged: false,
-        },
-      },
-    })
+  it('saves the photo on the phone, sends it, and celebrates', async () => {
+    vi.mocked(postSighting).mockResolvedValue(SAVED)
     await reachClaimStep()
-    fireEvent.click(screen.getByRole('radio', { name: /Special Soul/ }))
-    click('Brown paint')
+    pickBrownSpecial()
 
     await act(async () => click('Send · +3 points'))
 
+    expect(await screen.findByText('Special Soul saved')).toBeInTheDocument()
+    expect(screen.getByText('+3')).toBeInTheDocument()
+    expect(screen.getByText('You have 7 points this week.')).toBeInTheDocument()
+    const queued = vi.mocked(deviceQueue.add).mock.calls[0][0] as QueuedSighting
+    expect(queued).toMatchObject({
+      playerId: 'p1',
+      categories: ['Brown paint'],
+      claimType: 'special',
+      location: null,
+      photo: PHOTO,
+    })
+    expect(queued.id).toMatch(/^[0-9a-f-]{36}$/)
+    expect(vi.mocked(postSighting).mock.calls[0][0].id).toBe(queued.id)
+    expect(deviceQueue.remove).toHaveBeenCalledWith(queued.id)
+  })
+
+  it('goes home on Done', async () => {
+    vi.mocked(postSighting).mockResolvedValue(SAVED)
+    await reachClaimStep()
+    fireEvent.click(screen.getByRole('radio', { name: /Regular Soul/ }))
+    await act(async () => click('Send · +1 point'))
+
+    click('Done')
+
     expect(await screen.findByText('Home screen')).toBeInTheDocument()
-    expect(postSighting).toHaveBeenCalledWith(
-      expect.objectContaining({
-        categories: ['Brown paint'],
-        claimType: 'special',
-        location: null,
-        photo: PHOTO,
-      }),
-    )
-    await waitFor(() =>
-      expect(vi.mocked(postSighting).mock.calls[0][0].id).toMatch(
-        /^[0-9a-f-]{36}$/,
-      ),
-    )
+  })
+
+  it('starts a fresh claim on Snap another Soul', async () => {
+    vi.mocked(postSighting).mockResolvedValue(SAVED)
+    await reachClaimStep()
+    fireEvent.click(screen.getByRole('radio', { name: /Regular Soul/ }))
+    await act(async () => click('Send · +1 point'))
+
+    click('Snap another Soul')
+    expect(
+      await screen.findByText('Fit the whole car in the frame'),
+    ).toBeInTheDocument()
+
+    click('Take photo')
+    await screen.findByText('Can you see the Soul?')
+    click('Use this photo')
+    expect(
+      await screen.findByRole('button', { name: 'Pick what makes it special' }),
+    ).toBeDisabled()
+    expect(
+      screen.getByRole('radio', { name: /Regular Soul/ }),
+    ).not.toBeChecked()
+  })
+
+  it('keeps the photo on the phone when it does not send, and tries again', async () => {
+    vi.mocked(postSighting)
+      .mockResolvedValueOnce({ ok: false, status: 0, error: 'network' })
+      .mockResolvedValueOnce(SAVED)
+    await reachClaimStep()
+    pickBrownSpecial()
+
+    await act(async () => click('Send · +3 points'))
+
+    expect(
+      await screen.findByRole('heading', { name: "Your photo didn't send" }),
+    ).toBeInTheDocument()
+    expect(deviceQueue.remove).not.toHaveBeenCalled()
+
+    await act(async () => click('Try again now'))
+
+    expect(await screen.findByText('Special Soul saved')).toBeInTheDocument()
+    const [first, second] = vi.mocked(postSighting).mock.calls
+    expect(second[0].id).toBe(first[0].id)
+  })
+
+  it('leaves a photo that did not send in the queue and goes home', async () => {
+    vi.mocked(postSighting).mockResolvedValue({
+      ok: false,
+      status: 503,
+      error: 'unknown',
+    })
+    await reachClaimStep()
+    pickBrownSpecial()
+    await act(async () => click('Send · +3 points'))
+
+    click('OK, send it later')
+
+    expect(await screen.findByText('Home screen')).toBeInTheDocument()
+    expect(deviceQueue.remove).not.toHaveBeenCalled()
+  })
+
+  it('drops a photo the server will never accept and says so', async () => {
+    vi.mocked(postSighting).mockResolvedValue({
+      ok: false,
+      status: 422,
+      error: 'invalid_photo',
+    })
+    await reachClaimStep()
+    pickBrownSpecial()
+
+    await act(async () => click('Send · +3 points'))
+
+    expect(
+      await screen.findByText("This photo can't be used"),
+    ).toBeInTheDocument()
+    expect(deviceQueue.remove).toHaveBeenCalled()
+  })
+
+  it('still sends when the phone cannot store the photo', async () => {
+    vi.mocked(deviceQueue.add).mockRejectedValueOnce(new Error('blocked'))
+    vi.mocked(postSighting).mockResolvedValue(SAVED)
+    await reachClaimStep()
+    pickBrownSpecial()
+
+    await act(async () => click('Send · +3 points'))
+
+    expect(await screen.findByText('Special Soul saved')).toBeInTheDocument()
   })
 })

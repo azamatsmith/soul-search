@@ -10,6 +10,7 @@ vi.mock('../hooks/useSession', () => ({ useSession: vi.fn() }))
 vi.mock('../lib/api', () => ({
   getPeriod: vi.fn(() => new Promise(() => {})),
   getStanding: vi.fn(() => new Promise(() => {})),
+  postSighting: vi.fn(),
   getMe: vi.fn(),
   putDisplayName: vi.fn(),
   sendCode: vi.fn(),
