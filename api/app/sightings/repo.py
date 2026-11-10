@@ -211,7 +211,7 @@ class PgSightingsRepo:
         column = "week_id" if period.kind == "week" else "challenge_id"
         row = self._conn.execute(
             f"""
-            with {_ranked_cte(f"{column} = %(period)s")},
+            with {ranked_cte(f"{column} = %(period)s")},
             me as (select * from ranked where id = %(player)s)
             select
               coalesce(me.points, 0),
@@ -250,7 +250,7 @@ class PgSightingsRepo:
         where = "week_id = %(period)s" if week else "true"
         rows = self._conn.execute(
             f"""
-            with {_ranked_cte(where)}
+            with {ranked_cte(where)}
             select id, display_name, points, count, rank from ranked
             order by rank, lower(display_name)
             """,
@@ -311,7 +311,7 @@ class PgSightingsRepo:
         )
 
 
-def _ranked_cte(where: str) -> str:
+def ranked_cte(where: str) -> str:
     return f"""
     s as (
       select player_id, sum(points) as points,
