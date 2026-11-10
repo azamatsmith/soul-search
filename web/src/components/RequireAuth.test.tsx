@@ -60,7 +60,6 @@ describe('RequireAuth', () => {
 
   afterEach(() => {
     vi.unstubAllEnvs()
-    delete document.documentElement.dataset.text
   })
 
   it('sends a signed-out player to sign in', async () => {
