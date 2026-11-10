@@ -13,7 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
 :root{
---c-cream:#FAF4E8;--c-surface:#FFFCF5;--c-cream-deep:#F1E7D3;
+--c-cream:#FAF4E8;--c-surface:#FFFCF5;--c-cream-deep:#F1E7D3;--c-cream-shine:#FBF6EC;--c-forest-shine:#24533A;
 --c-forest:#1F4A33;--c-forest-deep:#143424;--c-forest-tint:#E3EBE2;
 --c-orange:#B9501C;--c-orange-deep:#943E13;--c-orange-tint:#F8E2D2;
 --c-ink:#3A2618;--c-ink-muted:#6B5443;--c-gold:#C9A35A;--c-gold-soft:#E6D5AC;
@@ -31,6 +31,18 @@
 body{margin:0;background:#E9E1D0;color:var(--c-ink);font-family:var(--f-body);-webkit-font-smoothing:antialiased}
 a{color:var(--c-forest);text-decoration-color:var(--c-gold)}a:hover{color:var(--c-orange)}
 *{box-sizing:border-box}
+/* Loading: rolling car + shimmer */
+.sk{background:linear-gradient(100deg,var(--c-cream-deep) 30%,var(--c-cream-shine) 50%,var(--c-cream-deep) 70%) var(--c-cream-deep)!important;background-size:250% 100%!important;animation:sk-shimmer 1.6s linear infinite}
+.sk-dark{background:linear-gradient(100deg,var(--c-forest-deep) 30%,var(--c-forest-shine) 50%,var(--c-forest-deep) 70%) var(--c-forest-deep)!important;background-size:250% 100%!important;animation:sk-shimmer 1.6s linear infinite}
+.road{position:relative;display:block;overflow:hidden;border-bottom:3px dashed var(--c-gold)}
+.car{position:absolute;bottom:3px;left:0;display:block;animation:car-drive 2.4s ease-in-out infinite}
+.car svg{display:block}
+.car .wheel{transform-box:fill-box;transform-origin:center;animation:car-wheel .5s linear infinite}
+.car-ride{animation:none;transition:left .3s linear}
+@keyframes sk-shimmer{from{background-position:100% 0}to{background-position:-150% 0}}
+@keyframes car-drive{from{left:-70px}to{left:100%}}
+@keyframes car-wheel{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.sk,.sk-dark{animation:none}.car{animation:none;left:50%;transform:translateX(-50%)}.car-ride{transform:none}.car .wheel{animation:none}}
 </style>
 </helmet>
 <div data-text="{{ textSize }}" style="padding:56px 64px 80px;display:flex;flex-direction:column;gap:40px">
@@ -132,7 +144,7 @@ a{color:var(--c-forest);text-decoration-color:var(--c-gold)}a:hover{color:var(--
 <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px 32px 80px;text-align:center">
 <div style="width:200px;height:200px;border-radius:var(--r-lg);background:var(--stripes);border:3px solid var(--c-gold-soft);display:flex;align-items:center;justify-content:center;font:500 11px var(--f-mono);color:var(--c-ink-muted)">photo</div>
 <h2 style="margin:0;font:400 var(--t-h1)/1.1 var(--f-display);color:var(--c-forest)">Sending your photo…</h2>
-<span style="width:100%;height:14px;border-radius:999px;background:var(--c-cream-deep);overflow:hidden"><span style="display:block;height:100%;width:{{ sendPct }};background:var(--c-forest);border-radius:999px;transition:width .3s linear"></span></span>
+<span style="position:relative;display:block;width:100%;padding-top:48px"><span class="car car-ride" aria-hidden="true" style="bottom:20px;left:max(0px, calc({{ sendPct }} - 64px))"><svg width="64" height="44" viewBox="0 0 64 44" aria-hidden="true"><path d="M8 32V14q0-6 6-6h30q5 0 7 4l6 12q2 3 2 6v2z" fill="var(--c-forest)"/><rect x="14" y="12" width="12" height="10" rx="2" fill="var(--c-forest-tint)"/><rect x="29" y="12" width="13" height="10" rx="2" fill="var(--c-forest-tint)"/><path d="M45 12h3l5 10h-8z" fill="var(--c-forest-tint)"/><rect x="52" y="26" width="5" height="3" rx="1" fill="var(--c-orange)"/><g class="wheel"><circle cx="18" cy="34" r="7" fill="var(--c-ink)"/><rect x="17" y="29" width="2" height="10" fill="var(--c-gold-soft)"/></g><g class="wheel"><circle cx="47" cy="34" r="7" fill="var(--c-ink)"/><rect x="46" y="29" width="2" height="10" fill="var(--c-gold-soft)"/></g></svg></span><span style="width:100%;height:14px;border-radius:999px;background:var(--c-cream-deep);overflow:hidden"><span style="display:block;height:100%;width:{{ sendPct }};background:var(--c-forest);border-radius:999px;transition:width .3s linear"></span></span></span>
 <span style="font:500 var(--t-body)/1.45 var(--f-body);color:var(--c-ink-muted)">Keep the app open. This usually takes a few seconds.</span>
 </div>
 </div>
