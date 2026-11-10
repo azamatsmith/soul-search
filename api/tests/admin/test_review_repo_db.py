@@ -68,12 +68,15 @@ def test_queue_lists_flagged_photos_and_unreviewed_false_calls(db_conn: psycopg.
         status="false_call",
         points=-1,
     )
-    mark(db_conn, add_sighting(db_conn, BOB, week))
-    mark(db_conn, add_sighting(db_conn, BOB, week), status="false_call", verified=False)
+    counted = mark(db_conn, add_sighting(db_conn, BOB, week))
+    unverified = mark(
+        db_conn, add_sighting(db_conn, BOB, week), status="false_call", verified=False
+    )
+    mine = {older, newer, false_call, counted, unverified}
 
     queue = PgReviewRepo(db_conn).queue()
 
-    assert [item.id for item in queue] == [newer, false_call, older]
+    assert [item.id for item in queue if item.id in mine] == [newer, false_call, older]
     flagged = next(item for item in queue if item.id == newer)
     assert flagged.display_name == "Carol"
     assert flagged.check_note == "Not sure"
