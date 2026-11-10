@@ -28,6 +28,8 @@ class VerificationRepo(Protocol):
 
     def give_up(self, sighting_id: UUID, error: str, now: datetime) -> None: ...
 
+    def commit(self) -> None: ...
+
 
 class PgVerificationRepo:
     def __init__(self, conn: psycopg.Connection) -> None:
@@ -125,3 +127,6 @@ class PgVerificationRepo:
             """,
             (GAVE_UP_NOTE, error, now, sighting_id),
         )
+
+    def commit(self) -> None:
+        self._conn.commit()
