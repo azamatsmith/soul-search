@@ -18,7 +18,7 @@ export const useCapture = () => {
   const [attempt, setAttempt] = useState(0)
   const [photo, setPhoto] = useState<CapturedPhoto | null>(null)
   const [claimType, setClaimType] = useState<ClaimType | null>(null)
-  const [categories, setCategories] = useState<string[]>([])
+  const [category, setCategory] = useState<string | null>(null)
 
   useEffect(() => {
     if (!photo) return
@@ -55,30 +55,28 @@ export const useCapture = () => {
   const startOver = () => {
     setPhoto(null)
     setClaimType(null)
-    setCategories([])
+    setCategory(null)
     setStep('camera')
   }
 
-  const toggleCategory = (category: string) =>
-    setCategories((current) =>
-      current.includes(category)
-        ? current.filter((c) => c !== category)
-        : [...current, category],
-    )
+  const chooseClaimType = (type: ClaimType) => {
+    setClaimType(type)
+    setCategory(null)
+  }
 
   return {
     attempt,
-    categories,
+    category,
+    chooseClaimType,
     claimType,
     continueFromIntro,
     keepPhoto,
     photo,
     retake,
     retryCamera,
-    setClaimType,
     startOver,
     step,
-    toggleCategory,
+    setCategory,
     choosePhoto,
   }
 }

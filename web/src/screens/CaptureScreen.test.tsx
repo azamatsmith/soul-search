@@ -74,9 +74,12 @@ const SAVED = {
   },
 }
 
+const pickCategory = (name: string) =>
+  fireEvent.click(screen.getByRole('radio', { name }))
+
 const pickBrownSpecial = () => {
   fireEvent.click(screen.getByRole('radio', { name: /Special Soul/ }))
-  click('Brown paint')
+  pickCategory('Brown paint')
 }
 
 const reachClaimStep = async () => {
@@ -229,7 +232,7 @@ describe('CaptureScreen', () => {
     fireEvent.click(screen.getByRole('radio', { name: /Regular Soul/ }))
 
     expect(
-      screen.getByRole('button', { name: 'Send · +1 point' }),
+      screen.getByRole('button', { name: 'Send for 1 point' }),
     ).toBeEnabled()
   })
 
@@ -242,22 +245,41 @@ describe('CaptureScreen', () => {
       screen.getByRole('button', { name: 'Pick what makes it special' }),
     ).toBeDisabled()
 
-    click('Alien Green')
-    expect(screen.getByRole('button', { name: 'Alien Green' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    )
+    pickCategory('Alien Green')
     expect(
-      screen.getByRole('button', { name: 'Send · +2 points' }),
+      screen.getByRole('button', { name: 'Send for 2 points' }),
     ).toBeEnabled()
 
-    click('Brown paint')
+    pickCategory('Brown paint')
     expect(
-      screen.getByRole('button', { name: 'Send · +3 points' }),
+      screen.getByRole('button', { name: 'Send for 3 points' }),
     ).toBeEnabled()
+  })
 
-    click('Alien Green')
-    click('Brown paint')
+  it('lets the player pick only one special category', async () => {
+    await reachClaimStep()
+    fireEvent.click(screen.getByRole('radio', { name: /Special Soul/ }))
+
+    expect(
+      screen.getByRole('radiogroup', { name: /What makes it special/ }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Pick one')).toBeInTheDocument()
+
+    pickCategory('Alien Green')
+    pickCategory('Brown paint')
+    pickCategory('Brown paint')
+
+    expect(screen.getByRole('radio', { name: 'Brown paint' })).toBeChecked()
+    expect(screen.getByRole('radio', { name: 'Alien Green' })).not.toBeChecked()
+  })
+
+  it('clears the special category when the claim type changes', async () => {
+    await reachClaimStep()
+    pickBrownSpecial()
+
+    fireEvent.click(screen.getByRole('radio', { name: /Regular Soul/ }))
+    fireEvent.click(screen.getByRole('radio', { name: /Special Soul/ }))
+
     expect(
       screen.getByRole('button', { name: 'Pick what makes it special' }),
     ).toBeDisabled()
@@ -268,7 +290,7 @@ describe('CaptureScreen', () => {
     await reachClaimStep()
     pickBrownSpecial()
 
-    await act(async () => click('Send · +3 points'))
+    await act(async () => click('Send for 3 points'))
 
     expect(await screen.findByText('Special Soul saved')).toBeInTheDocument()
     expect(screen.getByText('+3')).toBeInTheDocument()
@@ -290,7 +312,7 @@ describe('CaptureScreen', () => {
     vi.mocked(postSighting).mockResolvedValue(SAVED)
     await reachClaimStep()
     fireEvent.click(screen.getByRole('radio', { name: /Regular Soul/ }))
-    await act(async () => click('Send · +1 point'))
+    await act(async () => click('Send for 1 point'))
 
     click('Done')
 
@@ -301,7 +323,7 @@ describe('CaptureScreen', () => {
     vi.mocked(postSighting).mockResolvedValue(SAVED)
     await reachClaimStep()
     fireEvent.click(screen.getByRole('radio', { name: /Regular Soul/ }))
-    await act(async () => click('Send · +1 point'))
+    await act(async () => click('Send for 1 point'))
 
     click('Snap another Soul')
     expect(
@@ -326,7 +348,7 @@ describe('CaptureScreen', () => {
     await reachClaimStep()
     pickBrownSpecial()
 
-    await act(async () => click('Send · +3 points'))
+    await act(async () => click('Send for 3 points'))
 
     expect(
       await screen.findByRole('heading', { name: "Your photo didn't send" }),
@@ -348,7 +370,7 @@ describe('CaptureScreen', () => {
     })
     await reachClaimStep()
     pickBrownSpecial()
-    await act(async () => click('Send · +3 points'))
+    await act(async () => click('Send for 3 points'))
 
     click('OK, send it later')
 
@@ -365,7 +387,7 @@ describe('CaptureScreen', () => {
     await reachClaimStep()
     pickBrownSpecial()
 
-    await act(async () => click('Send · +3 points'))
+    await act(async () => click('Send for 3 points'))
 
     expect(
       await screen.findByText("This photo can't be used"),
@@ -379,7 +401,7 @@ describe('CaptureScreen', () => {
     await reachClaimStep()
     pickBrownSpecial()
 
-    await act(async () => click('Send · +3 points'))
+    await act(async () => click('Send for 3 points'))
 
     expect(await screen.findByText('Special Soul saved')).toBeInTheDocument()
   })
