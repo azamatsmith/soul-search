@@ -1,9 +1,11 @@
+import io
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from PIL import Image
 
 from app.auth.attempts_repo import get_attempts_repo
 from app.auth.tokens import CurrentUser, get_current_user
@@ -20,6 +22,7 @@ from tests.fakes import (
     FakePlayersRepo,
     FakeSightingsRepo,
 )
+from tests.sightings.photos import SEATTLE, jpeg
 
 NOW = datetime(2026, 11, 10, 18, tzinfo=UTC)
 BOB_ID = UUID("b2222222-2222-2222-2222-222222222222")
@@ -42,7 +45,7 @@ WEEK = Period(
     closed=False,
     rules=RULES,
 )
-JPEG = b"\xff\xd8\xff\xe0fake-jpeg"
+JPEG = jpeg()
 
 
 class Harness:
@@ -162,10 +165,27 @@ def test_post_regular_sighting_uploads_and_scores(harness: Harness):
     assert body["sighting"]["status"] == "waiting_review"
     assert body["period_points"] == 1
     path = f"{BOB_ID}/{sighting_id}.jpg"
-    assert harness.store.uploads == {path: JPEG}
+    assert list(harness.store.uploads) == [path]
     (new,) = harness.repo.inserted
     assert (new.photo_path, new.week_id, new.challenge_id) == (path, WEEK.id, None)
     assert (new.latitude, new.longitude) == (47.6, -122.3)
+
+
+def test_post_strips_exif_and_keeps_its_location(harness: Harness):
+    harness.post(photo=jpeg(gps=SEATTLE))
+
+    (new,) = harness.repo.inserted
+    assert new.latitude == pytest.approx(47.6)
+    assert new.longitude == pytest.approx(-122.33)
+    (stored,) = harness.store.uploads.values()
+    assert dict(Image.open(io.BytesIO(stored)).getexif()) == {}
+
+
+def test_post_prefers_phone_location_over_exif(harness: Harness):
+    harness.post(photo=jpeg(gps=SEATTLE), latitude="45.5", longitude="-122.6")
+
+    (new,) = harness.repo.inserted
+    assert (new.latitude, new.longitude) == (45.5, -122.6)
 
 
 def test_post_special_uses_bonus_points(harness: Harness):
@@ -267,8 +287,13 @@ def test_post_invalid_claim_is_rejected(harness: Harness, fields: dict[str, obje
 
 @pytest.mark.parametrize(
     ("photo", "content_type"),
-    [(b"GIF89a", "image/jpeg"), (JPEG, "image/png"), (b"", "image/jpeg")],
-    ids=["not-jpeg-bytes", "wrong-type", "empty"],
+    [
+        (b"GIF89a", "image/jpeg"),
+        (JPEG, "image/png"),
+        (b"", "image/jpeg"),
+        (b"\xff\xd8\xff\xe0broken", "image/jpeg"),
+    ],
+    ids=["not-jpeg-bytes", "wrong-type", "empty", "corrupt-jpeg"],
 )
 def test_post_non_jpeg_is_rejected(harness: Harness, photo: bytes, content_type: str):
     response = harness.post(photo=photo, content_type=content_type)
