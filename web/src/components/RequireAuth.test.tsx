@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useSession, type SessionState } from '../hooks/useSession'
@@ -60,7 +60,6 @@ describe('RequireAuth', () => {
 
   afterEach(() => {
     vi.unstubAllEnvs()
-    delete document.documentElement.dataset.text
   })
 
   it('sends a signed-out player to sign in', async () => {
@@ -149,7 +148,9 @@ describe('RequireAuth', () => {
     me.mockResolvedValue({ ok: true, data: { ...ME, text_size: 'large' } })
     renderAt('/')
     await screen.findByRole('heading', { name: 'Take photo' })
-    expect(document.documentElement.dataset.text).toBe('large')
+    await waitFor(() =>
+      expect(document.documentElement.dataset.text).toBe('large'),
+    )
   })
 
   it('sends a signed-in player away from sign in', async () => {

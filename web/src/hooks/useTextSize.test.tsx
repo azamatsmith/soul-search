@@ -1,12 +1,8 @@
 import { renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { useTextSize, type TextSize } from './useTextSize'
 
 describe('useTextSize', () => {
-  afterEach(() => {
-    delete document.documentElement.dataset.text
-  })
-
   it('sets data-text to large on the html element', () => {
     renderHook(() => useTextSize('large'))
     expect(document.documentElement.dataset.text).toBe('large')
