@@ -8,6 +8,8 @@ import { routes } from '../routes'
 
 vi.mock('../hooks/useSession', () => ({ useSession: vi.fn() }))
 vi.mock('../lib/api', () => ({
+  getPeriod: vi.fn(() => new Promise(() => {})),
+  getStanding: vi.fn(() => new Promise(() => {})),
   getMe: vi.fn(),
   putDisplayName: vi.fn(),
   sendCode: vi.fn(),
