@@ -2,7 +2,9 @@ import { describe, expect, it, vi } from 'vitest'
 import type { ApiResult, PostSightingResult } from './api'
 import {
   flushQueue,
+  flushUploads,
   singleFlight,
+  UPLOADS_FLUSHED,
   type QueuedSighting,
   type QueueStore,
 } from './uploadQueue'
@@ -166,5 +168,17 @@ describe('singleFlight', () => {
     await run('p1')
 
     expect(task).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('flushUploads', () => {
+  it('fires uploads-flushed after a flush', async () => {
+    const listener = vi.fn()
+    window.addEventListener(UPLOADS_FLUSHED, listener)
+
+    await flushUploads('p1')
+
+    window.removeEventListener(UPLOADS_FLUSHED, listener)
+    expect(listener).toHaveBeenCalledTimes(1)
   })
 })
