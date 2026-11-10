@@ -139,6 +139,12 @@ def _check_location(latitude: float | None, longitude: float | None) -> None:
         raise ApiError(422, "invalid_request")
 
 
+def _accepts_photos(period: Period, now: datetime) -> bool:
+    if period.kind == "challenge":
+        return now < period.ends_at
+    return not period.closed
+
+
 def _post_result(repo: SightingsRepo, sighting: Sighting, period: Period) -> PostSightingOut:
     standing = repo.standing(sighting.player_id, period)
     return PostSightingOut(sighting=sighting_out(sighting), period_points=standing.points)
@@ -175,7 +181,7 @@ def post_sighting(
         return _post_result(repo, existing, repo.period_at(now))
 
     period = repo.period_at(taken_at)
-    if period.closed:
+    if not _accepts_photos(period, now):
         period = repo.period_at(now)
     try:
         points = points_for(period.rules, claim_type, categories or [])

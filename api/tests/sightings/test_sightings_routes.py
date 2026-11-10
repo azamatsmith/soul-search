@@ -196,6 +196,24 @@ def test_post_for_closed_week_falls_into_current_period():
     assert harness.repo.inserted[0].week_id == WEEK.id
 
 
+def test_post_for_ended_challenge_falls_into_current_period():
+    ended = replace(
+        WEEK,
+        kind="challenge",
+        id=uuid4(),
+        name="Thanksgiving Dash",
+        ends_at=NOW - timedelta(minutes=30),
+    )
+    harness = Harness(FakeSightingsRepo(ended, closed_fallback=WEEK))
+    taken_at = NOW - timedelta(hours=1)
+
+    harness.post(taken_at=taken_at.isoformat())
+
+    assert harness.repo.period_requests == [taken_at, NOW]
+    (new,) = harness.repo.inserted
+    assert (new.week_id, new.challenge_id) == (WEEK.id, None)
+
+
 def test_post_same_id_again_returns_existing_without_reupload(harness: Harness):
     sighting_id = str(uuid4())
     harness.post(id=sighting_id)
