@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { hasSeenCameraIntro, markCameraIntroSeen } from '../lib/camera'
+import type { ClaimType } from '../lib/claim'
 
 export type CaptureStep = 'intro' | 'camera' | 'review' | 'claim'
 
@@ -16,6 +17,8 @@ export const useCapture = () => {
   )
   const [attempt, setAttempt] = useState(0)
   const [photo, setPhoto] = useState<CapturedPhoto | null>(null)
+  const [claimType, setClaimType] = useState<ClaimType | null>(null)
+  const [categories, setCategories] = useState<string[]>([])
 
   useEffect(() => {
     if (!photo) return
@@ -49,14 +52,25 @@ export const useCapture = () => {
 
   const choosePhoto = () => setStep('claim')
 
+  const toggleCategory = (category: string) =>
+    setCategories((current) =>
+      current.includes(category)
+        ? current.filter((c) => c !== category)
+        : [...current, category],
+    )
+
   return {
     attempt,
+    categories,
+    claimType,
     continueFromIntro,
     keepPhoto,
     photo,
     retake,
     retryCamera,
+    setClaimType,
     step,
+    toggleCategory,
     choosePhoto,
   }
 }

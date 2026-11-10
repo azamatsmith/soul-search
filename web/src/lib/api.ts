@@ -48,6 +48,11 @@ export interface SessionTokens {
 }
 
 const ERROR_CODES = [
+  'invalid_claim',
+  'invalid_photo',
+  'photo_too_large',
+  'conflict',
+  'storage_unavailable',
   'not_allowed',
   'locked',
   'too_soon',
@@ -133,7 +138,10 @@ const send = async (
   token: string | null,
 ): Promise<Response | null> => {
   const headers = new Headers()
-  if (body !== undefined) headers.set('Content-Type', 'application/json')
+  const form = body instanceof FormData
+  if (body !== undefined && !form) {
+    headers.set('Content-Type', 'application/json')
+  }
   if (token) headers.set('Authorization', `Bearer ${token}`)
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
@@ -141,7 +149,7 @@ const send = async (
     return await fetch(`${baseUrl()}${path}`, {
       method,
       headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: body === undefined || form ? body : JSON.stringify(body),
       signal: controller.signal,
     })
   } catch {
@@ -197,3 +205,41 @@ export const getPeriod = () =>
 
 export const getStanding = () =>
   request<Standing>('/me/standing', 'GET', undefined, true)
+
+export interface SightingOut {
+  id: string
+  taken_at: string
+  claim_type: 'regular' | 'special'
+  categories: string[]
+  points: number
+  status: string
+  flagged: boolean
+}
+
+export interface PostSightingResult {
+  sighting: SightingOut
+  period_points: number
+}
+
+export interface NewSighting {
+  categories: string[]
+  claimType: 'regular' | 'special'
+  id: string
+  location: { latitude: number; longitude: number } | null
+  photo: Blob
+  takenAt: string
+}
+
+export const postSighting = (sighting: NewSighting) => {
+  const form = new FormData()
+  form.set('id', sighting.id)
+  form.set('claim_type', sighting.claimType)
+  form.set('taken_at', sighting.takenAt)
+  sighting.categories.forEach((category) => form.append('categories', category))
+  if (sighting.location) {
+    form.set('latitude', String(sighting.location.latitude))
+    form.set('longitude', String(sighting.location.longitude))
+  }
+  form.set('photo', sighting.photo, 'photo.jpg')
+  return request<PostSightingResult>('/sightings', 'POST', form, true)
+}
