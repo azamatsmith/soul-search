@@ -1,10 +1,6 @@
-import {
-  chipText,
-  claimLine,
-  type LogCard,
-  timeText,
-} from '../lib/sightingsCopy'
+import { claimLine, type LogCard, timeText } from '../lib/sightingsCopy'
 import styles from './SightingCard.module.css'
+import { StatusChip } from './StatusChip'
 
 export interface SightingCardProps {
   card: LogCard
@@ -28,12 +24,7 @@ export const SightingCard = ({ card }: SightingCardProps) => (
         <span className={styles.time}>{timeText(card.takenAt)}</span>
       </span>
       <span className={styles.claim}>{claimLine(card)}</span>
-      <span
-        className={`${styles.chip} ${styles[card.kind]}`}
-        data-kind={card.kind}
-      >
-        {chipText(card)}
-      </span>
+      <StatusChip card={card} />
     </span>
   </li>
 )
