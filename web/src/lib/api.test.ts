@@ -1,6 +1,7 @@
 import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  addAllowedEmail,
   getLeaderboard,
   getMe,
   getPeriod,
@@ -8,6 +9,7 @@ import {
   getStanding,
   postSighting,
   putTextSize,
+  removeAllowedEmail,
   sendCode,
   verifyCode,
 } from './api'
@@ -234,6 +236,42 @@ describe('api', () => {
     expect(init.method).toBe('PUT')
     expect(init.body).toBe(JSON.stringify({ text_size: 'large' }))
     expect(new Headers(init.headers).get('Authorization')).toBe('Bearer tok')
+  })
+
+  it('addAllowedEmail posts the email and passes already_allowed through', async () => {
+    signedIn('tok')
+    const fetchMock = stubFetch(() =>
+      respond(409, { error: 'already_allowed' }),
+    )
+    expect(await addAllowedEmail('nora@example.com')).toEqual({
+      ok: false,
+      status: 409,
+      error: 'already_allowed',
+    })
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ]
+    expect(url).toBe('http://localhost:8000/admin/allowed-emails')
+    expect(init.method).toBe('POST')
+    expect(init.body).toBe(JSON.stringify({ email: 'nora@example.com' }))
+  })
+
+  it('removeAllowedEmail deletes the encoded email', async () => {
+    signedIn('tok')
+    const fetchMock = stubFetch(() => respond(204))
+    expect(await removeAllowedEmail('nora+1@example.com')).toEqual({
+      ok: true,
+      data: null,
+    })
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ]
+    expect(url).toBe(
+      'http://localhost:8000/admin/allowed-emails/nora%2B1%40example.com',
+    )
+    expect(init.method).toBe('DELETE')
   })
 
   it('putTextSize passes no_player through', async () => {

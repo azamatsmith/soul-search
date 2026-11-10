@@ -7,6 +7,7 @@ export interface PushedScreenProps {
   backLabel: string
   backTo: string
   children: ReactNode
+  kicker?: string
   title: string
 }
 
@@ -14,6 +15,7 @@ export const PushedScreen = ({
   backLabel,
   backTo,
   children,
+  kicker,
   title,
 }: PushedScreenProps) => (
   <div className={styles.screen}>
@@ -24,7 +26,10 @@ export const PushedScreen = ({
       </Link>
     </nav>
     <main className={styles.content}>
-      <h1 className={styles.title}>{title}</h1>
+      <header className={styles.heading}>
+        {kicker && <p className={styles.kicker}>{kicker}</p>}
+        <h1 className={styles.title}>{title}</h1>
+      </header>
       {children}
     </main>
   </div>

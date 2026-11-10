@@ -2,6 +2,8 @@ from dataclasses import replace
 from datetime import datetime
 from uuid import UUID
 
+from app.admin.audit_repo import AuditEntry
+from app.admin.emails_repo import AllowedEmail
 from app.auth.lockout import AttemptState
 from app.auth.supabase_auth import AuthSession
 from app.me.players_repo import NameTaken, Player
@@ -238,3 +240,29 @@ class FakeWeeksRepo:
         self.calls.append(now)
         closed, self.ended = tuple(self.ended), []
         return CloseOut(closed=closed, current_week_id=self.current_week_id)
+
+
+class FakeAllowedEmailsRepo:
+    def __init__(self, emails: list[AllowedEmail] | None = None) -> None:
+        self.emails = {entry.email: entry for entry in emails or []}
+
+    def list(self) -> tuple[AllowedEmail, ...]:
+        return tuple(sorted(self.emails.values(), key=lambda entry: entry.email))
+
+    def add(self, email: str, admin_id: UUID) -> AllowedEmail | None:
+        if email in self.emails:
+            return None
+        entry = AllowedEmail(email=email, display_name=None)
+        self.emails[email] = entry
+        return entry
+
+    def remove(self, email: str) -> bool:
+        return self.emails.pop(email, None) is not None
+
+
+class FakeAuditRepo:
+    def __init__(self) -> None:
+        self.entries: list[AuditEntry] = []
+
+    def record(self, entry: AuditEntry) -> None:
+        self.entries.append(entry)

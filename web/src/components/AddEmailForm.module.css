@@ -1,0 +1,12 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.note {
+  margin: 0;
+  color: var(--c-ink-muted);
+  font: 500 var(--t-small) / 1.45 var(--f-body);
+  text-wrap: pretty;
+}
