@@ -102,7 +102,9 @@ export const SightingsScreen = () => {
           />
         )}
       </div>
-      {opened && <PhotoViewer card={opened} onClose={photo.close} />}
+      {opened && (
+        <PhotoViewer card={opened} key={opened.id} onClose={photo.close} />
+      )}
     </div>
   )
 }

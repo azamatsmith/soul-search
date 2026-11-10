@@ -1,5 +1,6 @@
 import { useId, useRef, useState } from 'react'
 import { useModalLayer } from '../hooks/useModalLayer'
+import { usePinchZoom } from '../hooks/usePinchZoom'
 import {
   type LogCard,
   viewerClaimLine,
@@ -18,6 +19,7 @@ export const PhotoViewer = ({ card, onClose }: PhotoViewerProps) => {
   const closeRef = useRef<HTMLButtonElement>(null)
   const nameId = useId()
   const [loadedUrl, setLoadedUrl] = useState<string | null>(null)
+  const zoom = usePinchZoom()
   useModalLayer(closeRef, onClose)
 
   const fullUrl = card.fullPhotoUrl ?? card.photoUrl
@@ -43,18 +45,21 @@ export const PhotoViewer = ({ card, onClose }: PhotoViewerProps) => {
           Close
         </button>
       </div>
-      <div className={styles.frame}>
-        {!loaded && card.photoUrl && (
-          <img alt="" className={styles.photo} src={card.photoUrl} />
-        )}
-        {fullUrl && (
-          <img
-            alt={`Photo from ${card.name}`}
-            className={loaded ? styles.photo : styles.loading}
-            onLoad={handleFullLoad}
-            src={fullUrl}
-          />
-        )}
+      <div className={styles.frame} {...zoom.handlers}>
+        <div className={styles.stage} style={zoom.style}>
+          {!loaded && card.photoUrl && (
+            <img alt="" className={styles.photo} src={card.photoUrl} />
+          )}
+          {fullUrl && (
+            <img
+              alt={`Photo from ${card.name}`}
+              className={loaded ? styles.photo : styles.loading}
+              draggable={false}
+              onLoad={handleFullLoad}
+              src={fullUrl}
+            />
+          )}
+        </div>
       </div>
       <div className={styles.panel}>
         <div className={styles.top}>
