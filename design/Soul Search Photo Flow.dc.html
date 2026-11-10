@@ -13,8 +13,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
 :root{
---c-cream:#FAF4E8;--c-surface:#FFFCF5;--c-cream-deep:#F1E7D3;--c-cream-shine:#FBF6EC;--c-forest-shine:#24533A;
---c-forest:#1F4A33;--c-forest-deep:#143424;--c-forest-tint:#E3EBE2;
+--c-cream:#FAF4E8;--c-surface:#FFFCF5;--c-cream-deep:#F1E7D3;--c-cream-shine:#FBF6EC;
+--c-forest:#1F4A33;--c-forest-deep:#143424;--c-forest-shine:#24533A;--c-forest-tint:#E3EBE2;
 --c-orange:#B9501C;--c-orange-deep:#943E13;--c-orange-tint:#F8E2D2;
 --c-ink:#3A2618;--c-ink-muted:#6B5443;--c-gold:#C9A35A;--c-gold-soft:#E6D5AC;
 --c-on-dark:#FFFCF5;--c-camera:#16110D;
@@ -49,7 +49,7 @@ a{color:var(--c-forest);text-decoration-color:var(--c-gold)}a:hover{color:var(--
 <div style="display:flex;flex-direction:column;gap:8px">
 <div style="font:700 13px/1 var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-orange)">Soul Search / Photo flow</div>
 <h1 style="margin:0;font:400 40px/1.1 var(--f-display);color:var(--c-forest)">Taking a photo of a Soul</h1>
-<p style="margin:0;max-width:76ch;font:400 17px/1.5 var(--f-body);color:var(--c-ink-muted);text-wrap:pretty">Starts when you tap "Snap a Soul" or the "Take photo" tab. 00a shows once before iOS asks for camera access; 00b replaces the camera if access was denied ("Use the iPhone camera instead" opens the native camera, then continues at 02). Screen 03 works: pick Regular or Special, then any special categories (multi-select). The Where row is deferred for the MVP; GPS is saved silently if allowed. 05a and 05b are the two possible results. Scoring is confirmed: +1 Regular, +2 Special, −1 false call. After sending, a background photo check can turn a claim into −1 or flag it.</p>
+<p style="margin:0;max-width:76ch;font:400 17px/1.5 var(--f-body);color:var(--c-ink-muted);text-wrap:pretty">Starts when you tap "Snap a Soul" or the "Take photo" tab. 00a shows once before iOS asks for camera access; 00b replaces the camera if access was denied ("Use the iPhone camera instead" opens the native camera, then continues at 02). Screen 03 works: pick Regular or Special, then the one thing that makes it special (pick one). The Where row is deferred for the MVP; GPS is saved silently if allowed. 05a and 05b are the two possible results. Scoring is confirmed: +1 Regular, +2 Special, −1 false call. After sending, a background photo check can turn a claim into −1 or flag it.</p>
 </div>
 
 <div style="display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start">
@@ -120,10 +120,10 @@ a{color:var(--c-forest);text-decoration-color:var(--c-gold)}a:hover{color:var(--
 </sc-for>
 <sc-if value="{{ isSpecial }}" hint-placeholder-val="{{ false }}">
 <div style="display:flex;flex-direction:column;gap:10px;padding:4px 4px 0">
-<span style="font:700 var(--t-small) var(--f-body)">What makes it special? <span style="font-weight:500;color:var(--c-ink-muted)">Pick any</span></span>
-<div style="display:flex;flex-wrap:wrap;gap:8px">
+<span style="font:700 var(--t-small) var(--f-body)">What makes it special? <span style="font-weight:500;color:var(--c-ink-muted)">Pick one</span></span>
+<div role="radiogroup" aria-label="What makes it special? Pick one" style="display:flex;flex-wrap:wrap;gap:8px">
 <sc-for list="{{ cats }}" as="c" hint-placeholder-count="4">
-<button onClick="{{ c.toggle }}" aria-pressed="{{ c.on }}" style="min-height:var(--tap-min);padding:0 14px;border-radius:999px;border:2px solid {{ c.border }};background:{{ c.bg }};color:{{ c.fg }};font:600 var(--t-small) var(--f-body);cursor:pointer;display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:999px;background:{{ c.dot }};border:1px solid rgba(58,38,24,.25)"></span>{{ c.label }}</button>
+<button role="radio" onClick="{{ c.toggle }}" aria-checked="{{ c.on }}" style="min-height:var(--tap-min);padding:0 14px;border-radius:999px;border:2px solid {{ c.border }};background:{{ c.bg }};color:{{ c.fg }};font:600 var(--t-small) var(--f-body);cursor:pointer;display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:999px;background:{{ c.dot }};border:1px solid rgba(58,38,24,.25)"></span>{{ c.label }}</button>
 </sc-for>
 </div>
 <span style="font:500 14px/1.4 var(--f-body);color:var(--c-ink-muted)">Brown means brown: champagne, pale gold and beige don't count.</span>
@@ -203,7 +203,7 @@ class Component extends DCLogic {
     });
     const cats = [['alien', 'Alien Green', '#9BC53D'], ['stripes', 'Racing stripes', '#FFFCF5'], ['graphics', 'Exterior graphics', '#C9A35A'], ['brown', 'Brown paint', '#6E4B30']].map(([k, label, dot]) => {
       const on = !!s.cats[k];
-      return { label, dot, on: String(on), toggle: () => this.setState(st => ({ cats: { ...st.cats, [k]: !st.cats[k] } })),
+      return { label, dot, on: String(on), toggle: () => this.setState({ cats: { [k]: true } }),
         bg: on ? 'var(--c-forest)' : 'var(--c-surface)', fg: on ? 'var(--c-on-dark)' : 'var(--c-ink)', border: on ? 'var(--c-forest)' : 'var(--c-gold)' };
     });
     const isSpecial = s.kind === 'special';
@@ -214,7 +214,7 @@ class Component extends DCLogic {
       textSize: this.props.textSize ?? 'standard',
       kinds, cats, isSpecial,
       cantSubmit: !ready,
-      submitLabel: !ready ? 'Pick what makes it special' : `Send · +${pts} point${pts > 1 ? 's' : ''}`,
+      submitLabel: !ready ? 'Pick what makes it special' : `Send for ${pts} point${pts > 1 ? 's' : ''}`,
       submitBg: ready ? 'var(--c-forest)' : 'var(--c-cream-deep)', submitFg: ready ? 'var(--c-on-dark)' : 'var(--c-ink-muted)',
       submitShadow: ready ? 'inset 0 -3px 0 var(--c-forest-deep)' : 'none',
       sendPct: `${Math.min(s.pct, 100)}%`,

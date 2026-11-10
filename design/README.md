@@ -8,7 +8,8 @@ One audience consideration drives many decisions: **an older, less tech-confiden
 ## Product decisions (Nov 8, 2026)
 - **Sign-in uses a 6-digit email code**, not a magic link. On iOS a tapped link opens Safari, not the home-screen app, and the two don't share a login. Code expiry: **10 minutes** (Supabase OTP expiry = 600 s). Lockout after 5 wrong codes, for 15 minutes.
 - **Invite-only.** Allowlist owners named in error copy: "Matthew or Heathyr".
-- **Scoring is confirmed:** Regular **+1**, Special **+2** (a car in several categories still earns +2 total), False call **−1**. Admins can edit these values.
+- **Scoring is confirmed:** Regular **+1**, Special **+2** (the player picks one special category), False call **−1**. Admins can edit these values.
+- **What counts as Special.** Alien Green and Brown mean a solid paint color; Racing stripes and Exterior graphics count on any color. A car fits only one category, and in weekly play all categories score the same, so the player picks one. Challenges can give a category its own bonus (e.g. Brown paint +3); scoring changes beyond that are a later decision.
 - **Hybrid verification.** Points count the moment a photo is sent. A background photo check (Claude) then reviews it:
   - Not a Soul → becomes a −1 false call (it appears in the admin "Auto false calls" list, where it can be overturned).
   - Unsure → still counts, flagged.
@@ -165,14 +166,14 @@ Screens, in order:
 1. **01 Camera**: full-screen, background `#16110D`. Top hint pill: "Fit the whole car in the frame" (rgba(255,252,245,.12) bg, Figtree 700 16). Viewfinder fills the space (margin 0 12, radius 22) with four gold corner brackets (40×40, 4px `#C9A35A`, inset 22% top/bottom, 9% sides). Bottom bar is a 3-column grid: **Cancel** (min 56×96, 2px rgba(255,252,245,.4) border) · **shutter** (96px circle, orange fill, 6px cream border, outer ring) · empty. Cancel returns Home.
 2. **02 Check the photo**: kicker "STEP 1 OF 2", title "Can you see the Soul?". Photo preview fills remaining height (radius 22, 2px gold-soft border). Helper "Make sure the whole car is in the photo and not blurry." Primary **"Use this photo"** (72px) → 03; secondary **"Take it again"** (56px) → 01.
 3. **03 What did you find?**: header row with 64px thumbnail + kicker "STEP 2 OF 2" + serif `--t-h2` title. Two radio cards (min-height 88, radius 22, padding 14×16): **Regular Soul** "Any color not listed below" with forest **+1** badge, and **Special Soul** "Alien Green, racing stripes, graphics or brown" with ink/gold-soft **+2** badge. Selected: 3px forest border, forest-tint bg, filled radio. Unselected: 2px gold-soft border, surface bg.
-   - If Special: "What makes it special? Pick any" + multi-select chips (Alien Green, Racing stripes, Exterior graphics, Brown paint; min-height 56, pill; selected = forest fill/cream text) + note "Brown means brown: champagne, pale gold and beige don't count." A car in several categories still earns +2 total.
-   - Sticky footer (surface bg, 2px gold top rule): primary button. Disabled (`--c-cream-deep` bg, ink-muted text) with label "Pick what makes it special" until valid; enabled label "Send · +1 point" / "Send · +2 points". Footnote: "Not a Soul after all? Wrong calls cost 1 point." **The Where row was removed** (deferred).
-   - Valid = Regular selected, OR Special + at least one category. No default selection in production (the mock preselects Special + Alien Green to demonstrate).
+   - If Special: "What makes it special? Pick one" + **single-select** chips (Alien Green, Racing stripes, Exterior graphics, Brown paint; min-height 56, pill; selected = forest fill/cream text). Tapping a chip selects it and clears the others; build them as a radio group (`role="radiogroup"`, each chip `role="radio"` + `aria-checked`) + note "Brown means brown: champagne, pale gold and beige don't count."
+   - Sticky footer (surface bg, 2px gold top rule): primary button. Disabled (`--c-cream-deep` bg, ink-muted text) with label "Pick what makes it special" until valid; enabled label "Send for 1 point" / "Send for 2 points" (no "+" or "·" in the button; challenges use the same pattern, e.g. "Send for 3 points"). Footnote: "Not a Soul after all? Wrong calls cost 1 point." **The Where row was removed** (deferred).
+   - Valid = Regular selected, OR Special + one category. No default selection in production (the mock preselects Special + Alien Green to demonstrate).
 4. **04 Sending**: centered 200px photo, "Sending your photo…" (serif `--t-h1`), 14px progress bar (forest on cream-deep) with the rolling car riding on top at the current percent (wheels turning), "Keep the app open. This usually takes a few seconds."
 5. **05a Saved**: full forest background. 96px cream circle with forest check (8px gold halo), kicker "SPECIAL SOUL SAVED" / "SOUL SAVED", points in serif 72px ("+2"), "You have {n} points this week." plus a note: "We'll double-check the photo. If it isn't a Kia Soul, it becomes a −1 in Sightings." (rgba(255,252,245,.1) panel) Buttons: orange **"Snap another Soul"** → 01; gold-outline **"Done"** → Home.
 6. **05b Didn't send**: orange 96px "!" circle, "Your photo didn't send", "Don't worry, it's saved on this phone. We'll send it on our own when you have signal." Buttons: **"Try again now"** (primary) · **"OK, send it later"** (secondary → Home; the claim appears in Sightings as "Waiting to send").
 
-**Behavior notes:** Request camera permission on first use with a plain-language explanation. Keep the captured photo locally until the server confirms receipt. Categories are **multi-select** and chosen during capture. Save GPS with the photo if allowed. Send triggers the background photo check.
+**Behavior notes:** Request camera permission on first use with a plain-language explanation. Keep the captured photo locally until the server confirms receipt. The category is **single-select** (pick one) and chosen during capture. Save GPS with the photo if allowed. Send triggers the background photo check.
 
 
 ### Settings, past weeks, sighting photo: `Soul Search Settings - History.dc.html` (#5, #6, #12)
@@ -224,8 +225,8 @@ Two patterns, one for each kind of wait. Both are in `Soul Hunt Design System.dc
 - `me`: `{ points, count, rank, totalPlayers, pointsBehindNext }` for the active period
 - `leaderboard`: `{ period: 'current' | 'all', rows, status: 'loading' | 'ready' | 'empty' | 'error' }`
 - `pastWeeks`: `[{ start, end, winner, winnerPoints, myRank, myPoints }]`
-- `sightings`: `{ filter: 'all' | 'mine', status, items: [{ id, userId, photoUrl, takenAt, gps?, kind: 'regular' | 'special', categories: [], points, state: 'pendingUpload' | 'counted' | 'flagged' | 'falseCall', checkNotes, challengeId? }] }`
-- `capture`: `{ step: 'permission' | 'denied' | 'camera' | 'review' | 'classify' | 'sending' | 'saved' | 'failed', photo, kind, categories }`
+- `sightings`: `{ filter: 'all' | 'mine', status, items: [{ id, userId, photoUrl, takenAt, gps?, kind: 'regular' | 'special', category?, points, state: 'pendingUpload' | 'counted' | 'flagged' | 'falseCall', checkNotes, challengeId? }] }`
+- `capture`: `{ step: 'permission' | 'denied' | 'camera' | 'review' | 'classify' | 'sending' | 'saved' | 'failed', photo, kind, category }`
 - `uploadQueue`: photos stored locally until the server confirms; auto-retry
 - Admin: `rules { regular, special, falseCall, categories[] }`, `allowlist[]`, `flagQueue[]`, `autoFalseCalls[]`, `auditLog[{ adminId, type, targetId, before, after, reason, at }]`, `challenges[]`
 
