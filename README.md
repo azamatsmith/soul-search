@@ -59,7 +59,7 @@ Staging and production values are configured on each host, never committed.
 
 ## Deployment
 
-The web app runs on Netlify, configured by `netlify.toml`. Netlify builds `web/` and deploys `main` to production, and builds a preview for every pull request. Previews don't call the production API. `VITE_API_URL`, `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are set in the Netlify dashboard.
+The web app runs on Netlify, configured by `netlify.toml`. Netlify builds `web/` and deploys `main` to production, and builds a preview for every pull request. Previews call the production API, which accepts them through `CORS_ORIGIN_REGEX` on Render. Previews for pull requests from forks only build after approval in Netlify. `VITE_API_URL`, `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are set in the Netlify dashboard.
 
 The web app installs to the home screen on iPhone (Safari) and Android (Chrome) as a PWA. Its icon is `web/public/icon.svg`. After changing it, run `npm run icons` in `web/` to regenerate the PNG sizes.
 
