@@ -1,0 +1,21 @@
+.now {
+  display: flex;
+  gap: var(--s-3);
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--s-1);
+}
+
+.label {
+  color: var(--c-ink-muted);
+  font: 500 var(--t-small) var(--f-body);
+}
+
+.points {
+  color: var(--c-forest);
+  font: 400 var(--t-h2) var(--f-display);
+}
+
+.spacer {
+  flex: 1;
+}

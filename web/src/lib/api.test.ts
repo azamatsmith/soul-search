@@ -10,6 +10,7 @@ import {
   getReviewItem,
   getStanding,
   postReview,
+  postScoreAdjustment,
   postSighting,
   putPointRules,
   putTextSize,
@@ -450,5 +451,23 @@ describe('api', () => {
     expect(init.body).toBe(
       JSON.stringify({ action: 'special', category: 'Brown paint' }),
     )
+  })
+
+  it('postScoreAdjustment sends the change and passes invalid_reason through', async () => {
+    signedIn('tok')
+    const fetchMock = stubFetch(() => respond(422, { error: 'invalid_reason' }))
+    const adjustment = { change: 3, player_id: 'p1', reason: 'Lost uploads' }
+    expect(await postScoreAdjustment(adjustment)).toEqual({
+      ok: false,
+      status: 422,
+      error: 'invalid_reason',
+    })
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ]
+    expect(url).toBe('http://localhost:8000/admin/scores')
+    expect(init.method).toBe('POST')
+    expect(init.body).toBe(JSON.stringify(adjustment))
   })
 })
