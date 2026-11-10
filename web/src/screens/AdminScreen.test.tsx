@@ -1,12 +1,16 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getAllowedEmails } from '../lib/api'
+import { getAllowedEmails, getPointRules } from '../lib/api'
 import { AdminScreen } from './AdminScreen'
 
-vi.mock('../lib/api', () => ({ getAllowedEmails: vi.fn() }))
+vi.mock('../lib/api', () => ({
+  getAllowedEmails: vi.fn(),
+  getPointRules: vi.fn(),
+}))
 
 const load = vi.mocked(getAllowedEmails)
+const loadRules = vi.mocked(getPointRules)
 
 const renderAdmin = () => {
   const router = createMemoryRouter(
@@ -19,6 +23,23 @@ const renderAdmin = () => {
 describe('AdminScreen', () => {
   beforeEach(() => {
     load.mockReset()
+    loadRules.mockReset()
+    loadRules.mockResolvedValue({ ok: false, status: 0, error: 'network' })
+  })
+
+  it('links to points and categories with the current rules', async () => {
+    load.mockResolvedValue({ ok: true, data: { emails: [] } })
+    loadRules.mockResolvedValue({
+      ok: true,
+      data: { categories: ['A', 'B'], false_call: -1, regular: 1, special: 2 },
+    })
+    renderAdmin()
+    expect(
+      screen.getByRole('link', { name: /Points & categories/ }),
+    ).toHaveAttribute('href', '/admin/points')
+    expect(
+      await screen.findByText('+1, +2, −1, 2 categories'),
+    ).toBeInTheDocument()
   })
 
   it('links to allowed emails with the head count', async () => {
