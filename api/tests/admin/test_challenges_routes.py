@@ -228,3 +228,15 @@ def test_delete_returns_204_and_records_history(admin: Harness):
     assert entry.after is None
     assert entry.before is not None
     assert entry.before["name"] == "Brown Week"
+
+
+@pytest.mark.parametrize(("method", "path"), [("post", ""), ("put", f"/{UPCOMING.id}")])
+def test_database_overlap_is_reported_as_overlaps(method: str, path: str):
+    harness = Harness(ADMIN)
+    harness.challenges.write_conflict = "Thanksgiving Dash"
+
+    response = harness.client.request(method, f"/admin/challenges{path}", json=BODY)
+
+    assert response.status_code == 422
+    assert response.json() == {"error": "overlaps", "name": "Thanksgiving Dash"}
+    assert harness.audit.entries == []

@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 
 from app.admin.audit_repo import AuditEntry, HistoryEntry
 from app.admin.challenges import Challenge, ChallengeDraft
-from app.admin.challenges_repo import ChallengeList
+from app.admin.challenges_repo import ChallengeList, ChallengeOverlaps
 from app.admin.emails_repo import AllowedEmail
 from app.admin.review import Decision, ReviewItem
 from app.admin.rules_repo import PointRules
@@ -356,6 +356,7 @@ class FakeChallengesRepo:
         self.created: list[tuple[ChallengeDraft, UUID]] = []
         self.updated: list[tuple[UUID, ChallengeDraft]] = []
         self.deleted: list[UUID] = []
+        self.write_conflict: str | None = None
 
     def list(self, now: datetime) -> ChallengeList:
         return self.listing
@@ -370,12 +371,16 @@ class FakeChallengesRepo:
         return self.overlap
 
     def create(self, draft: ChallengeDraft, admin_id: UUID) -> Challenge:
+        if self.write_conflict:
+            raise ChallengeOverlaps(self.write_conflict)
         self.created.append((draft, admin_id))
         challenge = Challenge(uuid4(), draft.name, draft.starts_at, draft.ends_at, draft.rules)
         self.challenges[challenge.id] = challenge
         return challenge
 
     def update(self, challenge_id: UUID, draft: ChallengeDraft) -> Challenge:
+        if self.write_conflict:
+            raise ChallengeOverlaps(self.write_conflict)
         self.updated.append((challenge_id, draft))
         challenge = Challenge(challenge_id, draft.name, draft.starts_at, draft.ends_at, draft.rules)
         self.challenges[challenge_id] = challenge

@@ -5,7 +5,7 @@ import psycopg
 import pytest
 
 from app.admin.challenges import Challenge, ChallengeDraft, ChallengeRules
-from app.admin.challenges_repo import PgChallengesRepo, Winner
+from app.admin.challenges_repo import ChallengeOverlaps, PgChallengesRepo, Winner
 from app.sightings.repo import PgSightingsRepo
 from app.weeks.repo import PgWeeksRepo
 from tests.sightings.test_sightings_repo_db import (
@@ -168,3 +168,29 @@ def test_delete_moves_adjustments_by_created_at(db_conn: psycopg.Connection):
 
 def test_delete_unknown_is_a_no_op(db_conn: psycopg.Connection):
     PgChallengesRepo(db_conn).delete(uuid4())
+
+
+def test_database_rejects_overlap_even_without_the_check(db_conn: psycopg.Connection):
+    create(db_conn, "Brown Week", AT)
+
+    with pytest.raises(ChallengeOverlaps) as err:
+        create(db_conn, "Green Week", AT + timedelta(hours=2))
+
+    assert err.value.name == "Brown Week"
+    assert PgChallengesRepo(db_conn).overlapping(AT, AT + timedelta(hours=1), None) == "Brown Week"
+
+
+def test_update_into_an_overlap_is_rejected(db_conn: psycopg.Connection):
+    create(db_conn, "Brown Week", AT)
+    later = create(db_conn, "Green Week", AT + timedelta(hours=5))
+
+    with pytest.raises(ChallengeOverlaps):
+        PgChallengesRepo(db_conn).update(later.id, draft("Green Week", AT + timedelta(hours=1)))
+
+
+def test_create_stays_inside_the_request_transaction(db_conn: psycopg.Connection):
+    created = create(db_conn, "Brown Week", AT)
+
+    db_conn.rollback()
+
+    assert PgChallengesRepo(db_conn).get(created.id) is None

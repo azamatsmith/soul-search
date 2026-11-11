@@ -25,6 +25,12 @@ class ChallengeList:
     finished: tuple[tuple[Challenge, Winner | None], ...]
 
 
+class ChallengeOverlaps(Exception):
+    def __init__(self, name: str) -> None:
+        super().__init__(name)
+        self.name = name
+
+
 class ChallengesRepo(Protocol):
     def list(self, now: datetime) -> ChallengeList: ...
 
@@ -86,6 +92,28 @@ class PgChallengesRepo:
         return row[0] if row else None
 
     def create(self, draft: ChallengeDraft, admin_id: UUID) -> Challenge:
+        return self._write(draft, None, admin_id)
+
+    def update(self, challenge_id: UUID, draft: ChallengeDraft) -> Challenge:
+        return self._write(draft, challenge_id, None)
+
+    def _write(
+        self, draft: ChallengeDraft, challenge_id: UUID | None, admin_id: UUID | None
+    ) -> Challenge:
+        self._conn.execute("savepoint challenge_write")
+        try:
+            row = (
+                self._insert(draft, admin_id)
+                if challenge_id is None
+                else self._update(challenge_id, draft)
+            )
+        except psycopg.errors.ExclusionViolation:
+            self._conn.execute("rollback to savepoint challenge_write")
+            clash = self.overlapping(draft.starts_at, draft.ends_at, challenge_id)
+            raise ChallengeOverlaps(clash or "") from None
+        return _challenge(row)
+
+    def _insert(self, draft: ChallengeDraft, admin_id: UUID | None) -> tuple[Any, ...]:
         row = self._conn.execute(
             f"""
             insert into public.challenges (name, starts_at, ends_at, rules, created_by)
@@ -95,9 +123,9 @@ class PgChallengesRepo:
             (draft.name, draft.starts_at, draft.ends_at, Jsonb(draft.rules.to_json()), admin_id),
         ).fetchone()
         assert row
-        return _challenge(row)
+        return row
 
-    def update(self, challenge_id: UUID, draft: ChallengeDraft) -> Challenge:
+    def _update(self, challenge_id: UUID, draft: ChallengeDraft) -> tuple[Any, ...]:
         row = self._conn.execute(
             f"""
             update public.challenges
@@ -114,7 +142,7 @@ class PgChallengesRepo:
             ),
         ).fetchone()
         assert row
-        return _challenge(row)
+        return row
 
     def delete(self, challenge_id: UUID) -> None:
         found = self._conn.execute(

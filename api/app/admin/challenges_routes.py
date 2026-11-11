@@ -1,3 +1,5 @@
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import datetime
 from typing import Annotated
 from uuid import UUID
@@ -7,7 +9,12 @@ from pydantic import AwareDatetime, BaseModel
 
 from app.admin.audit_repo import AuditEntry, AuditRepo, get_audit_repo
 from app.admin.challenges import Challenge, ChallengeDraft, ChallengeRules, validate_draft
-from app.admin.challenges_repo import ChallengesRepo, Winner, get_challenges_repo
+from app.admin.challenges_repo import (
+    ChallengeOverlaps,
+    ChallengesRepo,
+    Winner,
+    get_challenges_repo,
+)
 from app.admin.guard import get_admin_user
 from app.admin.rules_repo import PointRulesRepo, get_point_rules_repo
 from app.auth.tokens import CurrentUser
@@ -120,6 +127,14 @@ def checked_draft(
     return draft
 
 
+@contextmanager
+def reporting_overlaps() -> Iterator[None]:
+    try:
+        yield
+    except ChallengeOverlaps as clash:
+        raise ApiError(422, "overlaps", name=clash.name) from None
+
+
 def found(challenges: ChallengesRepo, challenge_id: UUID) -> Challenge:
     challenge = challenges.get(challenge_id)
     if challenge is None:
@@ -151,7 +166,8 @@ def get_challenge(
 def create_challenge(
     body: ChallengeBody, admin: Admin, challenges: Challenges, rules: Rules, audit: Audit, now: Now
 ) -> ChallengeOut:
-    created = challenges.create(checked_draft(body, challenges, rules, now), admin.id)
+    with reporting_overlaps():
+        created = challenges.create(checked_draft(body, challenges, rules, now), admin.id)
     audit.record(
         AuditEntry(
             admin_id=admin.id,
@@ -175,7 +191,10 @@ def update_challenge(
     now: Now,
 ) -> ChallengeOut:
     existing = found(challenges, challenge_id)
-    updated = challenges.update(challenge_id, checked_draft(body, challenges, rules, now, existing))
+    with reporting_overlaps():
+        updated = challenges.update(
+            challenge_id, checked_draft(body, challenges, rules, now, existing)
+        )
     audit.record(
         AuditEntry(
             admin_id=admin.id,
