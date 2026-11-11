@@ -47,6 +47,11 @@ export const AdminScreen = () => {
           title="Adjust a score"
           to="/admin/adjust"
         />
+        <SettingsRow
+          subtitle="Who changed what, and when"
+          title="Change history"
+          to="/admin/history"
+        />
       </div>
       <p className={styles.note}>
         Every change here is saved to the change history with your name.

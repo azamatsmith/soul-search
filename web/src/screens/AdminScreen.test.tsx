@@ -49,6 +49,14 @@ describe('AdminScreen', () => {
     expect(await within(row).findByText('2')).toBeInTheDocument()
   })
 
+  it('links to the change history', () => {
+    load.mockResolvedValue({ ok: true, data: { emails: [] } })
+    renderAdmin()
+    expect(
+      screen.getByRole('link', { name: /Change history/ }),
+    ).toHaveAttribute('href', '/admin/history')
+  })
+
   it('links to adjust a score', () => {
     load.mockResolvedValue({ ok: true, data: { emails: [] } })
     renderAdmin()

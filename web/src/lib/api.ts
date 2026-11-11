@@ -415,3 +415,28 @@ export const postScoreAdjustment = (adjustment: ScoreAdjustment) =>
     adjustment,
     true,
   )
+
+export type HistoryType = 'challenge' | 'emails' | 'photo' | 'rules' | 'score'
+
+export interface HistoryEntry {
+  admin: { display_name: string; id: string }
+  after: Record<string, unknown> | null
+  before: Record<string, unknown> | null
+  created_at: string
+  id: string
+  reason: string | null
+  target_name: string | null
+  type: HistoryType
+}
+
+export interface History {
+  entries: HistoryEntry[]
+}
+
+export const getHistory = (scoresOnly: boolean) =>
+  request<History>(
+    scoresOnly ? '/admin/history?type=score' : '/admin/history',
+    'GET',
+    undefined,
+    true,
+  )
