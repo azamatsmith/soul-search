@@ -28,6 +28,7 @@ const NOW = new Date('2026-11-13T04:00:00Z')
 
 const sighting = (changes: Partial<LoggedSighting>): LoggedSighting => ({
   categories: [],
+  challenge_name: null,
   check_note: null,
   claim_type: 'regular',
   display_name: 'Heathyr',

@@ -7,7 +7,8 @@ import { LoadError } from '../components/LoadError'
 import { ScreenTitle } from '../components/ScreenTitle'
 import { SegmentedControl } from '../components/SegmentedControl'
 import { useApiResource } from '../hooks/useApiResource'
-import { getLeaderboard, type LeaderboardScope } from '../lib/api'
+import { useNow } from '../hooks/useNow'
+import { getLeaderboard } from '../lib/api'
 import { leaderboardKicker } from '../lib/leaderboardCopy'
 import styles from './ScoresScreen.module.css'
 
@@ -29,7 +30,8 @@ const EMPTY = {
 }
 
 export const ScoresScreen = () => {
-  const [scope, setScope] = useState<LeaderboardScope>('week')
+  const now = useNow()
+  const [scope, setScope] = useState<'all' | 'week'>('week')
   const week = useApiResource(
     ['leaderboard', 'week'],
     loadWeek,
@@ -42,7 +44,7 @@ export const ScoresScreen = () => {
   return (
     <div className={styles.screen}>
       <ScreenTitle
-        kicker={board.data ? leaderboardKicker(board.data) : scopeLabel}
+        kicker={board.data ? leaderboardKicker(board.data, now) : scopeLabel}
         title="Leaderboard"
       />
       <div className={styles.body}>

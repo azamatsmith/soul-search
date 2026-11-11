@@ -14,6 +14,7 @@ vi.mock('../lib/api', () => ({ getLeaderboard: vi.fn() }))
 
 const WEEK: Leaderboard = {
   ends_at: '2026-11-16T08:00:00Z',
+  name: null,
   rows: [
     {
       count: 5,
@@ -40,6 +41,7 @@ const WEEK: Leaderboard = {
 const ALL: Leaderboard = {
   ...WEEK,
   ends_at: null,
+  name: null,
   rows: [{ ...WEEK.rows[1], points: 40, rank: 1 }],
   scope: 'all',
   starts_at: null,
@@ -54,10 +56,12 @@ const failed: Promise<ApiResult<never>> = Promise.resolve({
 })
 const never = <T,>() => new Promise<ApiResult<T>>(() => {})
 
-const serve = (boards: Record<LeaderboardScope, Leaderboard>) =>
+const serve = (boards: Partial<Record<LeaderboardScope, Leaderboard>>) =>
   vi
     .mocked(getLeaderboard)
-    .mockImplementation((scope: LeaderboardScope) => ok(boards[scope]))
+    .mockImplementation((scope: LeaderboardScope) =>
+      ok(boards[scope] as Leaderboard),
+    )
 
 const renderScores = (wrapper = queryWrapper()) =>
   render(

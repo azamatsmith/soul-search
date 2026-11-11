@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   dayRangeText,
+  endsAtText,
   durationText,
   isoToPacificFields,
   liveText,
@@ -170,5 +171,15 @@ describe('liveText', () => {
     expect(liveText('2026-11-13T02:00:00Z', NOW)).toBe(
       'Live · ends 6:00 pm · 6 hours left',
     )
+  })
+})
+
+describe('endsAtText', () => {
+  it('names the weekday when the end is another day', () => {
+    expect(endsAtText('2026-11-16T07:59:00Z', NOW)).toBe('ends Sun 11:59 pm')
+  })
+
+  it('drops the weekday when it ends today', () => {
+    expect(endsAtText('2026-11-13T02:00:00Z', NOW)).toBe('ends 6:00 pm')
   })
 })

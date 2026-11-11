@@ -110,6 +110,9 @@ const distance = (at: number, now: number) => {
   return `${minutes} min`
 }
 
+export const endsAtText = (endIso: string, now: number) =>
+  `ends ${momentText(Date.parse(endIso), now)}`
+
 const ENDING_NOW = 'Ending now'
 
 export const timeLeftText = (endIso: string, now: number) => {
