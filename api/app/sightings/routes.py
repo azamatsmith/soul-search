@@ -106,7 +106,8 @@ class LeaderboardRowOut(BaseModel):
 
 
 class LeaderboardOut(BaseModel):
-    scope: Literal["week", "all"]
+    scope: Literal["week", "all", "challenge"]
+    name: str | None
     starts_at: datetime | None
     ends_at: datetime | None
     total_players: int
@@ -125,6 +126,7 @@ class LoggedSightingOut(BaseModel):
     status: str
     flagged: bool
     check_note: str | None
+    challenge_name: str | None
     thumb_url: str | None
     photo_url: str | None
 
@@ -195,19 +197,31 @@ def get_standing(user: User, repo: Repo, store: Store, now: Now) -> StandingOut:
     )
 
 
+def _leaderboard_period(repo: SightingsRepo, scope: str, now: datetime) -> Period | None:
+    if scope == "all":
+        return None
+    if scope == "week":
+        return repo.week_at(now)
+    period = repo.period_at(now)
+    if period.kind != "challenge":
+        raise ApiError(404, "no_challenge")
+    return period
+
+
 @router.get("/leaderboard")
 def get_leaderboard(
     user: User,
     repo: Repo,
     now: Now,
-    scope: Annotated[Literal["week", "all"], Query()],
+    scope: Annotated[Literal["week", "all", "challenge"], Query()],
 ) -> LeaderboardOut:
-    week = repo.week_at(now) if scope == "week" else None
-    board = repo.leaderboard(week)
+    period = _leaderboard_period(repo, scope, now)
+    board = repo.leaderboard(period)
     return LeaderboardOut(
         scope=scope,
-        starts_at=week.starts_at if week else None,
-        ends_at=week.ends_at if week else None,
+        name=period.name if period else None,
+        starts_at=period.starts_at if period else None,
+        ends_at=period.ends_at if period else None,
         total_players=board.total_players,
         rows=[
             LeaderboardRowOut(
@@ -254,6 +268,7 @@ def _logged_out(
         status=sighting.status,
         flagged=sighting.flagged,
         check_note=sighting.check_note,
+        challenge_name=sighting.challenge_name,
         thumb_url=urls.get(thumb_path(sighting.photo_path)) or photo_url,
         photo_url=photo_url,
     )

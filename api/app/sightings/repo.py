@@ -66,6 +66,7 @@ class LoggedSighting:
     status: str
     flagged: bool
     check_note: str | None
+    challenge_name: str | None
 
 
 @dataclass(frozen=True)
@@ -105,7 +106,7 @@ class SightingsRepo(Protocol):
 
     def standing(self, player_id: UUID, period: Period) -> Standing: ...
 
-    def leaderboard(self, week: Period | None) -> Leaderboard: ...
+    def leaderboard(self, period: Period | None) -> Leaderboard: ...
 
     def week_log(self, week: Period, player_id: UUID | None) -> tuple[LoggedSighting, ...]: ...
 
@@ -247,15 +248,16 @@ class PgSightingsRepo:
             last_photo_path=last_photo,
         )
 
-    def leaderboard(self, week: Period | None) -> Leaderboard:
-        where = "week_id = %(period)s" if week else "true"
+    def leaderboard(self, period: Period | None) -> Leaderboard:
+        column = "week_id" if period is None or period.kind == "week" else "challenge_id"
+        where = f"{column} = %(period)s" if period else "true"
         rows = self._conn.execute(
             f"""
             with {ranked_cte(where)}
             select id, display_name, points, count, rank from ranked
             order by rank, lower(display_name)
             """,
-            {"period": week.id if week else None},
+            {"period": period.id if period else None},
         ).fetchall()
         total = self._conn.execute("select count(*) from public.players").fetchone()
         assert total
@@ -268,14 +270,24 @@ class PgSightingsRepo:
         rows = self._conn.execute(
             """
             select s.id, s.player_id, p.display_name, s.photo_path, s.taken_at, s.claim_type,
-              s.categories, s.points, s.status, s.flagged, s.check_note
+              s.categories, s.points, s.status, s.flagged, s.check_note, c.name
             from public.sightings s
             join public.players p on p.id = s.player_id
-            where s.week_id = %(week)s
+            left join public.challenges c on c.id = s.challenge_id
+            where (
+                s.week_id = %(week)s
+                or (s.challenge_id is not null
+                    and s.taken_at >= %(start)s and s.taken_at < %(end)s)
+              )
               and (%(player)s::uuid is null or s.player_id = %(player)s::uuid)
             order by s.taken_at desc, s.id
             """,
-            {"week": week.id, "player": player_id},
+            {
+                "week": week.id,
+                "start": week.starts_at,
+                "end": week.ends_at,
+                "player": player_id,
+            },
         ).fetchall()
         return tuple(
             LoggedSighting(
@@ -290,6 +302,7 @@ class PgSightingsRepo:
                 status=row[8],
                 flagged=row[9],
                 check_note=row[10],
+                challenge_name=row[11],
             )
             for row in rows
         )
