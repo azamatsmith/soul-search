@@ -1,4 +1,5 @@
 import { CameraButton } from '../components/CameraButton'
+import { ChallengeBanner } from '../components/ChallengeBanner'
 import { HomeHeader } from '../components/HomeHeader'
 import { HomeHeaderPlaceholder } from '../components/HomeHeaderPlaceholder'
 import { LoadError } from '../components/LoadError'
@@ -33,6 +34,9 @@ export const TakePhotoScreen = () => {
         />
       ) : (
         <HomeHeaderPlaceholder name={me.display_name} />
+      )}
+      {period.data?.kind === 'challenge' && standing.data && (
+        <ChallengeBanner now={now} period={period.data} />
       )}
       <div className={styles.center}>
         <CameraButton />

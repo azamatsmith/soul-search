@@ -159,6 +159,30 @@ describe('TakePhotoScreen', () => {
     expect(await screen.findByText('6 Souls in Brown Week')).toBeInTheDocument()
   })
 
+  it('shows the challenge banner with its bonuses', async () => {
+    vi.mocked(getPeriod).mockReturnValue(
+      ok({
+        ...WEEK,
+        kind: 'challenge',
+        name: 'Brown Week',
+        rules: { ...WEEK.rules, bonuses: { 'Brown paint': 3 } },
+      }),
+    )
+    renderHome()
+
+    const banner = await screen.findByRole('region', {
+      name: 'Brown Week is on',
+    })
+    expect(banner).toHaveTextContent('Brown paint is worth +3.')
+  })
+
+  it('shows no challenge banner during a normal week', async () => {
+    renderHome()
+
+    expect(await screen.findByText('Week of Nov 9-15')).toBeInTheDocument()
+    expect(screen.queryByRole('region')).not.toBeInTheDocument()
+  })
+
   it('lets the player try again when scores fail to load', async () => {
     vi.mocked(getStanding)
       .mockReturnValueOnce(
