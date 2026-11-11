@@ -153,7 +153,9 @@ describe('TakePhotoScreen', () => {
     )
     renderHome()
 
-    expect(await screen.findByText('Brown Week')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Challenge · Brown Week'),
+    ).toBeInTheDocument()
     expect(await screen.findByText('6 Souls in Brown Week')).toBeInTheDocument()
   })
 
