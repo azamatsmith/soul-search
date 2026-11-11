@@ -176,6 +176,17 @@ describe('TakePhotoScreen', () => {
     expect(banner).toHaveTextContent('Brown paint is worth +3.')
   })
 
+  it('hides the challenge banner once the challenge has ended', async () => {
+    vi.setSystemTime(new Date('2026-11-16T08:05:00Z'))
+    vi.mocked(getPeriod).mockReturnValue(
+      ok({ ...WEEK, kind: 'challenge', name: 'Brown Week' }),
+    )
+    renderHome()
+
+    expect(await screen.findByText('Ending now')).toBeInTheDocument()
+    expect(screen.queryByRole('region')).not.toBeInTheDocument()
+  })
+
   it('shows no challenge banner during a normal week', async () => {
     renderHome()
 

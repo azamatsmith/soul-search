@@ -35,9 +35,9 @@ export const TakePhotoScreen = () => {
       ) : (
         <HomeHeaderPlaceholder name={me.display_name} />
       )}
-      {period.data?.kind === 'challenge' && standing.data && (
-        <ChallengeBanner now={now} period={period.data} />
-      )}
+      {period.data?.kind === 'challenge' &&
+        Date.parse(period.data.ends_at) > now &&
+        standing.data && <ChallengeBanner now={now} period={period.data} />}
       <div className={styles.center}>
         <CameraButton />
         <p className={styles.helper}>
