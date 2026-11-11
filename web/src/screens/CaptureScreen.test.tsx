@@ -11,6 +11,13 @@ import { fileToJpeg, frameToJpeg } from '../lib/photo'
 import { deviceQueue, type QueuedSighting } from '../lib/uploadQueue'
 import { CaptureScreen } from './CaptureScreen'
 import { queryWrapper } from '../test/queryWrapper'
+import {
+  CAMERA,
+  CREAM,
+  FOREST,
+  setUpStatusBar,
+  statusBarColor,
+} from '../test/statusBar'
 
 vi.mock('../lib/api', () => ({ getPeriod: vi.fn(), postSighting: vi.fn() }))
 vi.mock('../lib/camera', () => ({
@@ -95,6 +102,8 @@ const reachClaimStep = async () => {
 }
 
 describe('CaptureScreen', () => {
+  setUpStatusBar()
+
   beforeEach(() => {
     URL.createObjectURL = vi.fn(() => 'blob:photo')
     URL.revokeObjectURL = vi.fn()
@@ -478,5 +487,29 @@ describe('CaptureScreen', () => {
     fireEvent.click(screen.getByRole('radio', { name: /Special Soul/ }))
 
     expect(chip('Brown paint')).not.toHaveTextContent('+')
+  })
+
+  it('turns the status bar dark for the camera', async () => {
+    renderCapture()
+    await screen.findByText('Fit the whole car in the frame')
+
+    expect(statusBarColor()).toBe(CAMERA)
+  })
+
+  it('turns the status bar cream again after the camera', async () => {
+    await reachClaimStep()
+
+    expect(statusBarColor()).toBe(CREAM)
+  })
+
+  it('turns the status bar forest when the photo is saved', async () => {
+    vi.mocked(postSighting).mockResolvedValue(SAVED)
+    await reachClaimStep()
+    pickBrownSpecial()
+
+    await act(async () => click('Send for 3 points'))
+    await screen.findByText('Special Soul saved')
+
+    expect(statusBarColor()).toBe(FOREST)
   })
 })

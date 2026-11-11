@@ -11,6 +11,7 @@ import {
 } from '../lib/api'
 import { TakePhotoScreen } from './TakePhotoScreen'
 import { queryWrapper } from '../test/queryWrapper'
+import { FOREST, setUpStatusBar, statusBarColor } from '../test/statusBar'
 
 vi.mock('../lib/api', () => ({ getPeriod: vi.fn(), getStanding: vi.fn() }))
 
@@ -76,6 +77,8 @@ const renderHome = () => {
 }
 
 describe('TakePhotoScreen', () => {
+  setUpStatusBar()
+
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     vi.setSystemTime(new Date('2026-11-10T20:00:00Z'))
@@ -208,5 +211,11 @@ describe('TakePhotoScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
 
     expect(await screen.findByText('6 Souls this week')).toBeInTheDocument()
+  })
+
+  it('turns the status bar forest to match the header', () => {
+    renderHome()
+
+    expect(statusBarColor()).toBe(FOREST)
   })
 })

@@ -7,12 +7,14 @@ import { SummaryCard } from '../components/SummaryCard'
 import { useApiResource } from '../hooks/useApiResource'
 import { useMeContext } from '../hooks/useMeContext'
 import { useNow } from '../hooks/useNow'
+import { useStatusBarColor } from '../hooks/useStatusBarColor'
 import { getPeriod, getStanding } from '../lib/api'
 import styles from './TakePhotoScreen.module.css'
 
 export const TakePhotoScreen = () => {
   const { me } = useMeContext()
   const now = useNow()
+  useStatusBarColor('--c-forest')
   const period = useApiResource(['period'], getPeriod)
   const standing = useApiResource(['standing'], getStanding)
   const failed = period.status === 'error' || standing.status === 'error'

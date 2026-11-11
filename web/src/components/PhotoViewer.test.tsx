@@ -2,6 +2,12 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { LogCard } from '../lib/sightingsCopy'
 import { PhotoViewer } from './PhotoViewer'
+import {
+  CAMERA,
+  CREAM,
+  setUpStatusBar,
+  statusBarColor,
+} from '../test/statusBar'
 
 const card = (changes: Partial<LogCard> = {}): LogCard => ({
   categories: ['Racing stripes'],
@@ -25,6 +31,8 @@ const renderViewer = (changes: Partial<LogCard> = {}) => {
 }
 
 describe('PhotoViewer', () => {
+  setUpStatusBar()
+
   it('shows the photo with name, time, claim and chip', () => {
     renderViewer()
 
@@ -81,5 +89,15 @@ describe('PhotoViewer', () => {
     expect(document.body.style.overflow).toBe('hidden')
     unmount()
     expect(document.body.style.overflow).toBe('')
+  })
+
+  it('turns the status bar dark while open', () => {
+    const { unmount } = render(<PhotoViewer card={card()} onClose={vi.fn()} />)
+
+    expect(statusBarColor()).toBe(CAMERA)
+
+    unmount()
+
+    expect(statusBarColor()).toBe(CREAM)
   })
 })
