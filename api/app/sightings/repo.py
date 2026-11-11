@@ -276,8 +276,10 @@ class PgSightingsRepo:
             left join public.challenges c on c.id = s.challenge_id
             where (
                 s.week_id = %(week)s
+                -- A photo taken before its challenge started was a late upload filed to it.
                 or (s.challenge_id is not null
-                    and s.taken_at >= %(start)s and s.taken_at < %(end)s)
+                    and greatest(s.taken_at, c.starts_at) >= %(start)s
+                    and greatest(s.taken_at, c.starts_at) < %(end)s)
               )
               and (%(player)s::uuid is null or s.player_id = %(player)s::uuid)
             order by s.taken_at desc, s.id

@@ -366,7 +366,6 @@ def test_week_log_lists_only_this_weeks_sightings_newest_first(db_conn: psycopg.
     repo = PgSightingsRepo(db_conn)
     week = repo.week_at(AT)
     last_week = repo.week_at(AT - timedelta(days=7))
-    challenge = add_challenge(db_conn, {"regular": 1, "special": 2, "false_call": -1})
     older = add_sighting(db_conn, BOB, week.id, taken_at=AT - timedelta(hours=2))
     newer = add_sighting(db_conn, ALICE, week.id)
     add_sighting(db_conn, BOB, last_week.id, taken_at=AT - timedelta(days=7))
@@ -374,7 +373,6 @@ def test_week_log_lists_only_this_weeks_sightings_newest_first(db_conn: psycopg.
     log = repo.week_log(week, None)
 
     assert [s.photo_path for s in log] == [newer, older]
-    assert challenge
 
 
 def test_week_log_filters_to_one_player(db_conn: psycopg.Connection):
@@ -445,3 +443,16 @@ def test_week_log_leaves_out_challenge_photos_from_another_week(
     add_sighting(db_conn, BOB, challenge, kind="challenge", taken_at=AT + timedelta(days=7))
 
     assert repo.week_log(week, None) == ()
+
+
+def test_week_log_shows_a_late_challenge_upload_in_the_challenge_week(
+    db_conn: psycopg.Connection,
+):
+    repo = PgSightingsRepo(db_conn)
+    week = repo.week_at(AT)
+    challenge = add_challenge(db_conn, {"regular": 1, "special": 2, "false_call": -1})
+    late = add_sighting(
+        db_conn, BOB, challenge, kind="challenge", taken_at=WEEK_START - timedelta(minutes=10)
+    )
+
+    assert [s.photo_path for s in repo.week_log(week, None)] == [late]
