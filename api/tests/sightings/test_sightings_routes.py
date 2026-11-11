@@ -426,6 +426,7 @@ def test_leaderboard_week_returns_rows_and_bounds(harness: Harness):
 
     assert body == {
         "scope": "week",
+        "name": None,
         "starts_at": "2026-11-09T08:00:00Z",
         "ends_at": "2026-11-16T08:00:00Z",
         "total_players": 23,
@@ -471,6 +472,28 @@ def test_leaderboard_all_has_no_bounds(harness: Harness):
     assert [row["points"] for row in body["rows"]] == [40]
 
 
+def test_leaderboard_challenge_returns_the_running_challenge():
+    challenge = replace(WEEK, kind="challenge", id=uuid4(), name="Brown Week")
+    repo = FakeSightingsRepo(challenge)
+    repo.leaderboards[challenge.id] = WEEK_BOARD
+
+    body = Harness(repo).client.get("/leaderboard?scope=challenge").json()
+
+    assert (body["scope"], body["name"], body["starts_at"]) == (
+        "challenge",
+        "Brown Week",
+        "2026-11-09T08:00:00Z",
+    )
+    assert [row["points"] for row in body["rows"]] == [5, 3]
+
+
+def test_leaderboard_challenge_is_404_without_one(harness: Harness):
+    response = harness.client.get("/leaderboard?scope=challenge")
+
+    assert response.status_code == 404
+    assert response.json() == {"error": "no_challenge"}
+
+
 @pytest.mark.parametrize("query", ["?scope=month", ""])
 def test_leaderboard_rejects_unknown_scope(harness: Harness, query: str):
     response = harness.client.get(f"/leaderboard{query}")
@@ -493,6 +516,7 @@ def logged(player_id: UUID, name: str, **changes: object) -> LoggedSighting:
         status="counted",
         flagged=False,
         check_note=None,
+        challenge_name=None,
     )
     return replace(base, **changes)
 
@@ -523,6 +547,17 @@ def test_sightings_lists_the_week_with_thumbnails(harness: Harness):
     assert second["is_me"] is False
     assert second["status"] == "false_call"
     assert second["check_note"] == "not a Soul"
+
+
+def test_sightings_log_returns_challenge_name(harness: Harness):
+    harness.repo.logs = [
+        logged(BOB_ID, "Bob", challenge_name="Brown Week"),
+        logged(ALICE_ID, "Alice"),
+    ]
+
+    body = harness.client.get("/sightings").json()
+
+    assert [s["challenge_name"] for s in body["sightings"]] == ["Brown Week", None]
 
 
 def test_sightings_mine_filters_to_the_caller(harness: Harness):
