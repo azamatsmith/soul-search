@@ -91,7 +91,8 @@ export const dayHeader = (takenAt: string, now: number) => {
 const challengeSuffix = (cards: LogCard[], weekHasChallenge: boolean) => {
   const name = cards.find((card) => card.challengeName)?.challengeName
   if (name) return ` · ${name}`
-  return weekHasChallenge ? ' · Weekly' : ''
+  const allWaiting = cards.every((card) => card.kind === 'waiting')
+  return weekHasChallenge && !allWaiting ? ' · Weekly' : ''
 }
 
 export const groupByDay = (cards: LogCard[], now: number): DayGroup[] => {

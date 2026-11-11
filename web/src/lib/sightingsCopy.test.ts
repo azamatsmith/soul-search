@@ -230,6 +230,19 @@ describe('groupByDay during a challenge', () => {
     ).toEqual(['Today · Fri · Brown Week'])
   })
 
+  it('adds nothing to a day with only waiting photos', () => {
+    expect(
+      headers([
+        fri({ id: 'waiting', kind: 'waiting' }),
+        card({
+          challengeName: 'Brown Week',
+          id: 'wed',
+          takenAt: '2026-11-11T19:00:00Z',
+        }),
+      ]),
+    ).toEqual(['Today · Fri', 'Wed · Brown Week'])
+  })
+
   it('names each day after its own challenge', () => {
     expect(
       headers([
