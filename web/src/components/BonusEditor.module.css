@@ -23,7 +23,7 @@
 .add,
 .choice {
   min-height: var(--tap-min);
-  border: var(--rule) solid var(--c-forest);
+  border: 2px solid var(--c-forest);
   border-radius: var(--r-md);
   background: transparent;
   color: var(--c-forest);
