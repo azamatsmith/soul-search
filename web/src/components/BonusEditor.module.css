@@ -1,0 +1,41 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.bonus {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
+.remove {
+  align-self: flex-end;
+  min-height: var(--tap-min);
+  padding: 0 var(--s-2);
+  border: 0;
+  background: transparent;
+  color: var(--c-orange-deep);
+  font: 700 var(--t-small) / 1.2 var(--f-body);
+}
+
+.add,
+.choice {
+  min-height: var(--tap-min);
+  border: var(--rule) solid var(--c-forest);
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--c-forest);
+  font: 700 var(--t-body) / 1.2 var(--f-body);
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.choice {
+  padding: 0 var(--s-3);
+}

@@ -7,6 +7,7 @@ import { AdjustScoreScreen } from './screens/AdjustScoreScreen'
 import { AdminScreen } from './screens/AdminScreen'
 import { AllowedEmailsScreen } from './screens/AllowedEmailsScreen'
 import { CaptureScreen } from './screens/CaptureScreen'
+import { ChallengeEditScreen } from './screens/ChallengeEditScreen'
 import { ChallengesScreen } from './screens/ChallengesScreen'
 import { ChangeHistoryScreen } from './screens/ChangeHistoryScreen'
 import { ChangeNameScreen } from './screens/ChangeNameScreen'
@@ -44,6 +45,7 @@ export const routes: RouteObject[] = [
           { path: '/admin/flagged', element: <FlaggedPhotosScreen /> },
           { path: '/admin/flagged/:id', element: <ReviewPhotoScreen /> },
           { path: '/admin/challenges', element: <ChallengesScreen /> },
+          { path: '/admin/challenges/:id', element: <ChallengeEditScreen /> },
           { path: '/admin/points', element: <PointsScreen /> },
           { path: '/admin/adjust', element: <AdjustScoreScreen /> },
           { path: '/admin/history', element: <ChangeHistoryScreen /> },
