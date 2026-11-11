@@ -89,6 +89,12 @@ The body size is 19px on purpose (larger than typical) for legibility. **Large-t
 
 ## Shared Layout
 - Designed at **390×844** (iPhone 14/15). Status bar area 44px. Respect safe areas.
+- **Status bar color matches the top of each screen.** On Home the forest header runs up behind the status bar, as drawn; it must never show a cream strip above the green. The color changes per screen:
+  - **Forest `#1F4A33`**: Home (02, including its loading, empty and challenge versions) and Photo saved (05a).
+  - **Camera `#16110D`**: Camera (01) and the full-screen Sighting photo viewer.
+  - **Cream `#FAF4E8`**: every other screen.
+  - **Android (installed app):** the status bar takes the `theme-color`. Keep one `<meta name="theme-color">` tag (start it at cream, matching the manifest's `theme_color` and `background_color`) and update its `content` when a screen opens, e.g. a small `useStatusBarColor(color)` hook that each screen calls. Update the existing tag; don't add a second one. Android picks light or dark status-bar icons to suit the color.
+  - **iPhone (home-screen app):** iOS doesn't change the status bar color per screen. Test Home on an iPhone; if a cream strip shows above the green there too, flag it and we'll pick an iPhone-only fix rather than guess.
 - **Bottom tab bar** (screens 02–04): surface background, 2px gold top border, 18px bottom padding (home-indicator area). Three equal items, each min-height 72px, column layout: icon (26×20 box) above label, gap 6px, label Figtree 700 15px.
   - Active: icon and label `--c-forest`, plus a 4px `--c-orange` bar along the top edge of the item.
   - Inactive: `--c-ink-muted`, no bar.
