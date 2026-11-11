@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import {
   getReviewItem,
@@ -7,11 +7,17 @@ import {
   type ReviewAction,
 } from '../lib/api'
 import { useApiResource } from './useApiResource'
+import { useRefreshAll } from './useRefreshAll'
 
 export const useReviewPhoto = (id: string) => {
   const navigate = useNavigate()
-  const load = useCallback(() => getReviewItem(id), [id])
-  const { data: item, error, retry, status } = useApiResource(load)
+  const refreshAll = useRefreshAll()
+  const {
+    data: item,
+    error,
+    retry,
+    status,
+  } = useApiResource(['reviewItem', id], () => getReviewItem(id))
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<ApiErrorCode | null>(null)
   const backTo =
@@ -24,8 +30,12 @@ export const useReviewPhoto = (id: string) => {
     setSaveError(null)
     const result = await postReview(id, action, category)
     setSaving(false)
-    if (result.ok) void navigate(backTo, { replace: true })
-    else setSaveError(result.error)
+    if (!result.ok) {
+      setSaveError(result.error)
+      return
+    }
+    refreshAll()
+    void navigate(backTo, { replace: true })
   }
 
   return {

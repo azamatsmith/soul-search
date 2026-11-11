@@ -1,8 +1,10 @@
+import { QueryClient } from '@tanstack/react-query'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getPointRules, putPointRules, type PointRules } from '../lib/api'
 import { PointsScreen } from './PointsScreen'
+import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({
   getPointRules: vi.fn(),
@@ -27,7 +29,7 @@ const renderPoints = () => {
     ],
     { initialEntries: ['/admin/points'] },
   )
-  render(<RouterProvider router={router} />)
+  render(<RouterProvider router={router} />, { wrapper: queryWrapper() })
   return router
 }
 
@@ -45,6 +47,7 @@ describe('PointsScreen', () => {
   })
 
   it('saves edited points and categories, then goes back', async () => {
+    const refreshAll = vi.spyOn(QueryClient.prototype, 'invalidateQueries')
     save.mockResolvedValue({ ok: true, data: RULES })
     const router = renderPoints()
     await screen.findByText('Alien Green')
@@ -67,6 +70,8 @@ describe('PointsScreen', () => {
     })
     expect(await screen.findByText('Admin home')).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/admin')
+    expect(refreshAll).toHaveBeenCalledWith()
+    refreshAll.mockRestore()
   })
 
   it.each([

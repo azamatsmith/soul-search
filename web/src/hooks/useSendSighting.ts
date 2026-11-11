@@ -1,14 +1,17 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import {
   postSighting,
   type NewSighting,
   type PostSightingResult,
 } from '../lib/api'
+import { refreshAfterSighting } from '../lib/refreshAfterSighting'
 import { deviceQueue, isRejectedForGood } from '../lib/uploadQueue'
 
 export type SendStatus = 'idle' | 'sending' | 'saved' | 'failed' | 'rejected'
 
 export const useSendSighting = (playerId: string) => {
+  const client = useQueryClient()
   const [status, setStatus] = useState<SendStatus>('idle')
   const [saved, setSaved] = useState<PostSightingResult | null>(null)
   const [last, setLast] = useState<NewSighting | null>(null)
@@ -24,6 +27,7 @@ export const useSendSighting = (playerId: string) => {
     if (result.ok) {
       setSaved(result.data)
       setStatus('saved')
+      refreshAfterSighting(client)
     } else {
       setStatus(isRejectedForGood(result) ? 'rejected' : 'failed')
     }

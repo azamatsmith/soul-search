@@ -1,6 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { postSighting, type OnProgress } from '../lib/api'
+import { createQueryClient } from '../lib/queryClient'
+import { queryWrapper } from '../test/queryWrapper'
 import { useSendSighting } from './useSendSighting'
 
 vi.mock('../lib/api', () => ({ postSighting: vi.fn() }))
@@ -39,7 +41,9 @@ describe('useSendSighting', () => {
           )
       })
     })
-    const { result } = renderHook(() => useSendSighting('p1'))
+    const { result } = renderHook(() => useSendSighting('p1'), {
+      wrapper: queryWrapper(),
+    })
     expect(result.current.progress).toBe(0)
 
     await act(async () => {
@@ -54,5 +58,20 @@ describe('useSendSighting', () => {
       void result.current.retry()
     })
     expect(result.current.progress).toBe(0)
+  })
+
+  it('refreshes points, scores and sightings once the photo is saved', async () => {
+    post.mockResolvedValue({ ok: true, data: { period_points: 1 } as never })
+    const client = createQueryClient()
+    const invalidate = vi.spyOn(client, 'invalidateQueries')
+    const { result } = renderHook(() => useSendSighting('p1'), {
+      wrapper: queryWrapper(client),
+    })
+
+    await act(() => result.current.send(SIGHTING))
+
+    expect(result.current.status).toBe('saved')
+    const keys = invalidate.mock.calls.map(([filters]) => filters?.queryKey)
+    expect(keys).toEqual([['standing'], ['leaderboard'], ['sightings']])
   })
 })

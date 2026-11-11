@@ -3,6 +3,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getHistory, type HistoryEntry } from '../lib/api'
 import { ChangeHistoryScreen } from './ChangeHistoryScreen'
+import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({
   getHistory: vi.fn(),
@@ -37,7 +38,7 @@ const renderHistory = () => {
     [{ path: '/admin/history', element: <ChangeHistoryScreen /> }],
     { initialEntries: ['/admin/history'] },
   )
-  render(<RouterProvider router={router} />)
+  render(<RouterProvider router={router} />, { wrapper: queryWrapper() })
 }
 
 describe('ChangeHistoryScreen', () => {

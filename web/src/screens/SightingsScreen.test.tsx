@@ -1,5 +1,4 @@
 import {
-  act,
   fireEvent,
   render,
   screen,
@@ -15,8 +14,9 @@ import {
   type LoggedSighting,
   type SightingsLog,
 } from '../lib/api'
-import { type QueuedSighting, UPLOADS_FLUSHED } from '../lib/uploadQueue'
+import type { QueuedSighting } from '../lib/uploadQueue'
 import { SightingsScreen } from './SightingsScreen'
+import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({ getSightings: vi.fn() }))
 vi.mock('../hooks/useQueuedSightings', () => ({ useQueuedSightings: vi.fn() }))
@@ -81,7 +81,7 @@ const queued = (id: string): QueuedSighting => ({
 })
 
 const queue = (items: QueuedSighting[]) =>
-  vi.mocked(useQueuedSightings).mockReturnValue({ items, reload: vi.fn() })
+  vi.mocked(useQueuedSightings).mockReturnValue({ items })
 
 const serve = (everyone: LoggedSighting[]) =>
   vi
@@ -95,6 +95,7 @@ const renderLog = (path = '/sightings') =>
     <MemoryRouter initialEntries={[path]}>
       <SightingsScreen />
     </MemoryRouter>,
+    { wrapper: queryWrapper() },
   )
 
 describe('SightingsScreen', () => {
@@ -196,21 +197,6 @@ describe('SightingsScreen', () => {
     expect(await screen.findByText('2 this week')).toBeInTheDocument()
     expect(screen.queryByText('Waiting to send')).toBeNull()
   })
-  it('reloads the log as soon as queued photos are sent', async () => {
-    serve(EVERYONE)
-    renderLog()
-    await screen.findByText('Marcus T.')
-    const before = vi.mocked(getSightings).mock.calls.length
-
-    act(() => {
-      window.dispatchEvent(new Event(UPLOADS_FLUSHED))
-    })
-
-    await waitFor(() =>
-      expect(vi.mocked(getSightings).mock.calls.length).toBeGreaterThan(before),
-    )
-  })
-
   it('opens a sighting full screen and closes it', async () => {
     serve(EVERYONE)
     renderLog()

@@ -21,8 +21,8 @@ const FILTERS = [
 
 export const ChangeHistoryScreen = () => {
   const [filter, setFilter] = useState<Filter>('everything')
-  const everything = useApiResource(loadEverything)
-  const scores = useApiResource(loadScores)
+  const everything = useApiResource(['history', 'everything'], loadEverything)
+  const scores = useApiResource(['history', 'scores'], loadScores)
   const now = useNow()
   const history = filter === 'scores' ? scores : everything
   const entries = history.data?.entries ?? []

@@ -1,4 +1,3 @@
-import { useCallback } from 'react'
 import { useParams } from 'react-router'
 import { LeaderboardPlaceholder } from '../components/LeaderboardPlaceholder'
 import { LeaderboardRow } from '../components/LeaderboardRow'
@@ -17,8 +16,7 @@ const titleOf = (week: PastWeek | null) => {
 
 export const PastWeekScreen = () => {
   const { id = '' } = useParams()
-  const load = useCallback(() => getPastWeek(id), [id])
-  const week = useApiResource(load)
+  const week = useApiResource(['pastWeek', id], () => getPastWeek(id))
   const data = week.data
 
   return (

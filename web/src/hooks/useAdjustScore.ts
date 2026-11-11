@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { getScores, postScoreAdjustment } from '../lib/api'
 import { useApiResource } from './useApiResource'
+import { useRefreshAll } from './useRefreshAll'
 
 export const useAdjustScore = () => {
-  const scores = useApiResource(getScores)
+  const scores = useApiResource(['scores'], getScores)
   const navigate = useNavigate()
+  const refreshAll = useRefreshAll()
   const [playerId, setPlayerId] = useState<string | null>(null)
   const [change, setChange] = useState(0)
   const [reason, setReason] = useState('')
@@ -26,8 +28,12 @@ export const useAdjustScore = () => {
       reason: reason.trim(),
     })
     setSaving(false)
-    if (result.ok) void navigate('/admin')
-    else setSaveFailed(true)
+    if (!result.ok) {
+      setSaveFailed(true)
+      return
+    }
+    refreshAll()
+    void navigate('/admin')
   }
 
   return {

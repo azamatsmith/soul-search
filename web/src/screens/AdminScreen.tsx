@@ -8,9 +8,9 @@ import { rulesSummary } from '../lib/rulesSummary'
 import styles from './AdminScreen.module.css'
 
 export const AdminScreen = () => {
-  const emails = useApiResource(getAllowedEmails)
-  const rules = useApiResource(getPointRules)
-  const queue = useApiResource(getReviewQueue)
+  const emails = useApiResource(['allowedEmails'], getAllowedEmails)
+  const rules = useApiResource(['pointRules'], getPointRules)
+  const queue = useApiResource(['reviewQueue'], getReviewQueue)
   const emailsSubtitle = emails.data
     ? peopleCount(emails.data.emails.length)
     : 'Who can sign in'

@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router'
+import { useClearDataOnSignOut } from '../hooks/useClearDataOnSignOut'
 import type { MeOutletContext } from '../hooks/useMeContext'
 import { useMe } from '../hooks/useMe'
 import { useSession } from '../hooks/useSession'
@@ -18,6 +19,7 @@ export const RequireAuth = () => {
   const revoked = error === 'not_allowed' || error === 'unauthenticated'
 
   useTextSize(me?.text_size ?? 'standard')
+  useClearDataOnSignOut(session.status === 'signed_out')
 
   useEffect(() => {
     if (revoked) void supabase.auth.signOut({ scope: 'local' })

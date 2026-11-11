@@ -10,7 +10,7 @@ const players = (count: number) =>
   `${count} ${count === 1 ? 'player' : 'players'}`
 
 export const PastWeeksScreen = () => {
-  const past = useApiResource(getPastWeeks)
+  const past = useApiResource(['pastWeeks'], getPastWeeks)
   const weeks = past.data?.weeks ?? []
 
   return (

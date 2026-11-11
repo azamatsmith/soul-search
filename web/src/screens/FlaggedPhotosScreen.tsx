@@ -10,7 +10,7 @@ import styles from './FlaggedPhotosScreen.module.css'
 type Tab = 'false_calls' | 'flagged'
 
 export const FlaggedPhotosScreen = () => {
-  const queue = useApiResource(getReviewQueue)
+  const queue = useApiResource(['reviewQueue'], getReviewQueue)
   const [params, setParams] = useSearchParams()
   const tab: Tab =
     params.get('tab') === 'false_calls' ? 'false_calls' : 'flagged'

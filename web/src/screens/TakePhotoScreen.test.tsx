@@ -10,6 +10,7 @@ import {
   type Standing,
 } from '../lib/api'
 import { TakePhotoScreen } from './TakePhotoScreen'
+import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({ getPeriod: vi.fn(), getStanding: vi.fn() }))
 
@@ -71,7 +72,7 @@ const renderHome = () => {
     ],
     { initialEntries: ['/'] },
   )
-  render(<RouterProvider router={router} />)
+  render(<RouterProvider router={router} />, { wrapper: queryWrapper() })
 }
 
 describe('TakePhotoScreen', () => {

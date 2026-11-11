@@ -51,17 +51,6 @@ describe('useQueuedSightings', () => {
     await waitFor(() => expect(result.current.items).toEqual([]))
   })
 
-  it('reloads on demand', async () => {
-    const items: QueuedSighting[] = []
-    const store = storeOf(items)
-    const { result } = renderHook(() => useQueuedSightings('p1', store))
-
-    items.push(item('b'))
-    act(() => result.current.reload())
-
-    await waitFor(() => expect(ids(result.current.items)).toEqual(['b']))
-  })
-
   it('gives an empty list when the queue cannot be read', async () => {
     const store: QueueStore = {
       ...storeOf([]),
@@ -81,7 +70,9 @@ describe('useQueuedSightings reloads', () => {
     await waitFor(() => expect(ids(result.current.items)).toEqual(['a']))
     const first = result.current.items
 
-    act(() => result.current.reload())
+    act(() => {
+      window.dispatchEvent(new Event(UPLOADS_FLUSHED))
+    })
 
     await new Promise((resolve) => setTimeout(resolve, 0))
     expect(result.current.items).toBe(first)

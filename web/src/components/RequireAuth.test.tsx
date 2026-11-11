@@ -5,6 +5,7 @@ import { useSession, type SessionState } from '../hooks/useSession'
 import { getMe, putDisplayName, type ApiResult, type Me } from '../lib/api'
 import { supabase } from '../lib/supabase'
 import { routes } from '../routes'
+import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../hooks/useSession', () => ({ useSession: vi.fn() }))
 vi.mock('../lib/api', () => ({
@@ -45,7 +46,7 @@ const fail = (status: number, error: string) =>
 
 const renderAt = (path: string) => {
   const router = createMemoryRouter(routes, { initialEntries: [path] })
-  render(<RouterProvider router={router} />)
+  render(<RouterProvider router={router} />, { wrapper: queryWrapper() })
   return router
 }
 

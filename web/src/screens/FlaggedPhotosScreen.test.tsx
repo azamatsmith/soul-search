@@ -3,6 +3,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getReviewQueue, type ReviewItem } from '../lib/api'
 import { FlaggedPhotosScreen } from './FlaggedPhotosScreen'
+import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({ getReviewQueue: vi.fn() }))
 
@@ -38,7 +39,7 @@ const renderFlagged = (entry = '/admin/flagged') => {
     [{ path: '/admin/flagged', element: <FlaggedPhotosScreen /> }],
     { initialEntries: [entry] },
   )
-  render(<RouterProvider router={router} />)
+  render(<RouterProvider router={router} />, { wrapper: queryWrapper() })
   return router
 }
 

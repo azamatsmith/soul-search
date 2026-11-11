@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useQuery, useQueryClient, type QueryKey } from '@tanstack/react-query'
 import type { ApiErrorCode, ApiResult } from '../lib/api'
 
 export interface ApiResource<T> {
@@ -9,56 +9,48 @@ export interface ApiResource<T> {
   retry: () => void
 }
 
-interface Attempt {
-  count: number
-  quiet: boolean
+interface ApiResourceOptions {
+  refreshEvery?: number
 }
 
-interface Loaded<T> {
-  attempt: number
-  result: ApiResult<T>
+class ApiError extends Error {
+  code: ApiErrorCode
+
+  constructor(code: ApiErrorCode) {
+    super(code)
+    this.code = code
+  }
 }
 
-interface Good<T> {
-  data: T
-}
+const codeOf = (error: unknown): ApiErrorCode =>
+  error instanceof ApiError ? error.code : 'network'
 
 export const useApiResource = <T>(
+  key: QueryKey,
   load: () => Promise<ApiResult<T>>,
+  { refreshEvery }: ApiResourceOptions = {},
 ): ApiResource<T> => {
-  const [attempt, setAttempt] = useState<Attempt>({ count: 0, quiet: false })
-  const [loaded, setLoaded] = useState<Loaded<T> | null>(null)
-  const [lastGood, setLastGood] = useState<Good<T> | null>(null)
+  const client = useQueryClient()
+  const query = useQuery({
+    queryFn: async () => {
+      const result = await load()
+      if (!result.ok) throw new ApiError(result.error)
+      return result.data
+    },
+    queryKey: key,
+    refetchInterval: refreshEvery,
+  })
 
-  useEffect(() => {
-    let active = true
-    load().then((result) => {
-      if (!active) return
-      setLoaded({ attempt: attempt.count, result })
-      if (result.ok) setLastGood({ data: result.data })
-    })
-    return () => {
-      active = false
-    }
-  }, [load, attempt])
-
-  const retry = () =>
-    setAttempt((current) => ({ count: current.count + 1, quiet: false }))
-  const refresh = () => {
-    if (loaded === null) return
-    setAttempt((current) => ({ count: current.count + 1, quiet: true }))
-  }
+  const refresh = () => void query.refetch({ cancelRefetch: false })
+  const retry = () => void client.resetQueries({ exact: true, queryKey: key })
   const controls = { refresh, retry }
 
-  if (attempt.quiet && lastGood) {
-    return { status: 'ready', data: lastGood.data, error: null, ...controls }
+  if (query.data !== undefined) {
+    return { status: 'ready', data: query.data, error: null, ...controls }
   }
-  const current = loaded?.attempt === attempt.count || attempt.quiet
-  const result = loaded && current ? loaded.result : null
-  if (!result)
-    return { status: 'loading', data: null, error: null, ...controls }
-  if (!result.ok) {
-    return { status: 'error', data: null, error: result.error, ...controls }
+  if (query.isError) {
+    const error = codeOf(query.error)
+    return { status: 'error', data: null, error, ...controls }
   }
-  return { status: 'ready', data: result.data, error: null, ...controls }
+  return { status: 'loading', data: null, error: null, ...controls }
 }
