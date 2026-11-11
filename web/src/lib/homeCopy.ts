@@ -1,6 +1,5 @@
 const PACIFIC = 'America/Los_Angeles'
 const HOUR = 60 * 60 * 1000
-const DAY = 24 * HOUR
 
 const monthDay = new Intl.DateTimeFormat('en-US', {
   day: 'numeric',
@@ -24,16 +23,6 @@ export const weekRange = (startsAt: string, endsAt: string) => {
       ? part(end, 'day')
       : `${endMonth} ${part(end, 'day')}`
   return `${startMonth} ${part(start, 'day')}-${endText}`
-}
-
-export const timeLeft = (endsAt: string, now: number) => {
-  const left = new Date(endsAt).getTime() - now
-  if (left <= 0) return 'Ending now'
-  if (left > DAY) return `${plural(Math.floor(left / DAY), 'day', 'days')} left`
-  if (left >= HOUR) {
-    return `${plural(Math.floor(left / HOUR), 'hour', 'hours')} left`
-  }
-  return `${Math.max(1, Math.floor(left / 60_000))} min left`
 }
 
 export const ordinal = (n: number) => {

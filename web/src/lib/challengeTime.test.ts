@@ -6,6 +6,7 @@ import {
   liveText,
   pacificToIso,
   rangeText,
+  shortTimeLeftText,
   startsInText,
   timeLeftText,
 } from './challengeTime'
@@ -124,6 +125,28 @@ describe('timeLeftText', () => {
     expect(timeLeftText('2026-11-12T20:44:30Z', NOW)).toBe(
       'Ends 12:44 pm · 45 min left',
     )
+  })
+
+  it('says Ending now once the end has passed', () => {
+    expect(timeLeftText('2026-11-12T19:59:00Z', NOW)).toBe('Ending now')
+    expect(timeLeftText('2026-11-12T20:00:00Z', NOW)).toBe('Ending now')
+  })
+})
+
+describe('shortTimeLeftText', () => {
+  const end = '2026-11-16T08:00:00Z'
+
+  it.each([
+    ['2026-11-10T20:00:00Z', '5 days left'],
+    ['2026-11-14T07:00:00Z', '2 days left'],
+    ['2026-11-15T07:00:00Z', '1 day left'],
+    ['2026-11-15T09:00:00Z', '23 hours left'],
+    ['2026-11-16T07:00:00Z', '1 hour left'],
+    ['2026-11-16T07:15:00Z', '45 min left'],
+    ['2026-11-16T07:59:30Z', '1 min left'],
+    ['2026-11-16T08:00:00Z', 'Ending now'],
+  ])('at %s says %s', (now, text) => {
+    expect(shortTimeLeftText(end, Date.parse(now))).toBe(text)
   })
 })
 

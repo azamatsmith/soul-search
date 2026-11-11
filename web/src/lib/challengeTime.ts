@@ -109,9 +109,17 @@ const distance = (at: number, now: number) => {
   return `${Math.ceil(gap / MINUTE_MS)} min`
 }
 
+const ENDING_NOW = 'Ending now'
+
 export const timeLeftText = (endIso: string, now: number) => {
   const end = Date.parse(endIso)
+  if (end <= now) return ENDING_NOW
   return `Ends ${momentText(end, now)} · ${distance(end, now)} left`
+}
+
+export const shortTimeLeftText = (endIso: string, now: number) => {
+  const end = Date.parse(endIso)
+  return end <= now ? ENDING_NOW : `${distance(end, now)} left`
 }
 
 export const startsInText = (startIso: string, now: number) => {
