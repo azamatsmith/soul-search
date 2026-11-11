@@ -112,10 +112,18 @@ const emailsLine = ({ after, before }: HistoryEntry) =>
     ? `added ${textOf(after, 'email')} to the allowed emails.`
     : `removed ${textOf(before, 'email')} from the allowed emails.`
 
+const challengeLine = ({ after, before }: HistoryEntry) => {
+  const name = textOf(after, 'name') || textOf(before, 'name')
+  if (!name) return 'changed a challenge.'
+  if (!before) return `created ${name}.`
+  if (!after) return `deleted ${name}.`
+  return `changed ${name}.`
+}
+
 export const historyLine = (entry: HistoryEntry) => {
   switch (entry.type) {
     case 'challenge':
-      return 'changed a challenge.'
+      return challengeLine(entry)
     case 'emails':
       return emailsLine(entry)
     case 'photo':
