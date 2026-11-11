@@ -32,4 +32,23 @@ describe('Stepper', () => {
       screen.getByRole('button', { name: 'More for False call' }),
     ).toBeDisabled()
   })
+
+  it('disables both buttons when read-only', () => {
+    render(
+      <Stepper
+        disabled
+        label="Regular Soul"
+        max={10}
+        min={1}
+        onChange={vi.fn()}
+        value={2}
+      />,
+    )
+    expect(
+      screen.getByRole('button', { name: 'Less for Regular Soul' }),
+    ).toBeDisabled()
+    expect(
+      screen.getByRole('button', { name: 'More for Regular Soul' }),
+    ).toBeDisabled()
+  })
 })
