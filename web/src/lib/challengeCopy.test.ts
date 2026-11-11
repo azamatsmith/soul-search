@@ -28,6 +28,12 @@ describe('challengeErrorText', () => {
       "This challenge has started, so its start time can't change.",
     ],
     [
+      failure('invalid_bonus'),
+      'A bonus uses a category that no longer exists. Remove it and try again.',
+    ],
+    [failure('invalid_points'), 'Point values are out of range.'],
+    [failure('not_found'), 'This challenge was deleted.'],
+    [
       failure('network'),
       "We couldn't save that. Check your connection and try again.",
     ],
