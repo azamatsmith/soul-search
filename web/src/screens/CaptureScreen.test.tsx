@@ -75,8 +75,10 @@ const SAVED = {
   },
 }
 
-const pickCategory = (name: string) =>
-  fireEvent.click(screen.getByRole('radio', { name }))
+const chip = (name: string) =>
+  screen.getByRole('radio', { name: new RegExp(`^${name}`) })
+
+const pickCategory = (name: string) => fireEvent.click(chip(name))
 
 const pickBrownSpecial = () => {
   fireEvent.click(screen.getByRole('radio', { name: /Special Soul/ }))
@@ -270,8 +272,8 @@ describe('CaptureScreen', () => {
     pickCategory('Brown paint')
     pickCategory('Brown paint')
 
-    expect(screen.getByRole('radio', { name: 'Brown paint' })).toBeChecked()
-    expect(screen.getByRole('radio', { name: 'Alien Green' })).not.toBeChecked()
+    expect(chip('Brown paint')).toBeChecked()
+    expect(chip('Alien Green')).not.toBeChecked()
   })
 
   it('clears the special category when the claim type changes', async () => {
@@ -405,5 +407,47 @@ describe('CaptureScreen', () => {
     await act(async () => click('Send for 3 points'))
 
     expect(await screen.findByText('Special Soul saved')).toBeInTheDocument()
+  })
+  it('says which challenge the photo counts toward', async () => {
+    vi.mocked(getPeriod).mockResolvedValue({
+      ok: true,
+      data: { ...PERIOD, kind: 'challenge', name: 'Brown Week' },
+    })
+    await reachClaimStep()
+
+    expect(screen.getByText('Counts toward Brown Week')).toBeInTheDocument()
+  })
+
+  it('shows no challenge strip during a normal week', async () => {
+    await reachClaimStep()
+
+    expect(screen.queryByText(/Counts toward/)).not.toBeInTheDocument()
+  })
+
+  it('describes special Souls and bonus points from the rules', async () => {
+    await reachClaimStep()
+
+    expect(screen.getByText('Alien Green or Brown paint')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('radio', { name: /Special Soul/ }))
+    expect(chip('Brown paint')).toHaveTextContent('+3')
+    expect(chip('Alien Green')).not.toHaveTextContent('+')
+    expect(screen.getByText(/Brown means brown/)).toBeInTheDocument()
+  })
+
+  it('skips bonuses for categories that no longer exist', async () => {
+    vi.mocked(getPeriod).mockResolvedValue({
+      ok: true,
+      data: {
+        ...PERIOD,
+        rules: { ...PERIOD.rules, categories: ['Alien Green'] },
+      },
+    })
+    await reachClaimStep()
+    fireEvent.click(screen.getByRole('radio', { name: /Special Soul/ }))
+
+    expect(
+      screen.getAllByRole('radio', { name: /^(Alien|Brown)/ }),
+    ).toHaveLength(1)
+    expect(screen.queryByText(/Brown means brown/)).not.toBeInTheDocument()
   })
 })

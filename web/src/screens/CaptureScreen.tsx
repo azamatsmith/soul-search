@@ -124,6 +124,9 @@ export const CaptureScreen = () => {
       {capture.step === 'claim' && capture.photo && period.data && (
         <ClaimForm
           category={capture.category}
+          challengeName={
+            period.data.kind === 'challenge' ? period.data.name : null
+          }
           claimType={capture.claimType}
           onCategoryChange={capture.setCategory}
           onClaimTypeChange={capture.chooseClaimType}
