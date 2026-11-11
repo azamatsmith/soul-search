@@ -73,6 +73,15 @@
   --points-badge: 40px;
   --sending-photo: 200px;
   --progress: 14px;
+  --car-sm-w: 40px;
+  --car-sm-h: 28px;
+  --car-lg-w: 64px;
+  --car-lg-h: 44px;
+  --road-sm-w: 96px;
+  --road-sm-h: 34px;
+  --road-lg-h: 56px;
+  --road-loading-w: 280px;
+  --road-line: 3px;
   --result-icon: 96px;
   --empty-mark: 88px;
   --t-empty-mark: 40px;

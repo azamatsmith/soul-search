@@ -55,7 +55,9 @@ describe('CodeScreen', () => {
 
   it('shows checking and locks the code without closing the keyboard', () => {
     renderScreen(stateWith('checking'))
-    expect(screen.getByRole('status')).toHaveTextContent('Checking your code…')
+    const status = screen.getByRole('status')
+    expect(status).toHaveTextContent('Checking your code…')
+    expect(status.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
     const input = screen.getByLabelText('6-digit code')
     expect(input).toBeEnabled()
     expect(input).toHaveAttribute('readonly')

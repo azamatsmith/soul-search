@@ -1,0 +1,20 @@
+.screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: var(--s-6);
+  background: var(--c-cream);
+}
+
+.status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  align-items: center;
+  width: 100%;
+  max-width: var(--road-loading-w);
+  color: var(--c-forest);
+  font: 700 var(--t-body) var(--f-body);
+  text-align: center;
+}
