@@ -8,7 +8,8 @@ from psycopg.types.json import Jsonb
 
 from app.admin.challenges import Challenge, ChallengeDraft, ChallengeRules
 from app.db import Conn
-from app.sightings.repo import ranked_cte
+from app.sightings.repo import PgSightingsRepo, ranked_cte
+from app.weeks.repo import PgWeeksRepo
 
 
 @dataclass(frozen=True)
@@ -114,6 +115,31 @@ class PgChallengesRepo:
         ).fetchone()
         assert row
         return _challenge(row)
+
+    def delete(self, challenge_id: UUID) -> None:
+        found = self._conn.execute(
+            "select 1 from public.challenges where id = %s for update", (challenge_id,)
+        ).fetchone()
+        if not found:
+            return
+        sightings = PgSightingsRepo(self._conn)
+        touched: set[UUID] = set()
+        for table, time_column in (("sightings", "taken_at"), ("score_adjustments", "created_at")):
+            rows = self._conn.execute(
+                f"select id, {time_column} from public.{table} where challenge_id = %s",
+                (challenge_id,),
+            ).fetchall()
+            for row_id, at in rows:
+                week_id = sightings.week_at(at).id
+                touched.add(week_id)
+                self._conn.execute(
+                    f"update public.{table} set week_id = %s, challenge_id = null where id = %s",
+                    (week_id, row_id),
+                )
+        self._conn.execute("delete from public.challenges where id = %s", (challenge_id,))
+        weeks = PgWeeksRepo(self._conn)
+        for week_id in touched:
+            weeks.refresh_results(week_id)
 
     def _winner(self, challenge_id: UUID) -> Winner | None:
         row = self._conn.execute(

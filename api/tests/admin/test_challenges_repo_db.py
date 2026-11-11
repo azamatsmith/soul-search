@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import psycopg
@@ -6,6 +6,8 @@ import pytest
 
 from app.admin.challenges import Challenge, ChallengeDraft, ChallengeRules
 from app.admin.challenges_repo import PgChallengesRepo, Winner
+from app.sightings.repo import PgSightingsRepo
+from app.weeks.repo import PgWeeksRepo
 from tests.sightings.test_sightings_repo_db import (
     ALICE,
     AT,
@@ -112,3 +114,57 @@ def test_overlapping_ignores_the_excluded_challenge(db_conn: psycopg.Connection)
     created = create(db_conn, "Brown Week", AT)
 
     assert PgChallengesRepo(db_conn).overlapping(AT, AT + timedelta(hours=4), created.id) is None
+
+
+WEEK_A_PHOTO = datetime(2030, 6, 16, 12, tzinfo=UTC)
+WEEK_B_PHOTO = datetime(2030, 6, 17, 12, tzinfo=UTC)
+
+
+def sighting_periods(conn: psycopg.Connection, player: object) -> list[tuple[object, ...]]:
+    return conn.execute(
+        "select week_id, challenge_id, points from public.sightings "
+        "where player_id = %s and taken_at in (%s, %s) order by taken_at",
+        (player, WEEK_A_PHOTO, WEEK_B_PHOTO),
+    ).fetchall()
+
+
+def test_delete_moves_photos_to_each_ones_week_and_refreshes_closed_weeks(
+    db_conn: psycopg.Connection,
+):
+    sightings = PgSightingsRepo(db_conn)
+    week_a = sightings.week_at(WEEK_A_PHOTO)
+    week_b = sightings.week_at(WEEK_B_PHOTO)
+    challenge = create(db_conn, "Brown Week", datetime(2030, 6, 16, 7, tzinfo=UTC), hours=48)
+    add_sighting(db_conn, BOB, challenge.id, kind="challenge", points=2, taken_at=WEEK_A_PHOTO)
+    add_sighting(db_conn, BOB, challenge.id, kind="challenge", points=3, taken_at=WEEK_B_PHOTO)
+    PgWeeksRepo(db_conn).close_ended(week_a.ends_at + timedelta(minutes=1))
+
+    PgChallengesRepo(db_conn).delete(challenge.id)
+
+    assert sighting_periods(db_conn, BOB) == [(week_a.id, None, 2), (week_b.id, None, 3)]
+    final = PgWeeksRepo(db_conn).final(week_a.id)
+    assert final is not None
+    assert [(row.display_name, row.points) for row in final.rows] == [("Bob", 2)]
+    assert PgChallengesRepo(db_conn).get(challenge.id) is None
+
+
+def test_delete_moves_adjustments_by_created_at(db_conn: psycopg.Connection):
+    challenge = create(db_conn, "Brown Week", AT)
+    add_adjustment(db_conn, CAROL, challenge.id, kind="challenge", change=3)
+    db_conn.execute(
+        "update public.score_adjustments set created_at = %s where challenge_id = %s",
+        (WEEK_B_PHOTO, challenge.id),
+    )
+
+    PgChallengesRepo(db_conn).delete(challenge.id)
+
+    week_b = PgSightingsRepo(db_conn).week_at(WEEK_B_PHOTO)
+    row = db_conn.execute(
+        "select week_id, challenge_id from public.score_adjustments where player_id = %s",
+        (CAROL,),
+    ).fetchone()
+    assert row == (week_b.id, None)
+
+
+def test_delete_unknown_is_a_no_op(db_conn: psycopg.Connection):
+    PgChallengesRepo(db_conn).delete(uuid4())
