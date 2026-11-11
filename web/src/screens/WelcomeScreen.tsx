@@ -1,6 +1,6 @@
 import { AuthLayout } from '../components/AuthLayout'
 import { Button } from '../components/Button'
-import { FormError } from '../components/FormError'
+import { ConnectionError } from '../components/ConnectionError'
 import { TextField } from '../components/TextField'
 import { useDisplayNameForm } from '../hooks/useDisplayNameForm'
 import { useMeContext } from '../hooks/useMeContext'
@@ -31,11 +31,7 @@ export const WelcomeScreen = () => {
           onChange={handleNameChange}
           value={name}
         />
-        {unavailable && (
-          <FormError title="We couldn't reach Soul Search.">
-            Check your connection and try again.
-          </FormError>
-        )}
+        {unavailable && <ConnectionError kind="unreachable" />}
         <div className={styles.spacer} />
         <Button disabled={saving} type="submit">
           Let's go

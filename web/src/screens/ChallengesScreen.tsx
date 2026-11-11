@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import { ChallengeCard } from '../components/ChallengeCard'
+import { EmptyNote } from '../components/EmptyNote'
 import { LeaderboardPlaceholder } from '../components/LeaderboardPlaceholder'
 import { LoadError } from '../components/LoadError'
 import { PushedScreen } from '../components/PushedScreen'
@@ -85,7 +86,7 @@ export const ChallengesScreen = () => {
         <LoadError onRetry={challenges.retry} thing="the challenges" />
       )}
       {challenges.data && groups.length === 0 && (
-        <p className={styles.empty}>No challenges yet.</p>
+        <EmptyNote>No challenges yet.</EmptyNote>
       )}
       {groups.map((group) => (
         <section className={styles.section} key={group.title}>

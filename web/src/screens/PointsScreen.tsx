@@ -1,6 +1,6 @@
 import { Button } from '../components/Button'
 import { CategoryEditor } from '../components/CategoryEditor'
-import { FormError } from '../components/FormError'
+import { ConnectionError } from '../components/ConnectionError'
 import { LoadError } from '../components/LoadError'
 import { PushedScreen } from '../components/PushedScreen'
 import { Stepper } from '../components/Stepper'
@@ -62,11 +62,7 @@ export const PointsScreen = () => {
           <p className={styles.note}>
             Changes apply to new photos from now on. Past points stay the same.
           </p>
-          {saveFailed && (
-            <FormError title="We couldn't save that.">
-              Check your connection and try again.
-            </FormError>
-          )}
+          {saveFailed && <ConnectionError kind="save" />}
           <div className={styles.spacer} />
           <Button disabled={saving} onClick={handleSaveClick}>
             Save changes

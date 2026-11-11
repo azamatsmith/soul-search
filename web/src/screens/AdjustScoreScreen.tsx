@@ -1,6 +1,6 @@
 import type { ChangeEvent } from 'react'
 import { Button } from '../components/Button'
-import { FormError } from '../components/FormError'
+import { ConnectionError } from '../components/ConnectionError'
 import { LoadError } from '../components/LoadError'
 import { PlayerSelect } from '../components/PlayerSelect'
 import { PushedScreen } from '../components/PushedScreen'
@@ -63,11 +63,7 @@ export const AdjustScoreScreen = () => {
             onChange={handleReasonChange}
             value={form.reason}
           />
-          {form.saveFailed && (
-            <FormError title="We couldn't save that.">
-              Check your connection and try again.
-            </FormError>
-          )}
+          {form.saveFailed && <ConnectionError kind="save" />}
           <div className={styles.spacer} />
           <Button disabled={!form.canSave} onClick={handleSaveClick}>
             {saveLabel(player, form.change)}

@@ -1,3 +1,4 @@
+import { EmptyNote } from '../components/EmptyNote'
 import { LeaderboardPlaceholder } from '../components/LeaderboardPlaceholder'
 import { LoadError } from '../components/LoadError'
 import { PastWeekCard } from '../components/PastWeekCard'
@@ -25,9 +26,7 @@ export const PastWeeksScreen = () => {
         <LoadError onRetry={past.retry} thing="past weeks" />
       )}
       {past.data && weeks.length === 0 && (
-        <p className={styles.empty}>
-          Finished weeks show up here after Monday’s reset.
-        </p>
+        <EmptyNote>Finished weeks show up here after Monday’s reset.</EmptyNote>
       )}
       {weeks.length > 0 && (
         <ul className={styles.list}>

@@ -19,6 +19,7 @@ import { pacificDay } from '../lib/pacificTime'
 import { useApiResource } from './useApiResource'
 import { useNow } from './useNow'
 import { useRefreshAll } from './useRefreshAll'
+import { useSaveAction } from './useSaveAction'
 
 export interface ChallengeFields {
   endDate: string
@@ -97,8 +98,8 @@ export const useChallengeForm = (id: string | null) => {
   )
   const list = useApiResource(['challenges'], getChallenges)
   const [draft, setDraft] = useState<ChallengeFields | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { failure, run, saving } = useSaveAction()
+  const [invalid, setInvalid] = useState<string | null>(null)
 
   const challenge = saved.data
   const initial = id
@@ -114,14 +115,9 @@ export const useChallengeForm = (id: string | null) => {
   }
 
   const finish = async (send: () => Promise<ApiResult<unknown>>) => {
-    setSaving(true)
-    setError(null)
-    const result = await send()
-    setSaving(false)
-    if (!result.ok) {
-      setError(challengeErrorText(result))
-      return
-    }
+    setInvalid(null)
+    const result = await run(send)
+    if (!result.ok) return
     refreshAll()
     void navigate(LIST)
   }
@@ -129,7 +125,7 @@ export const useChallengeForm = (id: string | null) => {
   const save = () => {
     if (!fields) return
     if (!hasAllTimes(fields)) {
-      setError('Pick a start and end date and time.')
+      setInvalid('Pick a start and end date and time.')
       return
     }
     const lockedStart = challenge?.started ? challenge.starts_at : null
@@ -148,7 +144,7 @@ export const useChallengeForm = (id: string | null) => {
 
   return {
     categories: weekly.data?.categories ?? [],
-    error,
+    error: invalid ?? (failure && challengeErrorText(failure)),
     fields,
     finished,
     loadStatus: failed ? 'error' : fields ? 'ready' : 'loading',

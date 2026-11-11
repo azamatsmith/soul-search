@@ -1,4 +1,5 @@
 import type { ApiFailure } from './api'
+import { CHECK_CONNECTION, SAVE_FAILED } from './errorCopy'
 
 export const challengeErrorText = (failure: ApiFailure) => {
   switch (failure.error) {
@@ -17,6 +18,6 @@ export const challengeErrorText = (failure: ApiFailure) => {
     case 'not_found':
       return 'This challenge was deleted.'
     default:
-      return "We couldn't save that. Check your connection and try again."
+      return `${SAVE_FAILED} ${CHECK_CONNECTION}`
   }
 }

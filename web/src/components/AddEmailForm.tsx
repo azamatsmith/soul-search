@@ -1,7 +1,8 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
+import { useSaveAction } from '../hooks/useSaveAction'
 import { addAllowedEmail, type AllowedEmail } from '../lib/api'
 import { Button } from './Button'
-import { FormError } from './FormError'
+import { ConnectionError } from './ConnectionError'
 import { TextField } from './TextField'
 import styles from './AddEmailForm.module.css'
 
@@ -17,8 +18,8 @@ const FIELD_ERRORS: Partial<Record<string, string>> = {
 export const AddEmailForm = ({ onAdded }: AddEmailFormProps) => {
   const [email, setEmail] = useState('')
   const [fieldError, setFieldError] = useState<string>()
-  const [failed, setFailed] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const { failure, run, saving } = useSaveAction()
+  const failed = failure !== null && !FIELD_ERRORS[failure.error]
 
   const handleEmailChange = (event: ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value)
@@ -27,18 +28,13 @@ export const AddEmailForm = ({ onAdded }: AddEmailFormProps) => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setSaving(true)
-    setFailed(false)
-    const result = await addAllowedEmail(email)
-    setSaving(false)
+    const result = await run(() => addAllowedEmail(email))
     if (result.ok) {
       setEmail('')
       onAdded(result.data)
       return
     }
-    const message = FIELD_ERRORS[result.error]
-    if (message) setFieldError(message)
-    else setFailed(true)
+    setFieldError(FIELD_ERRORS[result.error])
   }
 
   return (
@@ -56,11 +52,7 @@ export const AddEmailForm = ({ onAdded }: AddEmailFormProps) => {
       <Button disabled={saving || email.trim() === ''} type="submit">
         Add to the list
       </Button>
-      {failed && (
-        <FormError title="We couldn't save that.">
-          Check your connection and try again.
-        </FormError>
-      )}
+      {failed && <ConnectionError kind="save" />}
       <p className={styles.note}>
         They can sign in once they're on the list. We don't send an invite; tell
         them to open the app.

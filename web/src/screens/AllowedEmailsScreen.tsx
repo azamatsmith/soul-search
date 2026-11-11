@@ -1,6 +1,6 @@
 import { AddEmailForm } from '../components/AddEmailForm'
 import { AllowedEmailRow } from '../components/AllowedEmailRow'
-import { FormError } from '../components/FormError'
+import { ConnectionError } from '../components/ConnectionError'
 import { LoadError } from '../components/LoadError'
 import { PushedScreen } from '../components/PushedScreen'
 import { useAllowedEmails } from '../hooks/useAllowedEmails'
@@ -27,11 +27,7 @@ export const AllowedEmailsScreen = () => {
       {emails && (
         <>
           <AddEmailForm onAdded={handleAdded} />
-          {removeFailed && (
-            <FormError title="We couldn't save that.">
-              Check your connection and try again.
-            </FormError>
-          )}
+          {removeFailed && <ConnectionError kind="save" />}
           <ul className={styles.list}>
             {emails.map((entry) => (
               <AllowedEmailRow

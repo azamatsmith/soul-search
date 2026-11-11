@@ -1,6 +1,6 @@
 import { AuthLayout } from './AuthLayout'
 import { Button } from './Button'
-import { FormError } from './FormError'
+import { ConnectionError } from './ConnectionError'
 
 export interface UnreachableScreenProps {
   onRetry: () => void
@@ -8,9 +8,7 @@ export interface UnreachableScreenProps {
 
 export const UnreachableScreen = ({ onRetry }: UnreachableScreenProps) => (
   <AuthLayout>
-    <FormError title="We couldn't reach Soul Search.">
-      Check your connection and try again.
-    </FormError>
+    <ConnectionError kind="unreachable" />
     <Button onClick={onRetry}>Try again</Button>
   </AuthLayout>
 )

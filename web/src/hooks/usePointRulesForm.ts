@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router'
 import { getPointRules, putPointRules, type PointRules } from '../lib/api'
 import { useApiResource } from './useApiResource'
 import { useRefreshAll } from './useRefreshAll'
+import { useSaveAction } from './useSaveAction'
 
 export const usePointRulesForm = () => {
   const resource = useApiResource(['pointRules'], getPointRules)
   const navigate = useNavigate()
   const refreshAll = useRefreshAll()
   const [draft, setDraft] = useState<PointRules | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [saveFailed, setSaveFailed] = useState(false)
+  const { failure, run, saving } = useSaveAction()
   const rules = draft ?? resource.data
 
   const update = (change: Partial<PointRules>) => {
@@ -19,14 +19,8 @@ export const usePointRulesForm = () => {
 
   const handleSave = async () => {
     if (!rules) return
-    setSaving(true)
-    setSaveFailed(false)
-    const result = await putPointRules(rules)
-    setSaving(false)
-    if (!result.ok) {
-      setSaveFailed(true)
-      return
-    }
+    const result = await run(() => putPointRules(rules))
+    if (!result.ok) return
     refreshAll()
     void navigate('/admin')
   }
@@ -35,7 +29,7 @@ export const usePointRulesForm = () => {
     handleSave,
     retry: resource.retry,
     rules,
-    saveFailed,
+    saveFailed: failure !== null,
     saving,
     status: resource.status,
     update,

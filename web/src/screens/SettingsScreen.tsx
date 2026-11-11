@@ -1,12 +1,12 @@
-import { useState } from 'react'
 import { Button } from '../components/Button'
+import { ConnectionError } from '../components/ConnectionError'
 import { CountBadge } from '../components/CountBadge'
-import { FormError } from '../components/FormError'
 import { ProfileCard } from '../components/ProfileCard'
 import { PushedScreen } from '../components/PushedScreen'
 import { SettingsRow } from '../components/SettingsRow'
 import { ToggleSwitch } from '../components/ToggleSwitch'
 import { useMeContext } from '../hooks/useMeContext'
+import { useSaveAction } from '../hooks/useSaveAction'
 import { putTextSize } from '../lib/api'
 import { supabase } from '../lib/supabase'
 import styles from './SettingsScreen.module.css'
@@ -18,22 +18,14 @@ const flaggedText = (count: number) => {
 
 export const SettingsScreen = () => {
   const { me, setMe } = useMeContext()
-  const [saving, setSaving] = useState(false)
-  const [saveFailed, setSaveFailed] = useState(false)
+  const { failure, run, saving } = useSaveAction()
   const flagged = me.flagged_count ?? 0
 
   const handleLargeTextChange = async (large: boolean) => {
-    setSaving(true)
-    setSaveFailed(false)
-    setMe({ ...me, text_size: large ? 'large' : 'standard' })
-    const result = await putTextSize(large ? 'large' : 'standard')
-    setSaving(false)
-    if (result.ok) {
-      setMe(result.data)
-    } else {
-      setMe(me)
-      setSaveFailed(true)
-    }
+    const size = large ? 'large' : 'standard'
+    setMe({ ...me, text_size: size })
+    const result = await run(() => putTextSize(size))
+    setMe(result.ok ? result.data : me)
   }
 
   const handleSignOut = () => {
@@ -62,11 +54,7 @@ export const SettingsScreen = () => {
           }
         />
       </div>
-      {saveFailed && (
-        <FormError title="We couldn't save that.">
-          Check your connection and try again.
-        </FormError>
-      )}
+      {failure && <ConnectionError kind="save" />}
       {me.is_admin && (
         <section className={styles.admin}>
           <h2 className={styles.label}>Only admins see this</h2>
