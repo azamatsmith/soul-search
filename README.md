@@ -1,6 +1,6 @@
 # Soul Search
 
-A web app with a React frontend and a FastAPI backend.
+A web app with a React frontend and a FastAPI backend, live at https://soulsearch.cc.
 
 ## Prerequisites
 
@@ -49,7 +49,7 @@ Sign in with a seeded email such as `bob@example.test`, then read the 6-digit co
 | `VITE_API_URL` | web | `http://localhost:8000` | Set in the Netlify dashboard |
 | `VITE_SUPABASE_URL` | web | `http://127.0.0.1:54321` | Set in the Netlify dashboard |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | web | local stack's publishable key | Set in the Netlify dashboard (the project's publishable key, safe for browsers) |
-| `CORS_ORIGINS` | api | `http://localhost:5173` | Set in the Render dashboard |
+| `CORS_ORIGINS` | api | `http://localhost:5173` | Set in the Render dashboard; production includes `https://soulsearch.cc` |
 | `CORS_ORIGIN_REGEX` | api | unset | Optional, set in the Render dashboard to allow origins by pattern, such as Netlify previews: `^https://deploy-preview-\d+--soulsearchapp\.netlify\.app$` |
 | `SUPABASE_URL` | api | `http://127.0.0.1:54321` | Set in the Render dashboard |
 | `SUPABASE_SECRET_KEY` | api | `api/.env.local` | Set in the Render dashboard |
@@ -62,7 +62,7 @@ Staging and production values are configured on each host, never committed.
 
 ## Deployment
 
-The web app runs on Netlify, configured by `netlify.toml`. Netlify builds `web/` and deploys `main` to production, and builds a preview for every pull request. Previews call the production API, which accepts them through `CORS_ORIGIN_REGEX` on Render. Previews for pull requests from forks only build after approval in Netlify. `VITE_API_URL`, `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are set in the Netlify dashboard.
+The web app runs on Netlify, configured by `netlify.toml`, and is served at https://soulsearch.cc as the site's custom domain. Netlify builds `web/` and deploys `main` to production, and builds a preview for every pull request. Previews call the production API, which accepts them through `CORS_ORIGIN_REGEX` on Render. Previews for pull requests from forks only build after approval in Netlify. `VITE_API_URL`, `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are set in the Netlify dashboard.
 
 The web app installs to the home screen on iPhone (Safari) and Android (Chrome) as a PWA. Its icon is `web/public/icon.svg`. After changing it, run `npm run icons` in `web/` to regenerate the PNG sizes.
 
@@ -92,7 +92,7 @@ select vault.create_secret('<CLOSE_OUT_SECRET>', 'close_out_secret');
 
 Check recent calls with `select status_code, content from net._http_response order by created desc limit 5;`.
 
-Production web app: https://soulsearchapp.netlify.app
+Production web app: https://soulsearch.cc (the Netlify site is `soulsearchapp`, so pull request previews stay on `netlify.app`).
 
 Production API: https://soul-search-api.onrender.com (health check at `/health`).
 
