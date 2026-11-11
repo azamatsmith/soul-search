@@ -1,5 +1,6 @@
 import type { CodeState } from '../hooks/useSignIn'
 import { FormError } from './FormError'
+import { RollingCar } from './RollingCar'
 import styles from './CodeStatusMessage.module.css'
 
 export interface CodeStatusMessageProps {
@@ -17,7 +18,7 @@ export const CodeStatusMessage = ({ state }: CodeStatusMessageProps) => {
     case 'checking':
       return (
         <div className={styles.checking} role="status">
-          <span aria-hidden="true" className={styles.spinner} />
+          <RollingCar size="small" />
           Checking your code…
         </div>
       )

@@ -71,11 +71,21 @@ describe('RequireAuth', () => {
     expect(router.state.location.pathname).toBe('/sign-in')
   })
 
-  it('shows nothing while the session loads', () => {
+  it('shows the rolling car while the session loads', () => {
     session.mockReturnValue({ status: 'loading' })
     renderAt('/')
+    expect(screen.getByRole('status')).toHaveTextContent('Loading Soul Search…')
     expect(screen.queryByRole('heading')).not.toBeInTheDocument()
     expect(me).not.toHaveBeenCalled()
+  })
+
+  it('shows the rolling car on sign in while the session loads', () => {
+    session.mockReturnValue({ status: 'loading' })
+    renderAt('/sign-in')
+    expect(screen.getByRole('status')).toHaveTextContent('Loading Soul Search…')
+    expect(
+      screen.queryByRole('button', { name: 'Email me a code' }),
+    ).not.toBeInTheDocument()
   })
 
   it('sends a player without a display name to welcome', async () => {

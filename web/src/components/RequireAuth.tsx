@@ -5,6 +5,7 @@ import { useMe } from '../hooks/useMe'
 import { useSession } from '../hooks/useSession'
 import { useTextSize } from '../hooks/useTextSize'
 import { supabase } from '../lib/supabase'
+import { LoadingScreen } from './LoadingScreen'
 import { UnreachableScreen } from './UnreachableScreen'
 
 const WELCOME_PATH = '/welcome'
@@ -31,7 +32,7 @@ export const RequireAuth = () => {
   if (status === 'error' && !revoked) {
     return <UnreachableScreen onRetry={retry} />
   }
-  if (!me) return null
+  if (!me) return <LoadingScreen />
   if (!me.display_name && pathname !== WELCOME_PATH) {
     return <Navigate replace to={WELCOME_PATH} />
   }
