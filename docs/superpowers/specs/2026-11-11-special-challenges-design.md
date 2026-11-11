@@ -55,7 +55,7 @@ Change history wording: "created Brown Week", "changed Brown Week", "deleted Bro
 ## PR 2: Web, C1 and C2
 
 - C1 admin list: Running now, Coming up, Finished. Cards show the exact Pacific range and a status line ("Live · ends 6:00 pm · 3 hours left", "Starts Thu 9:00 am · in 3 days", "Won by Marcus T.").
-- C2 and C2b create and edit: name, start and end each as a date picker plus a time picker, "All times Pacific", a live duration line ("Runs 4 hours"), steppers prefilled from the weekly rules, add and remove category bonuses, Save challenge, and Delete challenge with an in-page confirm. Start pickers are disabled once started.
+- C2 and C2b create and edit: name, start and end each as a date picker plus a time picker, "All times Pacific", a live duration line ("Runs 4 hours"), steppers prefilled from the weekly rules, add and remove category bonuses, Save challenge, and Delete challenge with an in-page confirm. Start pickers are disabled once started. Finished challenges open read-only, showing the winner, with only Delete offered.
 - A Challenges row on Admin tools (A1).
 - Shared time-left helper following the design rule: over 24 hours "Ends Sun 11:59 pm · 2 days left"; 1 to 24 hours "Ends 6:00 pm · 3 hours left"; under an hour "Ends 6:00 pm · 45 min left". Weekday only when the end isn't today, lowercase am/pm.
 
