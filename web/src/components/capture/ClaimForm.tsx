@@ -1,6 +1,13 @@
 import { useId } from 'react'
 import type { Rules } from '../../lib/api'
-import { claimPoints, sendLabel, type ClaimType } from '../../lib/claim'
+import {
+  claimPoints,
+  hasBrownCategory,
+  liveBonuses,
+  sendLabel,
+  specialDescription,
+  type ClaimType,
+} from '../../lib/claim'
 import { Button } from '../Button'
 import { CategoryChip } from './CategoryChip'
 import { ClaimOption } from './ClaimOption'
@@ -9,6 +16,7 @@ import { StepHeading } from './StepHeading'
 
 export interface ClaimFormProps {
   category: string | null
+  challengeName: string | null
   claimType: ClaimType | null
   onCategoryChange: (category: string) => void
   onClaimTypeChange: (claimType: ClaimType) => void
@@ -19,6 +27,7 @@ export interface ClaimFormProps {
 
 export const ClaimForm = ({
   category,
+  challengeName,
   claimType,
   onCategoryChange,
   onClaimTypeChange,
@@ -28,6 +37,7 @@ export const ClaimForm = ({
 }: ClaimFormProps) => {
   const legendId = useId()
   const points = claimPoints(rules, claimType, category)
+  const bonuses = liveBonuses(rules)
 
   return (
     <main className={styles.screen}>
@@ -40,6 +50,9 @@ export const ClaimForm = ({
             title="What did you find?"
           />
         </div>
+        {challengeName && (
+          <p className={styles.counts}>Counts toward {challengeName}</p>
+        )}
         <div
           aria-label="Kind of Soul"
           className={styles.options}
@@ -55,7 +68,7 @@ export const ClaimForm = ({
           />
           <ClaimOption
             checked={claimType === 'special'}
-            description="Alien Green, racing stripes, graphics or brown"
+            description={specialDescription(rules.categories)}
             label="Special Soul"
             onChange={onClaimTypeChange}
             points={rules.special}
@@ -75,6 +88,7 @@ export const ClaimForm = ({
             >
               {rules.categories.map((option) => (
                 <CategoryChip
+                  bonus={bonuses[option]}
                   key={option}
                   label={option}
                   onSelect={onCategoryChange}
@@ -82,9 +96,11 @@ export const ClaimForm = ({
                 />
               ))}
             </div>
-            <p className={styles.note}>
-              Brown means brown: champagne, pale gold and beige don't count.
-            </p>
+            {hasBrownCategory(rules.categories) && (
+              <p className={styles.note}>
+                Brown means brown: champagne, pale gold and beige don't count.
+              </p>
+            )}
           </fieldset>
         )}
       </div>

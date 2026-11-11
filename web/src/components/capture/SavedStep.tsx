@@ -1,9 +1,11 @@
+import { pointsText } from '../../lib/claim'
 import { Button } from '../Button'
 import styles from './SavedStep.module.css'
 
 export interface SavedStepProps {
   challengeName: string | null
   claimType: 'regular' | 'special'
+  falseCall: number
   onDone: () => void
   onSnapAnother: () => void
   periodPoints: number
@@ -20,6 +22,7 @@ const totalText = (points: number, challengeName: string | null) => {
 export const SavedStep = ({
   challengeName,
   claimType,
+  falseCall,
   onDone,
   onSnapAnother,
   periodPoints,
@@ -36,8 +39,8 @@ export const SavedStep = ({
       <span className={styles.points}>+{points}</span>
       <p className={styles.total}>{totalText(periodPoints, challengeName)}</p>
       <p className={styles.note}>
-        We'll double-check the photo. If it isn't a Kia Soul, it becomes a -1 in
-        Sightings.
+        We'll double-check the photo. If it isn't a Kia Soul, it becomes a{' '}
+        {pointsText(falseCall)} in Sightings.
       </p>
     </div>
     <div className={styles.actions}>

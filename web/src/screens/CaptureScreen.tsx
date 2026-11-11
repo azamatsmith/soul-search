@@ -73,6 +73,7 @@ export const CaptureScreen = () => {
       <SavedStep
         challengeName={period.data?.name ?? null}
         claimType={sender.saved.sighting.claim_type}
+        falseCall={period.data?.rules.false_call ?? -1}
         onDone={goHome}
         onSnapAnother={handleSnapAnother}
         periodPoints={sender.saved.period_points}
@@ -124,6 +125,9 @@ export const CaptureScreen = () => {
       {capture.step === 'claim' && capture.photo && period.data && (
         <ClaimForm
           category={capture.category}
+          challengeName={
+            period.data.kind === 'challenge' ? period.data.name : null
+          }
           claimType={capture.claimType}
           onCategoryChange={capture.setCategory}
           onClaimTypeChange={capture.chooseClaimType}

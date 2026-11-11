@@ -83,6 +83,20 @@ describe('bannerBody', () => {
     )
   })
 
+  it('leaves out bonuses worth no more than a special Soul', () => {
+    expect(
+      bannerBody(
+        challenge('2026-11-16T07:59:00Z', {
+          'Alien Green': 2,
+          'Brown paint': 3,
+        }),
+        NOW,
+      ),
+    ).toBe(
+      'Brown paint is worth +3. Photos count toward the challenge until Sun 11:59 pm. Weekly scores pick up again after that.',
+    )
+  })
+
   it('treats midnight as the next day', () => {
     expect(bannerBody(challenge('2026-11-13T08:00:00Z', {}), NOW)).toBe(
       'Photos count toward the challenge until Fri 12:00 am. Weekly scores pick up again after that.',
