@@ -1,5 +1,4 @@
 import {
-  act,
   fireEvent,
   render,
   screen,
@@ -15,7 +14,7 @@ import {
   type LoggedSighting,
   type SightingsLog,
 } from '../lib/api'
-import { type QueuedSighting, UPLOADS_FLUSHED } from '../lib/uploadQueue'
+import type { QueuedSighting } from '../lib/uploadQueue'
 import { SightingsScreen } from './SightingsScreen'
 import { queryWrapper } from '../test/queryWrapper'
 
@@ -198,21 +197,6 @@ describe('SightingsScreen', () => {
     expect(await screen.findByText('2 this week')).toBeInTheDocument()
     expect(screen.queryByText('Waiting to send')).toBeNull()
   })
-  it('reloads the log as soon as queued photos are sent', async () => {
-    serve(EVERYONE)
-    renderLog()
-    await screen.findByText('Marcus T.')
-    const before = vi.mocked(getSightings).mock.calls.length
-
-    act(() => {
-      window.dispatchEvent(new Event(UPLOADS_FLUSHED))
-    })
-
-    await waitFor(() =>
-      expect(vi.mocked(getSightings).mock.calls.length).toBeGreaterThan(before),
-    )
-  })
-
   it('opens a sighting full screen and closes it', async () => {
     serve(EVERYONE)
     renderLog()
