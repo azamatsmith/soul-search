@@ -1,5 +1,6 @@
 import type { Period } from './api'
 import { clockText } from './challengeTime'
+import { liveBonuses } from './claim'
 import { pacificDay, weekday } from './pacificTime'
 
 const listText = (items: string[]) =>
@@ -29,7 +30,7 @@ export const bannerTitle = (name: string) => `${name} is on`
 
 export const bannerBody = (period: Period, now: number) => {
   const end = Date.parse(period.ends_at)
-  const clause = bonusClause(period.rules.bonuses)
+  const clause = bonusClause(liveBonuses(period.rules))
   if (pacificDay(end) === pacificDay(now)) {
     const lead = clause ?? 'Photos count toward the challenge'
     return `${lead} until ${clockText(end)} today. After that, photos count toward your week again.`

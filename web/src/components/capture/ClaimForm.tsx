@@ -3,6 +3,7 @@ import type { Rules } from '../../lib/api'
 import {
   claimPoints,
   hasBrownCategory,
+  liveBonuses,
   sendLabel,
   specialDescription,
   type ClaimType,
@@ -36,6 +37,7 @@ export const ClaimForm = ({
 }: ClaimFormProps) => {
   const legendId = useId()
   const points = claimPoints(rules, claimType, category)
+  const bonuses = liveBonuses(rules)
 
   return (
     <main className={styles.screen}>
@@ -86,7 +88,7 @@ export const ClaimForm = ({
             >
               {rules.categories.map((option) => (
                 <CategoryChip
-                  bonus={rules.bonuses[option]}
+                  bonus={bonuses[option]}
                   key={option}
                   label={option}
                   onSelect={onCategoryChange}

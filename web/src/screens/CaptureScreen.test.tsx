@@ -465,4 +465,18 @@ describe('CaptureScreen', () => {
       await screen.findByText(/it becomes a \u22122 in Sightings\./),
     ).toBeInTheDocument()
   })
+
+  it('shows no badge for a bonus worth no more than a special Soul', async () => {
+    vi.mocked(getPeriod).mockResolvedValue({
+      ok: true,
+      data: {
+        ...PERIOD,
+        rules: { ...PERIOD.rules, bonuses: { 'Brown paint': 2 } },
+      },
+    })
+    await reachClaimStep()
+    fireEvent.click(screen.getByRole('radio', { name: /Special Soul/ }))
+
+    expect(chip('Brown paint')).not.toHaveTextContent('+')
+  })
 })

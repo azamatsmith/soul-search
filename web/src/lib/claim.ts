@@ -27,3 +27,10 @@ export const hasBrownCategory = (categories: string[]) =>
 
 export const pointsText = (points: number) =>
   points < 0 ? `−${Math.abs(points)}` : `+${points}`
+
+export const liveBonuses = (rules: Rules) =>
+  Object.fromEntries(
+    Object.entries(rules.bonuses).filter(
+      ([, points]) => points > rules.special,
+    ),
+  )

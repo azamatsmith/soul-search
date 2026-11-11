@@ -3,6 +3,7 @@ import type { Rules } from './api'
 import {
   claimPoints,
   hasBrownCategory,
+  liveBonuses,
   pointsText,
   sendLabel,
   specialDescription,
@@ -87,5 +88,16 @@ describe('pointsText', () => {
 
   it('uses a real minus sign', () => {
     expect(pointsText(-1)).toBe('\u22121')
+  })
+})
+
+describe('liveBonuses', () => {
+  it('keeps only bonuses worth more than a special Soul', () => {
+    expect(
+      liveBonuses({
+        ...RULES,
+        bonuses: { 'Alien Green': 2, 'Brown paint': 3, Graphics: 1 },
+      }),
+    ).toEqual({ 'Brown paint': 3 })
   })
 })
