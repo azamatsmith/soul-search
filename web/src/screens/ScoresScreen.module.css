@@ -19,3 +19,16 @@
   margin: 0;
   padding: 0;
 }
+
+.pastWeeks {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: var(--tap-min);
+  margin-top: var(--s-1);
+  border: 2px solid var(--c-forest);
+  border-radius: var(--r-md);
+  color: var(--c-forest);
+  font: 700 var(--t-body) / 1.2 var(--f-body);
+  text-decoration: none;
+}

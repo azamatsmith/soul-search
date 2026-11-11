@@ -278,6 +278,49 @@ export interface Leaderboard {
 export const getLeaderboard = (scope: LeaderboardScope) =>
   request<Leaderboard>(`/leaderboard?scope=${scope}`, 'GET', undefined, true)
 
+export interface PastWinner {
+  display_name: string
+  is_me: boolean
+  player_id: string
+  points: number
+}
+
+export interface MyResult {
+  points: number
+  rank: number
+}
+
+export interface PastWeekSummary {
+  ends_at: string
+  id: string
+  me: MyResult | null
+  starts_at: string
+  winner: PastWinner | null
+}
+
+export interface PastWeeks {
+  total_players: number
+  weeks: PastWeekSummary[]
+}
+
+export interface PastWeek {
+  ends_at: string
+  id: string
+  rows: LeaderboardEntry[]
+  starts_at: string
+}
+
+export const getPastWeeks = () =>
+  request<PastWeeks>('/past-weeks', 'GET', undefined, true)
+
+export const getPastWeek = (id: string) =>
+  request<PastWeek>(
+    `/past-weeks/${encodeURIComponent(id)}`,
+    'GET',
+    undefined,
+    true,
+  )
+
 export type SightingStatus = 'counted' | 'false_call' | 'waiting_review'
 
 export interface LoggedSighting {

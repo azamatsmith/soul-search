@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { EmptyState } from '../components/EmptyState'
 import { LeaderboardPlaceholder } from '../components/LeaderboardPlaceholder'
 import { LeaderboardRow } from '../components/LeaderboardRow'
@@ -65,6 +66,9 @@ export const ScoresScreen = () => {
             ))}
           </ol>
         )}
+        <Link className={styles.pastWeeks} to="/past-weeks">
+          See past weeks ›
+        </Link>
       </div>
     </div>
   )
