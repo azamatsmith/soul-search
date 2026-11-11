@@ -174,6 +174,7 @@ class PgChallengesRepo:
             f"""
             with {ranked_cte("challenge_id = %(period)s")}
             select display_name, points from ranked
+            where points > 0
             order by rank, lower(display_name) limit 1
             """,
             {"period": challenge_id},

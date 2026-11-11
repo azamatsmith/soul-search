@@ -194,3 +194,12 @@ def test_create_stays_inside_the_request_transaction(db_conn: psycopg.Connection
     db_conn.rollback()
 
     assert PgChallengesRepo(db_conn).get(created.id) is None
+
+
+def test_winner_is_none_when_nobody_scored(db_conn: psycopg.Connection):
+    flop = create(db_conn, "Flop", AT - timedelta(days=3))
+    add_adjustment(db_conn, BOB, flop.id, kind="challenge", change=-1)
+
+    (finished,) = [w for c, w in PgChallengesRepo(db_conn).list(AT).finished if c.id == flop.id]
+
+    assert finished is None
