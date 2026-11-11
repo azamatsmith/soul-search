@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import type { Rules } from './api'
-import { claimPoints, sendLabel } from './claim'
+import {
+  claimPoints,
+  hasBrownCategory,
+  pointsText,
+  sendLabel,
+  specialDescription,
+} from './claim'
 
 const RULES: Rules = {
   regular: 1,
@@ -34,5 +40,52 @@ describe('sendLabel', () => {
   it('shows the points to be earned', () => {
     expect(sendLabel(1)).toBe('Send for 1 point')
     expect(sendLabel(3)).toBe('Send for 3 points')
+  })
+})
+
+describe('specialDescription', () => {
+  it('joins with commas and "or"', () => {
+    expect(
+      specialDescription([
+        'Alien Green',
+        'Racing stripes',
+        'Exterior graphics',
+        'Brown paint',
+      ]),
+    ).toBe('Alien Green, Racing stripes, Exterior graphics or Brown paint')
+  })
+
+  it('joins two with "or"', () => {
+    expect(specialDescription(['Alien Green', 'Brown paint'])).toBe(
+      'Alien Green or Brown paint',
+    )
+  })
+
+  it('shows one as-is', () => {
+    expect(specialDescription(['Brown paint'])).toBe('Brown paint')
+  })
+
+  it('is empty with none', () => {
+    expect(specialDescription([])).toBe('')
+  })
+})
+
+describe('hasBrownCategory', () => {
+  it('finds a category starting with Brown', () => {
+    expect(hasBrownCategory(['Alien Green', 'brown paint'])).toBe(true)
+  })
+
+  it('ignores Brown elsewhere in the name', () => {
+    expect(hasBrownCategory(['Light brown'])).toBe(false)
+  })
+})
+
+describe('pointsText', () => {
+  it('signs positive points', () => {
+    expect(pointsText(3)).toBe('+3')
+  })
+
+  it('uses a real minus sign', () => {
+    expect(pointsText(-1)).toBe('\u22121')
   })
 })
