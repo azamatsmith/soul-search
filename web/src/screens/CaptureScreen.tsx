@@ -63,7 +63,8 @@ export const CaptureScreen = () => {
   const blocked = camera.status === 'denied' || camera.status === 'unavailable'
   const photoUrl = capture.photo?.url ?? ''
 
-  if (sender.status === 'sending') return <SendingStep photoUrl={photoUrl} />
+  if (sender.status === 'sending')
+    return <SendingStep photoUrl={photoUrl} progress={sender.progress} />
   if (sender.status === 'failed') {
     return <NotSentStep onLater={goHome} onTryAgain={sender.retry} />
   }
