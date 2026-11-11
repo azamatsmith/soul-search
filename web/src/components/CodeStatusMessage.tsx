@@ -1,4 +1,5 @@
 import type { CodeState } from '../hooks/useSignIn'
+import { ConnectionError } from './ConnectionError'
 import { FormError } from './FormError'
 import { RollingCar } from './RollingCar'
 import styles from './CodeStatusMessage.module.css'
@@ -48,11 +49,7 @@ export const CodeStatusMessage = ({ state }: CodeStatusMessageProps) => {
         </FormError>
       )
     case 'unavailable':
-      return (
-        <FormError title="We couldn't reach Soul Search.">
-          Check your connection and try again.
-        </FormError>
-      )
+      return <ConnectionError kind="unreachable" />
     default:
       return null
   }

@@ -4,6 +4,7 @@ import { Button } from '../components/Button'
 import { FormError } from '../components/FormError'
 import { TextField } from '../components/TextField'
 import type { EmailError } from '../hooks/useSignIn'
+import { CHECK_CONNECTION, UNREACHABLE } from '../lib/errorCopy'
 import styles from './SignInScreen.module.css'
 
 export interface SignInScreenProps {
@@ -19,8 +20,8 @@ const ERRORS: Record<EmailError, { title: string; body?: string }> = {
   },
   invalid_email: { title: "That doesn't look like an email address." },
   unavailable: {
-    title: "We couldn't reach Soul Search.",
-    body: 'Check your connection and try again.',
+    title: UNREACHABLE,
+    body: CHECK_CONNECTION,
   },
 }
 

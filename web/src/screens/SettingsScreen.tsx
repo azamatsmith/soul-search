@@ -1,6 +1,6 @@
 import { Button } from '../components/Button'
+import { ConnectionError } from '../components/ConnectionError'
 import { CountBadge } from '../components/CountBadge'
-import { FormError } from '../components/FormError'
 import { ProfileCard } from '../components/ProfileCard'
 import { PushedScreen } from '../components/PushedScreen'
 import { SettingsRow } from '../components/SettingsRow'
@@ -54,11 +54,7 @@ export const SettingsScreen = () => {
           }
         />
       </div>
-      {failure && (
-        <FormError title="We couldn't save that.">
-          Check your connection and try again.
-        </FormError>
-      )}
+      {failure && <ConnectionError kind="save" />}
       {me.is_admin && (
         <section className={styles.admin}>
           <h2 className={styles.label}>Only admins see this</h2>

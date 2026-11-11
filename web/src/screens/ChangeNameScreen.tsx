@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router'
 import { Button } from '../components/Button'
-import { FormError } from '../components/FormError'
+import { ConnectionError } from '../components/ConnectionError'
 import { PushedScreen } from '../components/PushedScreen'
 import { TextField } from '../components/TextField'
 import { useDisplayNameForm } from '../hooks/useDisplayNameForm'
@@ -47,11 +47,7 @@ export const ChangeNameScreen = () => {
           onChange={handleNameChange}
           value={name}
         />
-        {unavailable && (
-          <FormError title="We couldn't reach Soul Search.">
-            Check your connection and try again.
-          </FormError>
-        )}
+        {unavailable && <ConnectionError kind="unreachable" />}
         <div className={styles.spacer} />
         <Button disabled={saving} type="submit">
           Save name

@@ -2,7 +2,7 @@ import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { useSaveAction } from '../hooks/useSaveAction'
 import { addAllowedEmail, type AllowedEmail } from '../lib/api'
 import { Button } from './Button'
-import { FormError } from './FormError'
+import { ConnectionError } from './ConnectionError'
 import { TextField } from './TextField'
 import styles from './AddEmailForm.module.css'
 
@@ -52,11 +52,7 @@ export const AddEmailForm = ({ onAdded }: AddEmailFormProps) => {
       <Button disabled={saving || email.trim() === ''} type="submit">
         Add to the list
       </Button>
-      {failed && (
-        <FormError title="We couldn't save that.">
-          Check your connection and try again.
-        </FormError>
-      )}
+      {failed && <ConnectionError kind="save" />}
       <p className={styles.note}>
         They can sign in once they're on the list. We don't send an invite; tell
         them to open the app.

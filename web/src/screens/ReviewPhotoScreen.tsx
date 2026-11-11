@@ -1,5 +1,6 @@
 import { Fragment, useState } from 'react'
 import { useParams } from 'react-router'
+import { ConnectionError } from '../components/ConnectionError'
 import { FormError } from '../components/FormError'
 import { LoadError } from '../components/LoadError'
 import { PhotoViewer } from '../components/PhotoViewer'
@@ -7,6 +8,7 @@ import { PushedScreen } from '../components/PushedScreen'
 import { ReviewChoiceButton } from '../components/ReviewChoiceButton'
 import { SpecialPicker } from '../components/SpecialPicker'
 import { useReviewPhoto } from '../hooks/useReviewPhoto'
+import { SAVE_FAILED } from '../lib/errorCopy'
 import {
   claimSummary,
   type ReviewChoice,
@@ -75,13 +77,14 @@ export const ReviewPhotoScreen = () => {
             </section>
           )}
           <h2 className={styles.label}>What should it count as?</h2>
-          {review.saveError && (
-            <FormError title="We couldn't save that.">
-              {review.saveError === 'already_reviewed'
-                ? 'Someone else already looked at this photo.'
-                : 'Check your connection and try again.'}
-            </FormError>
-          )}
+          {review.saveError &&
+            (review.saveError === 'already_reviewed' ? (
+              <FormError title={SAVE_FAILED}>
+                Someone else already looked at this photo.
+              </FormError>
+            ) : (
+              <ConnectionError kind="save" />
+            ))}
           {reviewChoices(item, item.rules).map((choice) => (
             <Fragment key={choice.action}>
               <ReviewChoiceButton
