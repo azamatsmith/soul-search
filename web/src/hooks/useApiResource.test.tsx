@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ApiResult } from '../lib/api'
 import { createQueryClient } from '../lib/queryClient'
 import { queryWrapper } from '../test/queryWrapper'
@@ -138,5 +138,55 @@ describe('useApiResource', () => {
     await waitFor(() => expect(second.result.current.data).toBe(7))
     expect(first.result.current.data).toBe(7)
     expect(load).toHaveBeenCalledTimes(1)
+  })
+})
+
+const setVisibility = (value: 'hidden' | 'visible') => {
+  Object.defineProperty(document, 'visibilityState', {
+    configurable: true,
+    value,
+  })
+  document.dispatchEvent(new Event('visibilitychange', { bubbles: true }))
+}
+
+describe('useApiResource with refreshEvery', () => {
+  const renderPolling = (load: () => Promise<ApiResult<number>>) =>
+    renderHook(
+      () => useApiResource(['polled'], load, { refreshEvery: 30_000 }),
+      { wrapper: queryWrapper() },
+    )
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    setVisibility('visible')
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    setVisibility('visible')
+  })
+
+  it('loads again every interval while visible', async () => {
+    const load = vi.fn(() => Promise.resolve(ok(1)))
+    renderPolling(load)
+    await act(() => vi.advanceTimersByTimeAsync(0))
+
+    await act(() => vi.advanceTimersByTimeAsync(60_000))
+
+    expect(load).toHaveBeenCalledTimes(3)
+  })
+
+  it('pauses while hidden and loads as soon as it is visible again', async () => {
+    const load = vi.fn(() => Promise.resolve(ok(1)))
+    renderPolling(load)
+    await act(() => vi.advanceTimersByTimeAsync(0))
+
+    act(() => setVisibility('hidden'))
+    await act(() => vi.advanceTimersByTimeAsync(90_000))
+    expect(load).toHaveBeenCalledTimes(1)
+
+    act(() => setVisibility('visible'))
+    await act(() => vi.advanceTimersByTimeAsync(0))
+    expect(load).toHaveBeenCalledTimes(2)
   })
 })

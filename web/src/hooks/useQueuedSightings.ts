@@ -31,8 +31,8 @@ export const useQueuedSightings = (
     }
   }, [playerId, store, version])
 
-  const reload = () => setVersion((v) => v + 1)
-  useUploadsFlushed(reload)
+  const handleUploadsFlushed = () => setVersion((v) => v + 1)
+  useUploadsFlushed(handleUploadsFlushed)
 
-  return { items, reload }
+  return { items }
 }

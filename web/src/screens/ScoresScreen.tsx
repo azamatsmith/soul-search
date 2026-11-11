@@ -7,13 +7,13 @@ import { LoadError } from '../components/LoadError'
 import { ScreenTitle } from '../components/ScreenTitle'
 import { SegmentedControl } from '../components/SegmentedControl'
 import { useApiResource } from '../hooks/useApiResource'
-import { useAutoRefresh } from '../hooks/useAutoRefresh'
 import { getLeaderboard, type LeaderboardScope } from '../lib/api'
 import { leaderboardKicker } from '../lib/leaderboardCopy'
 import styles from './ScoresScreen.module.css'
 
 const loadWeek = () => getLeaderboard('week')
 const loadAll = () => getLeaderboard('all')
+const EVERY_30_SECONDS = { refreshEvery: 30_000 }
 
 const SCOPES = [
   { label: 'This week', value: 'week' as const },
@@ -30,16 +30,14 @@ const EMPTY = {
 
 export const ScoresScreen = () => {
   const [scope, setScope] = useState<LeaderboardScope>('week')
-  const week = useApiResource(['leaderboard', 'week'], loadWeek)
-  const all = useApiResource(['leaderboard', 'all'], loadAll)
+  const week = useApiResource(
+    ['leaderboard', 'week'],
+    loadWeek,
+    EVERY_30_SECONDS,
+  )
+  const all = useApiResource(['leaderboard', 'all'], loadAll, EVERY_30_SECONDS)
   const board = scope === 'week' ? week : all
   const scopeLabel = scope === 'week' ? 'This week' : 'All time'
-
-  const handleRefresh = () => {
-    week.refresh()
-    all.refresh()
-  }
-  useAutoRefresh(handleRefresh)
 
   return (
     <div className={styles.screen}>

@@ -9,6 +9,10 @@ export interface ApiResource<T> {
   retry: () => void
 }
 
+interface ApiResourceOptions {
+  refreshEvery?: number
+}
+
 class ApiError extends Error {
   code: ApiErrorCode
 
@@ -24,6 +28,7 @@ const codeOf = (error: unknown): ApiErrorCode =>
 export const useApiResource = <T>(
   key: QueryKey,
   load: () => Promise<ApiResult<T>>,
+  { refreshEvery }: ApiResourceOptions = {},
 ): ApiResource<T> => {
   const client = useQueryClient()
   const query = useQuery({
@@ -33,6 +38,7 @@ export const useApiResource = <T>(
       return result.data
     },
     queryKey: key,
+    refetchInterval: refreshEvery,
   })
 
   const refresh = () => void query.refetch({ cancelRefetch: false })

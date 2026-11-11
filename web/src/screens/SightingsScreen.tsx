@@ -7,7 +7,6 @@ import { SegmentedControl } from '../components/SegmentedControl'
 import { SightingsList } from '../components/SightingsList'
 import { SightingsPlaceholder } from '../components/SightingsPlaceholder'
 import { useApiResource } from '../hooks/useApiResource'
-import { useAutoRefresh } from '../hooks/useAutoRefresh'
 import { useMeContext } from '../hooks/useMeContext'
 import { useNow } from '../hooks/useNow'
 import { usePhotoParam } from '../hooks/usePhotoParam'
@@ -22,6 +21,7 @@ type Filter = 'everyone' | 'mine'
 
 const loadEveryone = () => getSightings(false)
 const loadMine = () => getSightings(true)
+const EVERY_30_SECONDS = { refreshEvery: 30_000 }
 
 const FILTERS = [
   { label: 'Everyone', value: 'everyone' as const },
@@ -45,20 +45,22 @@ export const SightingsScreen = () => {
   const { me } = useMeContext()
   const now = useNow()
   const [filter, setFilter] = useState<Filter>('everyone')
-  const everyone = useApiResource(['sightings', 'everyone'], loadEveryone)
-  const mine = useApiResource(['sightings', 'mine'], loadMine)
+  const everyone = useApiResource(
+    ['sightings', 'everyone'],
+    loadEveryone,
+    EVERY_30_SECONDS,
+  )
+  const mine = useApiResource(['sightings', 'mine'], loadMine, EVERY_30_SECONDS)
   const queue = useQueuedSightings(me.id)
   const waiting = useWaitingCards(queue.items, me.display_name ?? '')
   const photo = usePhotoParam()
   const log = filter === 'everyone' ? everyone : mine
 
-  const handleRefresh = () => {
+  const handleUploadsFlushed = () => {
     everyone.refresh()
     mine.refresh()
-    queue.reload()
   }
-  useAutoRefresh(handleRefresh)
-  useUploadsFlushed(handleRefresh)
+  useUploadsFlushed(handleUploadsFlushed)
 
   const sent = log.data?.sightings ?? []
   const sentIds = new Set(sent.map((s) => s.id))

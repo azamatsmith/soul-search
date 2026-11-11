@@ -82,7 +82,7 @@ const queued = (id: string): QueuedSighting => ({
 })
 
 const queue = (items: QueuedSighting[]) =>
-  vi.mocked(useQueuedSightings).mockReturnValue({ items, reload: vi.fn() })
+  vi.mocked(useQueuedSightings).mockReturnValue({ items })
 
 const serve = (everyone: LoggedSighting[]) =>
   vi
