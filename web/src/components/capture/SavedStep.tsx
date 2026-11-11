@@ -1,3 +1,4 @@
+import { useStatusBarColor } from '../../hooks/useStatusBarColor'
 import { pointsText } from '../../lib/claim'
 import { Button } from '../Button'
 import styles from './SavedStep.module.css'
@@ -27,29 +28,33 @@ export const SavedStep = ({
   onSnapAnother,
   periodPoints,
   points,
-}: SavedStepProps) => (
-  <main className={styles.screen}>
-    <div className={styles.body}>
-      <span aria-hidden className={styles.check}>
-        ✓
-      </span>
-      <h1 className={styles.kicker}>
-        {claimType === 'special' ? 'Special Soul saved' : 'Soul saved'}
-      </h1>
-      <span className={styles.points}>+{points}</span>
-      <p className={styles.total}>{totalText(periodPoints, challengeName)}</p>
-      <p className={styles.note}>
-        We'll double-check the photo. If it isn't a Kia Soul, it becomes a{' '}
-        {pointsText(falseCall)} in Sightings.
-      </p>
-    </div>
-    <div className={styles.actions}>
-      <Button className={styles.again} onClick={onSnapAnother}>
-        Snap another Soul
-      </Button>
-      <Button className={styles.done} onClick={onDone} variant="secondary">
-        Done
-      </Button>
-    </div>
-  </main>
-)
+}: SavedStepProps) => {
+  useStatusBarColor('--c-forest')
+
+  return (
+    <main className={styles.screen}>
+      <div className={styles.body}>
+        <span aria-hidden className={styles.check}>
+          ✓
+        </span>
+        <h1 className={styles.kicker}>
+          {claimType === 'special' ? 'Special Soul saved' : 'Soul saved'}
+        </h1>
+        <span className={styles.points}>+{points}</span>
+        <p className={styles.total}>{totalText(periodPoints, challengeName)}</p>
+        <p className={styles.note}>
+          We'll double-check the photo. If it isn't a Kia Soul, it becomes a{' '}
+          {pointsText(falseCall)} in Sightings.
+        </p>
+      </div>
+      <div className={styles.actions}>
+        <Button className={styles.again} onClick={onSnapAnother}>
+          Snap another Soul
+        </Button>
+        <Button className={styles.done} onClick={onDone} variant="secondary">
+          Done
+        </Button>
+      </div>
+    </main>
+  )
+}

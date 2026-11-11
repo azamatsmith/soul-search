@@ -1,6 +1,7 @@
 import { useId, useRef, useState } from 'react'
 import { useModalLayer } from '../hooks/useModalLayer'
 import { usePinchZoom } from '../hooks/usePinchZoom'
+import { useStatusBarColor } from '../hooks/useStatusBarColor'
 import {
   type LogCard,
   viewerClaimLine,
@@ -21,6 +22,7 @@ export const PhotoViewer = ({ card, onClose }: PhotoViewerProps) => {
   const [loadedUrl, setLoadedUrl] = useState<string | null>(null)
   const zoom = usePinchZoom()
   useModalLayer(closeRef, onClose)
+  useStatusBarColor('--c-camera')
 
   const fullUrl = card.fullPhotoUrl ?? card.photoUrl
   const loaded = loadedUrl === fullUrl

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useStatusBarColor } from '../../hooks/useStatusBarColor'
 import styles from './CameraViewfinder.module.css'
 
 export interface CameraViewfinderProps {
@@ -13,6 +14,7 @@ export const CameraViewfinder = ({
   stream,
 }: CameraViewfinderProps) => {
   const videoRef = useRef<HTMLVideoElement>(null)
+  useStatusBarColor('--c-camera')
 
   useEffect(() => {
     const video = videoRef.current
