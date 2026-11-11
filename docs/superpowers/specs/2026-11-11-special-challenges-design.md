@@ -42,7 +42,7 @@ New files in `api/app/admin/`: `challenges_repo.py` and `challenges_routes.py`, 
 - `PUT /admin/challenges/{id}`: same body. Returns the challenge.
 - `DELETE /admin/challenges/{id}`: 204.
 
-Validation errors return 422 with a player-readable message, matching the existing admin error shape:
+Validation errors return 422 with an error code, matching the existing admin error shape (`overlaps` also carries the other challenge's `name`); the web maps codes to copy:
 
 - Name trimmed, 1 to 40 characters.
 - End after start.
