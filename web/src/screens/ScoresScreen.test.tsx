@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -282,11 +282,60 @@ describe('ScoresScreen', () => {
       )
       renderScores()
 
+      await waitFor(() =>
+        expect(getLeaderboard).toHaveBeenCalledWith('challenge'),
+      )
+      await act(async () => {})
+
       expect(await screen.findByText('Mom')).toBeInTheDocument()
       expect(
         screen.getByRole('button', { name: 'This week' }),
       ).toBeInTheDocument()
       expect(screen.queryByText(/Couldn't load/)).not.toBeInTheDocument()
+    })
+
+    it('falls back to this week when the challenge ends while open', async () => {
+      let ended = false
+      vi.mocked(getLeaderboard).mockImplementation(
+        (scope: LeaderboardScope) => {
+          if (scope !== 'challenge') return ok(scope === 'week' ? WEEK : ALL)
+          return ended
+            ? Promise.resolve({ ok: false, status: 404, error: 'no_challenge' })
+            : ok(CHALLENGE)
+        },
+      )
+      renderScores()
+      expect(await screen.findByText('Dana R.')).toBeInTheDocument()
+
+      ended = true
+      await act(() => vi.advanceTimersByTimeAsync(30_000))
+
+      expect(await screen.findByText('Mom')).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'This week' }),
+      ).toBeInTheDocument()
+      expect(screen.queryByText(/^Rules:/)).not.toBeInTheDocument()
+    })
+
+    it('never shows the last challenge board for a new challenge', async () => {
+      serve({ all: ALL, challenge: CHALLENGE, week: WEEK })
+      const wrapper = queryWrapper()
+      const first = renderScores(wrapper)
+      await screen.findByText('Dana R.')
+      first.unmount()
+      vi.mocked(getPeriod).mockImplementation(() =>
+        ok({ ...CHALLENGE_PERIOD, id: 'c2', name: 'Dash' }),
+      )
+      vi.mocked(getLeaderboard).mockImplementation((scope: LeaderboardScope) =>
+        scope === 'challenge' ? never() : ok(scope === 'week' ? WEEK : ALL),
+      )
+
+      renderScores(wrapper)
+
+      expect(
+        await screen.findByRole('button', { name: 'Dash' }),
+      ).toBeInTheDocument()
+      expect(screen.queryByText('Dana R.')).not.toBeInTheDocument()
     })
 
     it('shows the challenge empty state', async () => {

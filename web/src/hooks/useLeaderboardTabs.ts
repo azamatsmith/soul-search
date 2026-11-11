@@ -20,7 +20,7 @@ export const useLeaderboardTabs = () => {
   )
   const all = useApiResource(['leaderboard', 'all'], loadAll, EVERY_30_SECONDS)
   const challenge = useApiResource(
-    ['leaderboard', 'challenge'],
+    ['leaderboard', 'challenge', period.data?.id],
     loadChallenge,
     {
       ...EVERY_30_SECONDS,

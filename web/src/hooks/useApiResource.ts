@@ -48,7 +48,8 @@ export const useApiResource = <T>(
   const controls = { refresh, retry }
 
   if (query.data !== undefined) {
-    return { status: 'ready', data: query.data, error: null, ...controls }
+    const error = query.isError ? codeOf(query.error) : null
+    return { status: 'ready', data: query.data, error, ...controls }
   }
   if (query.isError) {
     const error = codeOf(query.error)
