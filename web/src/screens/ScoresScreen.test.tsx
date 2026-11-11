@@ -1,16 +1,44 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   getLeaderboard,
+  getPeriod,
   type ApiResult,
   type Leaderboard,
   type LeaderboardScope,
+  type Period,
 } from '../lib/api'
 import { ScoresScreen } from './ScoresScreen'
 import { queryWrapper } from '../test/queryWrapper'
 
-vi.mock('../lib/api', () => ({ getLeaderboard: vi.fn() }))
+vi.mock('../lib/api', () => ({ getLeaderboard: vi.fn(), getPeriod: vi.fn() }))
+
+const RULES = {
+  bonuses: { 'Brown paint': 3 },
+  categories: ['Brown paint'],
+  false_call: -1,
+  regular: 1,
+  special: 2,
+}
+
+const WEEK_PERIOD: Period = {
+  ends_at: '2026-11-16T08:00:00Z',
+  id: 'w1',
+  kind: 'week',
+  name: null,
+  rules: RULES,
+  starts_at: '2026-11-09T08:00:00Z',
+}
+
+const CHALLENGE_PERIOD: Period = {
+  ends_at: '2026-11-16T07:59:00Z',
+  id: 'c1',
+  kind: 'challenge',
+  name: 'Brown Week',
+  rules: RULES,
+  starts_at: '2026-11-12T17:00:00Z',
+}
 
 const WEEK: Leaderboard = {
   ends_at: '2026-11-16T08:00:00Z',
@@ -74,6 +102,12 @@ const renderScores = (wrapper = queryWrapper()) =>
 describe('ScoresScreen', () => {
   beforeEach(() => {
     vi.mocked(getLeaderboard).mockReset()
+    vi.mocked(getPeriod).mockReset()
+    vi.mocked(getPeriod).mockImplementation(() => ok(WEEK_PERIOD))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('shows shimmer rows while the first load runs', () => {
@@ -188,5 +222,96 @@ describe('ScoresScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
 
     expect(await screen.findByText('Mom')).toBeInTheDocument()
+  })
+  describe('while a challenge runs', () => {
+    const CHALLENGE: Leaderboard = {
+      ...WEEK,
+      ends_at: CHALLENGE_PERIOD.ends_at,
+      name: 'Brown Week',
+      rows: [{ ...WEEK.rows[0], display_name: 'Dana R.' }],
+      scope: 'challenge',
+      starts_at: CHALLENGE_PERIOD.starts_at,
+    }
+
+    beforeEach(() => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      vi.setSystemTime(new Date('2026-11-12T20:00:00Z'))
+      vi.mocked(getPeriod).mockImplementation(() => ok(CHALLENGE_PERIOD))
+    })
+
+    it('shows the challenge board with its rules', async () => {
+      serve({ all: ALL, challenge: CHALLENGE, week: WEEK })
+      renderScores()
+
+      expect(await screen.findByText('Dana R.')).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Brown Week' }),
+      ).toHaveAttribute('aria-pressed', 'true')
+      expect(
+        screen.getByRole('button', { name: 'All time' }),
+      ).toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: 'This week' }),
+      ).not.toBeInTheDocument()
+      expect(
+        screen.getByText('Challenge · ends Sun 11:59 pm'),
+      ).toBeInTheDocument()
+      expect(
+        screen.getByText(
+          'Rules: Regular +1 · Special +2 · Brown paint +3 · False call \u22121',
+        ),
+      ).toBeInTheDocument()
+    })
+
+    it('hides the rules on All time', async () => {
+      serve({ all: ALL, challenge: CHALLENGE, week: WEEK })
+      renderScores()
+      await screen.findByText('Dana R.')
+
+      fireEvent.click(screen.getByRole('button', { name: 'All time' }))
+
+      expect(await screen.findByText('40')).toBeInTheDocument()
+      expect(screen.queryByText(/^Rules:/)).not.toBeInTheDocument()
+    })
+
+    it('falls back to this week once the challenge has ended', async () => {
+      vi.mocked(getLeaderboard).mockImplementation((scope: LeaderboardScope) =>
+        scope === 'challenge'
+          ? Promise.resolve({ ok: false, status: 404, error: 'no_challenge' })
+          : ok(scope === 'week' ? WEEK : ALL),
+      )
+      renderScores()
+
+      expect(await screen.findByText('Mom')).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'This week' }),
+      ).toBeInTheDocument()
+      expect(screen.queryByText(/Couldn't load/)).not.toBeInTheDocument()
+    })
+
+    it('shows the challenge empty state', async () => {
+      serve({ all: ALL, challenge: { ...CHALLENGE, rows: [] }, week: WEEK })
+      renderScores()
+
+      expect(
+        await screen.findByRole('heading', {
+          name: 'No scores yet in Brown Week',
+        }),
+      ).toBeInTheDocument()
+      expect(
+        screen.getByText('The first photo puts you on top.'),
+      ).toBeInTheDocument()
+    })
+  })
+
+  it('shows this week while the period is still loading', async () => {
+    vi.mocked(getPeriod).mockImplementation(() => never())
+    serve({ all: ALL, week: WEEK })
+    renderScores()
+
+    expect(await screen.findByText('Mom')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'This week' }),
+    ).toBeInTheDocument()
   })
 })
