@@ -143,6 +143,7 @@ describe('shortTimeLeftText', () => {
     ['2026-11-15T09:00:00Z', '23 hours left'],
     ['2026-11-16T07:00:00Z', '1 hour left'],
     ['2026-11-16T07:15:00Z', '45 min left'],
+    ['2026-11-16T07:00:30Z', '1 hour left'],
     ['2026-11-16T07:59:30Z', '1 min left'],
     ['2026-11-16T08:00:00Z', 'Ending now'],
   ])('at %s says %s', (now, text) => {

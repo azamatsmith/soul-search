@@ -105,8 +105,9 @@ const momentText = (at: number, now: number) => {
 const distance = (at: number, now: number) => {
   const gap = at - now
   if (gap > DAY_MS) return plural(Math.floor(gap / DAY_MS), 'day')
-  if (gap >= HOUR_MS) return plural(Math.floor(gap / HOUR_MS), 'hour')
-  return `${Math.ceil(gap / MINUTE_MS)} min`
+  const minutes = Math.ceil(gap / MINUTE_MS)
+  if (minutes >= 60) return plural(Math.floor(minutes / 60), 'hour')
+  return `${minutes} min`
 }
 
 const ENDING_NOW = 'Ending now'
