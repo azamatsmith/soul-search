@@ -6,6 +6,7 @@ import {
   liveBonuses,
   pointsText,
   sendLabel,
+  sortedBonuses,
   specialDescription,
 } from './claim'
 
@@ -99,5 +100,17 @@ describe('liveBonuses', () => {
         bonuses: { 'Alien Green': 2, 'Brown paint': 3, Graphics: 1 },
       }),
     ).toEqual({ 'Brown paint': 3 })
+  })
+})
+
+describe('sortedBonuses', () => {
+  it('lists live bonuses highest first, then by name', () => {
+    expect(
+      sortedBonuses({ ...RULES, bonuses: { A: 2, B: 3, C: 5, D: 3 } }),
+    ).toEqual([
+      ['C', 5],
+      ['B', 3],
+      ['D', 3],
+    ])
   })
 })

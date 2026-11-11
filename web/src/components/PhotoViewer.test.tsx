@@ -5,6 +5,7 @@ import { PhotoViewer } from './PhotoViewer'
 
 const card = (changes: Partial<LogCard> = {}): LogCard => ({
   categories: ['Racing stripes'],
+  challengeName: null,
   checkNote: null,
   claimType: 'special',
   fullPhotoUrl: 'https://signed.test/a.jpg',

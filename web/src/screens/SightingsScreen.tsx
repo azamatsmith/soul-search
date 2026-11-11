@@ -29,6 +29,7 @@ const FILTERS = [
 
 const toCard = (sighting: LoggedSighting): LogCard => ({
   categories: sighting.categories,
+  challengeName: sighting.challenge_name,
   checkNote: sighting.check_note,
   claimType: sighting.claim_type,
   fullPhotoUrl: sighting.photo_url ?? sighting.thumb_url,

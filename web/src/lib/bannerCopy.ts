@@ -1,6 +1,6 @@
 import type { Period } from './api'
 import { clockText } from './challengeTime'
-import { liveBonuses } from './claim'
+import { liveBonuses, sortBonusEntries } from './claim'
 import { pacificDay, weekday } from './pacificTime'
 
 const listText = (items: string[]) =>
@@ -9,10 +9,7 @@ const listText = (items: string[]) =>
     : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`
 
 const bonusClause = (bonuses: Record<string, number>) => {
-  const sorted = Object.entries(bonuses).sort(
-    ([nameA, pointsA], [nameB, pointsB]) =>
-      pointsB - pointsA || nameA.localeCompare(nameB),
-  )
+  const sorted = sortBonusEntries(bonuses)
   if (sorted.length === 0) return null
   const [[firstName, firstPoints], ...rest] = sorted
   return listText([

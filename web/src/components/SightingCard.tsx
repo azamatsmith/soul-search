@@ -1,4 +1,5 @@
 import { claimLine, type LogCard, timeText } from '../lib/sightingsCopy'
+import { ChallengeTag } from './ChallengeTag'
 import styles from './SightingCard.module.css'
 import { StatusChip } from './StatusChip'
 
@@ -36,7 +37,10 @@ export const SightingCard = ({ card, onOpen }: SightingCardProps) => {
             <span className={styles.time}>{time}</span>
           </span>
           <span className={styles.claim}>{claimLine(card)}</span>
-          <StatusChip card={card} />
+          <span className={styles.chips}>
+            <StatusChip card={card} />
+            {card.challengeName && <ChallengeTag name={card.challengeName} />}
+          </span>
         </span>
       </button>
     </li>

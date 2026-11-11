@@ -5,6 +5,7 @@ import { SightingCard } from './SightingCard'
 
 const card = (changes: Partial<LogCard> = {}): LogCard => ({
   categories: [],
+  challengeName: null,
   checkNote: null,
   claimType: 'regular',
   fullPhotoUrl: null,

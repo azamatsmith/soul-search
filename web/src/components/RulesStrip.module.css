@@ -1,0 +1,8 @@
+.strip {
+  margin: 0;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--c-orange-tint);
+  color: var(--c-ink);
+  font: 600 var(--t-small) / 1.4 var(--f-body);
+}

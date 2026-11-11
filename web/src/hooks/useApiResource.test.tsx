@@ -61,7 +61,7 @@ describe('useApiResource', () => {
     await waitFor(() => expect(result.current.data).toBe(2))
   })
 
-  it('keeps old data when a refresh fails', async () => {
+  it('keeps old data and reports the error when a refresh fails', async () => {
     const load = vi
       .fn<() => Promise<ApiResult<number>>>()
       .mockResolvedValueOnce(ok(1))
@@ -75,7 +75,7 @@ describe('useApiResource', () => {
     await act(async () => {})
     expect(result.current.status).toBe('ready')
     expect(result.current.data).toBe(1)
-    expect(result.current.error).toBeNull()
+    expect(result.current.error).toBe('network')
   })
 
   it('keeps showing the error while a refresh after a failure loads', async () => {

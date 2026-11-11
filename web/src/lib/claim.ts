@@ -34,3 +34,12 @@ export const liveBonuses = (rules: Rules) =>
       ([, points]) => points > rules.special,
     ),
   )
+
+export const sortBonusEntries = (bonuses: Record<string, number>) =>
+  Object.entries(bonuses).sort(
+    ([nameA, pointsA], [nameB, pointsB]) =>
+      pointsB - pointsA || nameA.localeCompare(nameB),
+  )
+
+export const sortedBonuses = (rules: Rules) =>
+  sortBonusEntries(liveBonuses(rules))

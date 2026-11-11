@@ -16,6 +16,7 @@ const THU_EVENING = Date.parse('2026-11-13T04:00:00Z')
 
 const card = (changes: Partial<LogCard> = {}): LogCard => ({
   categories: [],
+  challengeName: null,
   checkNote: null,
   claimType: 'regular',
   fullPhotoUrl: null,
@@ -194,5 +195,64 @@ describe('viewerNote', () => {
     expect(viewerNote(card({ kind: 'false_call' }))).toBe(
       'Photo check: not a Kia Soul',
     )
+  })
+})
+
+describe('groupByDay during a challenge', () => {
+  const FRI_NOON = Date.parse('2026-11-13T20:00:00Z')
+  const fri = (changes: Partial<LogCard> = {}) =>
+    card({ id: 'fri', takenAt: '2026-11-13T19:00:00Z', ...changes })
+  const wed = card({ id: 'wed', takenAt: '2026-11-11T19:00:00Z' })
+  const headers = (cards: LogCard[]) =>
+    groupByDay(cards, FRI_NOON).map((group) => group.header)
+
+  it('names the challenge and marks the other days Weekly', () => {
+    expect(headers([fri({ challengeName: 'Brown Week' }), wed])).toEqual([
+      'Today · Fri · Brown Week',
+      'Wed · Weekly',
+    ])
+  })
+
+  it('leaves headers alone in a week without a challenge', () => {
+    expect(headers([fri(), wed])).toEqual(['Today · Fri', 'Wed'])
+  })
+
+  it('keeps the challenge name on a day with a waiting photo', () => {
+    expect(
+      headers([
+        fri({ challengeName: 'Brown Week' }),
+        fri({
+          id: 'waiting',
+          kind: 'waiting',
+          takenAt: '2026-11-13T19:30:00Z',
+        }),
+      ]),
+    ).toEqual(['Today · Fri · Brown Week'])
+  })
+
+  it('adds nothing to a day with only waiting photos', () => {
+    expect(
+      headers([
+        fri({ id: 'waiting', kind: 'waiting' }),
+        card({
+          challengeName: 'Brown Week',
+          id: 'wed',
+          takenAt: '2026-11-11T19:00:00Z',
+        }),
+      ]),
+    ).toEqual(['Today · Fri', 'Wed · Brown Week'])
+  })
+
+  it('names each day after its own challenge', () => {
+    expect(
+      headers([
+        fri({ challengeName: 'Brown Week' }),
+        card({
+          challengeName: 'Monday Dash',
+          id: 'mon',
+          takenAt: '2026-11-09T19:00:00Z',
+        }),
+      ]),
+    ).toEqual(['Today · Fri · Brown Week', 'Mon · Monday Dash'])
   })
 })

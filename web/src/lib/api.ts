@@ -78,6 +78,7 @@ const ERROR_CODES = [
   'invalid_reason',
   'overlaps',
   'invalid_name',
+  'no_challenge',
   'invalid_times',
   'start_locked',
   'invalid_bonus',
@@ -263,7 +264,7 @@ export const getPeriod = () =>
 export const getStanding = () =>
   request<Standing>('/me/standing', 'GET', undefined, true)
 
-export type LeaderboardScope = 'all' | 'week'
+export type LeaderboardScope = 'all' | 'challenge' | 'week'
 
 export interface LeaderboardEntry {
   count: number
@@ -276,6 +277,7 @@ export interface LeaderboardEntry {
 
 export interface Leaderboard {
   ends_at: string | null
+  name: string | null
   rows: LeaderboardEntry[]
   scope: LeaderboardScope
   starts_at: string | null
@@ -332,6 +334,7 @@ export type SightingStatus = 'counted' | 'false_call' | 'waiting_review'
 
 export interface LoggedSighting {
   categories: string[]
+  challenge_name: string | null
   check_note: string | null
   claim_type: 'regular' | 'special'
   display_name: string

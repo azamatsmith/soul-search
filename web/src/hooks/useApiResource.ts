@@ -10,6 +10,7 @@ export interface ApiResource<T> {
 }
 
 interface ApiResourceOptions {
+  enabled?: boolean
   refreshEvery?: number
 }
 
@@ -28,10 +29,11 @@ const codeOf = (error: unknown): ApiErrorCode =>
 export const useApiResource = <T>(
   key: QueryKey,
   load: () => Promise<ApiResult<T>>,
-  { refreshEvery }: ApiResourceOptions = {},
+  { enabled = true, refreshEvery }: ApiResourceOptions = {},
 ): ApiResource<T> => {
   const client = useQueryClient()
   const query = useQuery({
+    enabled,
     queryFn: async () => {
       const result = await load()
       if (!result.ok) throw new ApiError(result.error)
@@ -46,7 +48,8 @@ export const useApiResource = <T>(
   const controls = { refresh, retry }
 
   if (query.data !== undefined) {
-    return { status: 'ready', data: query.data, error: null, ...controls }
+    const error = query.isError ? codeOf(query.error) : null
+    return { status: 'ready', data: query.data, error, ...controls }
   }
   if (query.isError) {
     const error = codeOf(query.error)

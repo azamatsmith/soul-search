@@ -7,6 +7,7 @@ export type CardKind =
 
 export interface LogCard {
   categories: string[]
+  challengeName: string | null
   checkNote: string | null
   claimType: 'regular' | 'special'
   fullPhotoUrl: string | null
@@ -87,16 +88,27 @@ export const dayHeader = (takenAt: string, now: number) => {
   return name
 }
 
+const challengeSuffix = (cards: LogCard[], weekHasChallenge: boolean) => {
+  const name = cards.find((card) => card.challengeName)?.challengeName
+  if (name) return ` · ${name}`
+  const allWaiting = cards.every((card) => card.kind === 'waiting')
+  return weekHasChallenge && !allWaiting ? ' · Weekly' : ''
+}
+
 export const groupByDay = (cards: LogCard[], now: number): DayGroup[] => {
   const sorted = [...cards].sort(
     (a, b) => Date.parse(b.takenAt) - Date.parse(a.takenAt),
   )
-  const groups: DayGroup[] = []
+  const days: DayGroup[] = []
   for (const card of sorted) {
     const header = dayHeader(card.takenAt, now)
-    const last = groups.at(-1)
+    const last = days.at(-1)
     if (last?.header === header) last.cards.push(card)
-    else groups.push({ cards: [card], header })
+    else days.push({ cards: [card], header })
   }
-  return groups
+  const weekHasChallenge = cards.some((card) => card.challengeName)
+  return days.map((day) => ({
+    cards: day.cards,
+    header: `${day.header}${challengeSuffix(day.cards, weekHasChallenge)}`,
+  }))
 }
