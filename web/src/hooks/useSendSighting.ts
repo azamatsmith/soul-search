@@ -12,10 +12,12 @@ export const useSendSighting = (playerId: string) => {
   const [status, setStatus] = useState<SendStatus>('idle')
   const [saved, setSaved] = useState<PostSightingResult | null>(null)
   const [last, setLast] = useState<NewSighting | null>(null)
+  const [progress, setProgress] = useState(0)
 
   const post = async (sighting: NewSighting) => {
     setStatus('sending')
-    const result = await postSighting(sighting)
+    setProgress(0)
+    const result = await postSighting(sighting, setProgress)
     if (result.ok || isRejectedForGood(result)) {
       await deviceQueue.remove(sighting.id).catch(() => {})
     }
@@ -43,7 +45,8 @@ export const useSendSighting = (playerId: string) => {
     setStatus('idle')
     setSaved(null)
     setLast(null)
+    setProgress(0)
   }
 
-  return { reset, retry, saved, send, status }
+  return { progress, reset, retry, saved, send, status }
 }

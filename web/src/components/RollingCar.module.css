@@ -45,7 +45,9 @@
 }
 
 .ride .car {
-  transform: translateX(calc(var(--car-progress) * (100cqw - var(--car-w))));
+  transform: translateX(
+    max(0px, calc(var(--car-progress) * 100cqw - var(--car-w)))
+  );
   transition: transform 0.3s linear;
 }
 

@@ -24,7 +24,15 @@
   font: 400 var(--t-h1) / 1.1 var(--f-display);
 }
 
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  width: 100%;
+}
+
 .track {
+  display: block;
   width: 100%;
   height: var(--progress);
   overflow: hidden;
@@ -34,11 +42,10 @@
 
 .bar {
   display: block;
-  width: 40%;
   height: 100%;
   border-radius: var(--r-pill);
   background: var(--c-forest);
-  animation: slide 1.4s ease-in-out infinite;
+  transition: width 0.3s linear;
 }
 
 .note {
@@ -47,20 +54,8 @@
   font: 500 var(--t-body) / 1.45 var(--f-body);
 }
 
-@keyframes slide {
-  from {
-    transform: translateX(-100%);
-  }
-
-  to {
-    transform: translateX(250%);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .bar {
-    width: 100%;
-    animation: none;
-    opacity: 0.6;
+    transition: none;
   }
 }

@@ -142,12 +142,46 @@ const refreshedToken = async (): Promise<TokenResult> => {
   return data.session ? { token: data.session.access_token } : SIGNED_OUT
 }
 
+type Method = 'DELETE' | 'GET' | 'POST' | 'PUT'
+
+export type OnProgress = (fraction: number) => void
+
+const NO_BODY_STATUSES = new Set([204, 205, 304])
+
+const sendWithProgress = (
+  path: string,
+  method: Method,
+  body: FormData,
+  token: string | null,
+  onProgress: OnProgress,
+): Promise<Response | null> =>
+  new Promise((resolve) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open(method, `${baseUrl()}${path}`)
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+    xhr.timeout = REQUEST_TIMEOUT_MS
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) onProgress(event.loaded / event.total)
+    }
+    xhr.onload = () => {
+      const text = NO_BODY_STATUSES.has(xhr.status) ? null : xhr.responseText
+      resolve(new Response(text, { status: xhr.status }))
+    }
+    xhr.onerror = () => resolve(null)
+    xhr.ontimeout = () => resolve(null)
+    xhr.send(body)
+  })
+
 const send = async (
   path: string,
-  method: 'DELETE' | 'GET' | 'POST' | 'PUT',
+  method: Method,
   body: unknown,
   token: string | null,
+  onProgress?: OnProgress,
 ): Promise<Response | null> => {
+  if (onProgress && body instanceof FormData) {
+    return sendWithProgress(path, method, body, token, onProgress)
+  }
   const headers = new Headers()
   const form = body instanceof FormData
   if (body !== undefined && !form) {
@@ -181,20 +215,25 @@ const toResult = async <T>(
 
 const request = async <T>(
   path: string,
-  method: 'DELETE' | 'GET' | 'POST' | 'PUT',
+  method: Method,
   body: unknown,
   auth: boolean,
+  onProgress?: OnProgress,
 ): Promise<ApiResult<T>> => {
-  if (!auth) return toResult<T>(await send(path, method, body, null))
+  if (!auth) {
+    return toResult<T>(await send(path, method, body, null, onProgress))
+  }
 
   const first = await currentToken()
   if (!('token' in first)) return first
-  const response = await send(path, method, body, first.token)
+  const response = await send(path, method, body, first.token, onProgress)
   if (response?.status !== 401) return toResult<T>(response)
 
   const refreshed = await refreshedToken()
   if (!('token' in refreshed)) return refreshed
-  return toResult<T>(await send(path, method, body, refreshed.token))
+  return toResult<T>(
+    await send(path, method, body, refreshed.token, onProgress),
+  )
 }
 
 export const sendCode = (email: string) =>
@@ -290,7 +329,10 @@ export interface NewSighting {
   takenAt: string
 }
 
-export const postSighting = (sighting: NewSighting) => {
+export const postSighting = (
+  sighting: NewSighting,
+  onProgress?: OnProgress,
+) => {
   const form = new FormData()
   form.set('id', sighting.id)
   form.set('claim_type', sighting.claimType)
@@ -301,7 +343,13 @@ export const postSighting = (sighting: NewSighting) => {
     form.set('longitude', String(sighting.location.longitude))
   }
   form.set('photo', sighting.photo, 'photo.jpg')
-  return request<PostSightingResult>('/sightings', 'POST', form, true)
+  return request<PostSightingResult>(
+    '/sightings',
+    'POST',
+    form,
+    true,
+    onProgress,
+  )
 }
 
 export interface AllowedEmail {

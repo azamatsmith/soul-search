@@ -66,6 +66,79 @@ const signedOut = () =>
     error: null,
   } as unknown as Awaited<ReturnType<typeof supabase.auth.getSession>>)
 
+const SIGHTING = {
+  categories: [],
+  claimType: 'regular' as const,
+  id: 's1',
+  location: null,
+  photo: new Blob(['jpeg'], { type: 'image/jpeg' }),
+  takenAt: '2026-11-10T20:00:00.000Z',
+}
+
+interface UploadProgress {
+  lengthComputable: boolean
+  loaded: number
+  total: number
+}
+
+class FakeXhr {
+  body: unknown = null
+  headers: Record<string, string> = {}
+  method = ''
+  onerror: (() => void) | null = null
+  onload: (() => void) | null = null
+  ontimeout: (() => void) | null = null
+  responseText = ''
+  status = 0
+  timeout = 0
+  upload: { onprogress: ((event: UploadProgress) => void) | null } = {
+    onprogress: null,
+  }
+  url = ''
+
+  open(method: string, url: string) {
+    this.method = method
+    this.url = url
+  }
+
+  setRequestHeader(name: string, value: string) {
+    this.headers[name] = value
+  }
+
+  send(body: unknown) {
+    this.body = body
+  }
+
+  respond(status: number, body: unknown) {
+    this.status = status
+    this.responseText = JSON.stringify(body)
+    this.onload?.()
+  }
+
+  fail() {
+    this.onerror?.()
+  }
+}
+
+const stubXhr = () => {
+  const xhrs: FakeXhr[] = []
+  vi.stubGlobal(
+    'XMLHttpRequest',
+    class extends FakeXhr {
+      constructor() {
+        super()
+        xhrs.push(this)
+      }
+    },
+  )
+  return xhrs
+}
+
+const nextXhr = async (xhrs: FakeXhr[], index: number) => {
+  await vi.waitFor(() => expect(xhrs[index]?.body).toBeTruthy())
+  return xhrs[index]
+}
+
 describe('api', () => {
   beforeEach(() => {
     vi.stubEnv('VITE_API_URL', 'http://localhost:8000/')
@@ -421,6 +494,60 @@ describe('api', () => {
     const form = init.body as FormData
     expect(form.has('latitude')).toBe(false)
     expect(form.has('categories')).toBe(false)
+  })
+
+  it('postSighting reports upload progress when asked', async () => {
+    signedIn('tok')
+    const xhrs = stubXhr()
+    const progress: number[] = []
+
+    const pending = postSighting(SIGHTING, (fraction) =>
+      progress.push(fraction),
+    )
+    const xhr = await nextXhr(xhrs, 0)
+    xhr.upload.onprogress?.({ lengthComputable: true, loaded: 25, total: 100 })
+    xhr.upload.onprogress?.({ lengthComputable: false, loaded: 60, total: 0 })
+    xhr.upload.onprogress?.({ lengthComputable: true, loaded: 100, total: 100 })
+    xhr.respond(201, { period_points: 4 })
+
+    expect(await pending).toEqual({ ok: true, data: { period_points: 4 } })
+    expect(progress).toEqual([0.25, 1])
+    expect(xhr.method).toBe('POST')
+    expect(xhr.url).toBe('http://localhost:8000/sightings')
+    expect(xhr.headers.Authorization).toBe('Bearer tok')
+    expect(xhr.timeout).toBe(15_000)
+    expect((xhr.body as FormData).get('id')).toBe('s1')
+  })
+
+  it('postSighting with progress refreshes an expired token and retries', async () => {
+    signedIn('old')
+    refreshesTo('new')
+    const xhrs = stubXhr()
+
+    const pending = postSighting(SIGHTING, () => {})
+    ;(await nextXhr(xhrs, 0)).respond(401, { error: 'unauthenticated' })
+    const retry = await nextXhr(xhrs, 1)
+    retry.respond(201, { period_points: 1 })
+
+    expect(await pending).toEqual({ ok: true, data: { period_points: 1 } })
+    expect(retry.headers.Authorization).toBe('Bearer new')
+  })
+
+  it('postSighting with progress maps errors and lost connections', async () => {
+    signedIn('tok')
+    const xhrs = stubXhr()
+
+    const rejected = postSighting(SIGHTING, () => {})
+    ;(await nextXhr(xhrs, 0)).respond(422, { error: 'invalid_photo' })
+    expect(await rejected).toEqual({
+      ok: false,
+      status: 422,
+      error: 'invalid_photo',
+    })
+
+    const offline = postSighting(SIGHTING, () => {})
+    ;(await nextXhr(xhrs, 1)).fail()
+    expect(await offline).toEqual({ ok: false, status: 0, error: 'network' })
   })
 
   it('getReviewItem reads one photo waiting for review', async () => {
