@@ -75,10 +75,10 @@ Database migrations reach production through the `migrate` job in CI. On every p
 Production sign-in codes are sent through [Resend](https://resend.com) as custom SMTP, because Supabase's built-in sender is heavily rate-limited. In the Supabase dashboard for the production project:
 
 1. In Resend, verify the sending domain and create an SMTP API key.
-2. Under Authentication, SMTP Settings, enable custom SMTP with host `smtp.resend.com`, port `465`, user `resend` and the API key as the password.
+2. Under Authentication, SMTP Settings, enable custom SMTP with host `smtp.resend.com`, port `465`, user `resend` and the API key as the password. Set the sender email to `noreply@soulsearch.cc` and the sender name to "Soul Search".
 3. Under Authentication, Sign In / Providers, turn off "Allow new users to sign up". The API creates users itself after checking the allowlist, so direct signups must stay off.
 4. Under Authentication, Providers, Email, set the email OTP expiry to `600` seconds and the OTP length to `6`.
-5. Under Authentication, Email Templates, set both "Magic Link" and "Confirm signup" to the contents of `supabase/templates/code.html`, with the subject "Your Soul Search code". The template shows the code (`{{ .Token }}`), not a link.
+5. Under Authentication, Email Templates, set both "Magic Link" and "Confirm signup" to the contents of `supabase/templates/sign-in-code.html`, with the subject `Your Soul Search code: {{ .Token }}`. The template shows the code (`{{ .Token }}`) as text, not a link, so iOS can offer it above the keyboard. The design is in `design/Soul Search Emails.dc.html`.
 6. Under Authentication, Rate Limits, keep "Token verifications" at 30 per 5 minutes per IP or lower. The API locks an email after 5 wrong codes, but Supabase's own verify endpoint is public, so this per-IP limit is the backstop for anyone calling Supabase directly.
 
 ### Weekly close-out

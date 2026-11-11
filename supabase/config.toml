@@ -110,8 +110,8 @@ port = 54324
 # Uncomment to expose additional ports for testing user applications that send emails.
 # smtp_port = 54325
 # pop3_port = 54326
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+admin_email = "noreply@soulsearch.cc"
+sender_name = "Soul Search"
 
 [storage]
 enabled = true
@@ -236,12 +236,12 @@ otp_length = 6
 otp_expiry = 600
 
 [auth.email.template.magic_link]
-subject = "Your Soul Search code"
-content_path = "./supabase/templates/code.html"
+subject = "Your Soul Search code: {{ .Token }}"
+content_path = "./supabase/templates/sign-in-code.html"
 
 [auth.email.template.confirmation]
-subject = "Your Soul Search code"
-content_path = "./supabase/templates/code.html"
+subject = "Your Soul Search code: {{ .Token }}"
+content_path = "./supabase/templates/sign-in-code.html"
 
 # Use a production-ready SMTP server
 # [auth.email.smtp]
@@ -250,8 +250,8 @@ content_path = "./supabase/templates/code.html"
 # port = 587
 # user = "apikey"
 # pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+admin_email = "noreply@soulsearch.cc"
+sender_name = "Soul Search"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]
