@@ -4,11 +4,8 @@ import {
   ordinal,
   pointsIntro,
   soulCountText,
-  timeLeft,
   weekRange,
 } from './homeCopy'
-
-const at = (iso: string) => new Date(iso).getTime()
 
 describe('weekRange', () => {
   it('shows the Pacific Monday to Sunday', () => {
@@ -21,23 +18,6 @@ describe('weekRange', () => {
     expect(weekRange('2026-11-30T08:00:00Z', '2026-12-07T08:00:00Z')).toBe(
       'Nov 30-Dec 6',
     )
-  })
-})
-
-describe('timeLeft', () => {
-  const end = '2026-11-16T08:00:00Z'
-
-  it.each([
-    ['2026-11-10T20:00:00Z', '5 days left'],
-    ['2026-11-14T07:00:00Z', '2 days left'],
-    ['2026-11-15T07:00:00Z', '1 day left'],
-    ['2026-11-15T09:00:00Z', '23 hours left'],
-    ['2026-11-16T07:00:00Z', '1 hour left'],
-    ['2026-11-16T07:15:00Z', '45 min left'],
-    ['2026-11-16T07:59:30Z', '1 min left'],
-    ['2026-11-16T08:00:00Z', 'Ending now'],
-  ])('at %s says %s', (now, text) => {
-    expect(timeLeft(end, at(now))).toBe(text)
   })
 })
 

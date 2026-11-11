@@ -153,8 +153,45 @@ describe('TakePhotoScreen', () => {
     )
     renderHome()
 
-    expect(await screen.findByText('Brown Week')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Challenge · Brown Week'),
+    ).toBeInTheDocument()
     expect(await screen.findByText('6 Souls in Brown Week')).toBeInTheDocument()
+  })
+
+  it('shows the challenge banner with its bonuses', async () => {
+    vi.mocked(getPeriod).mockReturnValue(
+      ok({
+        ...WEEK,
+        kind: 'challenge',
+        name: 'Brown Week',
+        rules: { ...WEEK.rules, bonuses: { 'Brown paint': 3 } },
+      }),
+    )
+    renderHome()
+
+    const banner = await screen.findByRole('region', {
+      name: 'Brown Week is on',
+    })
+    expect(banner).toHaveTextContent('Brown paint is worth +3.')
+  })
+
+  it('hides the challenge banner once the challenge has ended', async () => {
+    vi.setSystemTime(new Date('2026-11-16T08:05:00Z'))
+    vi.mocked(getPeriod).mockReturnValue(
+      ok({ ...WEEK, kind: 'challenge', name: 'Brown Week' }),
+    )
+    renderHome()
+
+    expect(await screen.findByText('Ending now')).toBeInTheDocument()
+    expect(screen.queryByRole('region')).not.toBeInTheDocument()
+  })
+
+  it('shows no challenge banner during a normal week', async () => {
+    renderHome()
+
+    expect(await screen.findByText('Week of Nov 9-15')).toBeInTheDocument()
+    expect(screen.queryByRole('region')).not.toBeInTheDocument()
   })
 
   it('lets the player try again when scores fail to load', async () => {

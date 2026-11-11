@@ -1,5 +1,6 @@
 import type { Period, Standing } from '../lib/api'
-import { ordinal, timeLeft, weekRange } from '../lib/homeCopy'
+import { shortTimeLeftText, timeLeftText } from '../lib/challengeTime'
+import { ordinal, weekRange } from '../lib/homeCopy'
 import { AvatarButton } from './AvatarButton'
 import styles from './HomeHeader.module.css'
 
@@ -10,8 +11,17 @@ export interface HomeHeaderProps {
   standing: Standing
 }
 
+const isChallenge = (period: Period) => period.kind === 'challenge'
+
 const kickerFor = (period: Period) =>
-  period.name ?? `Week of ${weekRange(period.starts_at, period.ends_at)}`
+  isChallenge(period)
+    ? `Challenge · ${period.name}`
+    : `Week of ${weekRange(period.starts_at, period.ends_at)}`
+
+const timeLeftFor = (period: Period, now: number) =>
+  isChallenge(period)
+    ? timeLeftText(period.ends_at, now)
+    : shortTimeLeftText(period.ends_at, now)
 
 export const HomeHeader = ({
   name,
@@ -23,13 +33,15 @@ export const HomeHeader = ({
     <div className={styles.row}>
       <div className={styles.when}>
         <span className={styles.kicker}>{kickerFor(period)}</span>
-        <span className={styles.left}>{timeLeft(period.ends_at, now)}</span>
+        <span className={styles.left}>{timeLeftFor(period, now)}</span>
       </div>
       <AvatarButton name={name} />
     </div>
     <div className={`${styles.row} ${styles.scores}`}>
       <div className={styles.stat}>
-        <span className={styles.label}>Your points</span>
+        <span className={styles.label}>
+          {isChallenge(period) ? 'Challenge points' : 'Your points'}
+        </span>
         <span className={styles.points}>{standing.points}</span>
       </div>
       <div className={`${styles.stat} ${styles.rankStat}`}>
