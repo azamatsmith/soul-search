@@ -162,7 +162,32 @@ describe('historyLine', () => {
     expect(line).toBe('saved the points and categories with no changes.')
   })
 
-  it('describes a challenge change', () => {
+  it('describes a created challenge', () => {
+    const line = historyLine(
+      entry({ after: { name: 'Brown Week' }, type: 'challenge' }),
+    )
+    expect(line).toBe('created Brown Week.')
+  })
+
+  it('describes a changed challenge by its new name', () => {
+    const line = historyLine(
+      entry({
+        after: { name: 'Brown Week' },
+        before: { name: 'Brown Days' },
+        type: 'challenge',
+      }),
+    )
+    expect(line).toBe('changed Brown Week.')
+  })
+
+  it('describes a deleted challenge', () => {
+    const line = historyLine(
+      entry({ before: { name: 'Brown Week' }, type: 'challenge' }),
+    )
+    expect(line).toBe('deleted Brown Week.')
+  })
+
+  it('falls back when a challenge has no name', () => {
     expect(historyLine(entry({ type: 'challenge' }))).toBe(
       'changed a challenge.',
     )
