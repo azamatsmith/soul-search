@@ -12,6 +12,7 @@ import {
   postReview,
   postScoreAdjustment,
   postSighting,
+  putChallenge,
   putPointRules,
   putTextSize,
   removeAllowedEmail,
@@ -314,6 +315,32 @@ describe('api', () => {
     expect(init.method).toBe('PUT')
     expect(init.body).toBe(JSON.stringify({ text_size: 'large' }))
     expect(new Headers(init.headers).get('Authorization')).toBe('Bearer tok')
+  })
+
+  it('putChallenge sends the challenge and passes the overlap name through', async () => {
+    signedIn('tok')
+    const fetchMock = stubFetch(() =>
+      respond(422, { error: 'overlaps', name: 'Brown Week' }),
+    )
+    const input = {
+      ends_at: '2026-11-27T02:00:00.000Z',
+      name: 'Thanksgiving Dash',
+      rules: { bonuses: {}, false_call: -1, regular: 1, special: 2 },
+      starts_at: '2026-11-26T22:00:00.000Z',
+    }
+    expect(await putChallenge('c1', input)).toEqual({
+      ok: false,
+      status: 422,
+      error: 'overlaps',
+      name: 'Brown Week',
+    })
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ]
+    expect(url).toBe('http://localhost:8000/admin/challenges/c1')
+    expect(init.method).toBe('PUT')
+    expect(init.body).toBe(JSON.stringify(input))
   })
 
   it('addAllowedEmail posts the email and passes already_allowed through', async () => {

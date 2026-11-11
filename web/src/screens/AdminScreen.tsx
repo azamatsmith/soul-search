@@ -33,6 +33,11 @@ export const AdminScreen = () => {
           trailing={<CountBadge count={queue.data?.flagged.length ?? 0} />}
         />
         <SettingsRow
+          subtitle="Timed events with their own rules"
+          title="Challenges"
+          to="/admin/challenges"
+        />
+        <SettingsRow
           subtitle={rulesSubtitle}
           title="Points & categories"
           to="/admin/points"

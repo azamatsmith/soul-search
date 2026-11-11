@@ -76,6 +76,11 @@ const ERROR_CODES = [
   'already_reviewed',
   'invalid_change',
   'invalid_reason',
+  'overlaps',
+  'invalid_name',
+  'invalid_times',
+  'start_locked',
+  'invalid_bonus',
   'network',
   'unknown',
 ] as const
@@ -87,6 +92,7 @@ export interface ApiFailure {
   status: number
   error: ApiErrorCode
   locked_until?: string
+  name?: string
   tries_left?: number
 }
 
@@ -114,6 +120,7 @@ const toFailure = (status: number, body: unknown): ApiFailure => {
     failure.locked_until = body.locked_until
   }
   if (typeof body.tries_left === 'number') failure.tries_left = body.tries_left
+  if (typeof body.name === 'string') failure.name = body.name
   return failure
 }
 
@@ -430,6 +437,67 @@ export const getPointRules = () =>
 
 export const putPointRules = (rules: PointRules) =>
   request<PointRules>('/admin/settings', 'PUT', rules, true)
+
+export interface ChallengeRules {
+  bonuses: Record<string, number>
+  false_call: number
+  regular: number
+  special: number
+}
+
+export interface Challenge {
+  ends_at: string
+  id: string
+  name: string
+  rules: ChallengeRules
+  starts_at: string
+}
+
+export interface FinishedChallenge extends Challenge {
+  winner: { display_name: string; points: number } | null
+}
+
+export interface ChallengeList {
+  finished: FinishedChallenge[]
+  running: Challenge[]
+  upcoming: Challenge[]
+}
+
+export interface ChallengeDetail extends Challenge {
+  started: boolean
+}
+
+export type ChallengeInput = Omit<Challenge, 'id'>
+
+export const getChallenges = () =>
+  request<ChallengeList>('/admin/challenges', 'GET', undefined, true)
+
+export const getChallenge = (id: string) =>
+  request<ChallengeDetail>(
+    `/admin/challenges/${encodeURIComponent(id)}`,
+    'GET',
+    undefined,
+    true,
+  )
+
+export const postChallenge = (input: ChallengeInput) =>
+  request<Challenge>('/admin/challenges', 'POST', input, true)
+
+export const putChallenge = (id: string, input: ChallengeInput) =>
+  request<Challenge>(
+    `/admin/challenges/${encodeURIComponent(id)}`,
+    'PUT',
+    input,
+    true,
+  )
+
+export const deleteChallenge = (id: string) =>
+  request<null>(
+    `/admin/challenges/${encodeURIComponent(id)}`,
+    'DELETE',
+    undefined,
+    true,
+  )
 
 export interface ReviewItem {
   categories: string[]

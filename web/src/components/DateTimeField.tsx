@@ -1,0 +1,74 @@
+import type { ChangeEvent } from 'react'
+import { clockText, pacificToIso } from '../lib/challengeTime'
+import styles from './DateTimeField.module.css'
+
+export interface DateTimeFieldProps {
+  date: string
+  disabled?: boolean
+  label: string
+  onDateChange: (date: string) => void
+  onTimeChange: (time: string) => void
+  time: string
+}
+
+const dateLabel = new Intl.DateTimeFormat('en-US', {
+  day: 'numeric',
+  month: 'short',
+  timeZone: 'America/Los_Angeles',
+  weekday: 'short',
+})
+
+const shown = (date: string, time: string) => {
+  if (!date || !time) return { date: 'Pick a date', time: 'Pick a time' }
+  const at = Date.parse(pacificToIso(date, time))
+  return { date: dateLabel.format(at), time: clockText(at) }
+}
+
+export const DateTimeField = ({
+  date,
+  disabled = false,
+  label,
+  onDateChange,
+  onTimeChange,
+  time,
+}: DateTimeFieldProps) => {
+  const display = shown(date, time)
+  const handleDateChange = (event: ChangeEvent<HTMLInputElement>) =>
+    onDateChange(event.target.value)
+  const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) =>
+    onTimeChange(event.target.value)
+
+  return (
+    <fieldset className={styles.field} disabled={disabled}>
+      <legend className={styles.label}>{label}</legend>
+      <div className={styles.row}>
+        <label className={`${styles.picker} ${styles.date}`}>
+          <span aria-hidden className={styles.value}>
+            {display.date}
+          </span>
+          <input
+            aria-label={`${label} date`}
+            className={styles.input}
+            onChange={handleDateChange}
+            required
+            type="date"
+            value={date}
+          />
+        </label>
+        <label className={`${styles.picker} ${styles.time}`}>
+          <span aria-hidden className={styles.value}>
+            {display.time}
+          </span>
+          <input
+            aria-label={`${label} time`}
+            className={styles.input}
+            onChange={handleTimeChange}
+            required
+            type="time"
+            value={time}
+          />
+        </label>
+      </div>
+    </fieldset>
+  )
+}

@@ -2,6 +2,7 @@ import { signedPoints } from '../lib/signedPoints'
 import styles from './Stepper.module.css'
 
 export interface StepperProps {
+  disabled?: boolean
   hint?: string
   label: string
   max: number
@@ -11,6 +12,7 @@ export interface StepperProps {
 }
 
 export const Stepper = ({
+  disabled = false,
   hint = 'Points each',
   label,
   max,
@@ -30,7 +32,7 @@ export const Stepper = ({
       <button
         aria-label={`Less for ${label}`}
         className={styles.less}
-        disabled={value <= min}
+        disabled={disabled || value <= min}
         onClick={handleLessClick}
         type="button"
       >
@@ -42,7 +44,7 @@ export const Stepper = ({
       <button
         aria-label={`More for ${label}`}
         className={styles.more}
-        disabled={value >= max}
+        disabled={disabled || value >= max}
         onClick={handleMoreClick}
         type="button"
       >
