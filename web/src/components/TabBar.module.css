@@ -1,4 +1,5 @@
 .bar {
+  position: relative;
   display: flex;
   flex: none;
   border-top: var(--rule);
@@ -26,6 +27,22 @@
 }
 
 .active {
-  border-top-color: var(--c-orange);
   color: var(--c-forest);
+}
+
+.indicator {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  width: calc(100% / 3);
+  height: 4px;
+  background: var(--c-orange);
+  transform: translateX(calc(var(--tab-index) * 100%));
+  transition: transform 0.25s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .indicator {
+    transition: none;
+  }
 }
