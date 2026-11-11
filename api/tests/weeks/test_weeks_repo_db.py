@@ -1,10 +1,11 @@
 from datetime import UTC, datetime, timedelta
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import psycopg
 import pytest
+from psycopg.types.json import Jsonb
 
-from app.sightings.repo import PgSightingsRepo
+from app.sightings.repo import LeaderboardEntry, PgSightingsRepo
 from app.weeks.repo import PgWeeksRepo
 from tests.sightings.test_sightings_repo_db import (
     ALICE,
@@ -127,3 +128,83 @@ def test_closes_at_pacific_midnight_across_dst(
 
     assert week.id not in repo.close_ended(ends_at - timedelta(seconds=1)).closed
     assert week.id in repo.close_ended(ends_at).closed
+
+
+def close_week_with(conn: psycopg.Connection, starts_at: datetime, results: list[dict]) -> UUID:
+    row = conn.execute(
+        """
+        insert into public.weeks (starts_at, ends_at, closed_at, results)
+        values (%s, %s, %s, %s) returning id
+        """,
+        (starts_at, starts_at + timedelta(days=7), starts_at + timedelta(days=7), Jsonb(results)),
+    ).fetchone()
+    assert row
+    return row[0]
+
+
+def result(player_id: UUID, name: str, rank: int, points: int, souls: int) -> dict:
+    return {
+        "player_id": str(player_id),
+        "display_name": name,
+        "rank": rank,
+        "points": points,
+        "souls": souls,
+    }
+
+
+OLD_START = datetime(2020, 1, 6, 8, tzinfo=UTC)
+
+
+def test_past_lists_closed_weeks_newest_first(db_conn: psycopg.Connection):
+    older = close_week_with(db_conn, OLD_START, [result(BOB, "Bob", 1, 3, 3)])
+    newer = close_week_with(
+        db_conn,
+        OLD_START + timedelta(days=7),
+        [result(CAROL, "Carol", 1, 5, 4), result(ALICE, "Alice", 2, 1, 1)],
+    )
+    PgSightingsRepo(db_conn).week_at(AT)
+
+    past = PgWeeksRepo(db_conn).past()
+
+    ids = [week.id for week in past.weeks]
+    assert ids[ids.index(newer) + 1] == older
+    week = next(week for week in past.weeks if week.id == newer)
+    assert week.starts_at == OLD_START + timedelta(days=7)
+    assert week.rows == (
+        LeaderboardEntry(CAROL, "Carol", 5, 4, 1),
+        LeaderboardEntry(ALICE, "Alice", 1, 1, 2),
+    )
+    assert past.total_players >= 3
+
+
+def test_past_skips_open_weeks(db_conn: psycopg.Connection):
+    open_week = PgSightingsRepo(db_conn).week_at(AT)
+
+    past = PgWeeksRepo(db_conn).past()
+
+    assert open_week.id not in [week.id for week in past.weeks]
+
+
+def test_past_keeps_weeks_with_no_scores(db_conn: psycopg.Connection):
+    empty = close_week_with(db_conn, OLD_START, [])
+
+    past = PgWeeksRepo(db_conn).past()
+
+    assert next(week for week in past.weeks if week.id == empty).rows == ()
+
+
+def test_past_shows_current_display_names(db_conn: psycopg.Connection):
+    week_id = close_week_with(db_conn, OLD_START, [result(BOB, "Old Bob", 1, 3, 3)])
+
+    week = PgWeeksRepo(db_conn).final(week_id)
+
+    assert week
+    assert week.rows[0].display_name == "Bob"
+
+
+def test_final_returns_none_for_open_or_missing_weeks(db_conn: psycopg.Connection):
+    open_week = PgSightingsRepo(db_conn).week_at(AT)
+    repo = PgWeeksRepo(db_conn)
+
+    assert repo.final(open_week.id) is None
+    assert repo.final(uuid4()) is None

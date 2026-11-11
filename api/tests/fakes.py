@@ -21,7 +21,7 @@ from app.sightings.repo import (
 from app.sightings.scoring import Rules
 from app.verification.outcome import CheckResult, Claim, Outcome
 from app.verification.repo import PendingSighting
-from app.weeks.repo import CloseOut
+from app.weeks.repo import CloseOut, PastWeek, PastWeeks
 
 
 class FakeAttemptsRepo:
@@ -239,11 +239,19 @@ class FakeWeeksRepo:
         self.current_week_id = current_week_id
         self.ended: list[UUID] = []
         self.calls: list[datetime] = []
+        self.weeks: list[PastWeek] = []
+        self.total_players = 0
 
     def close_ended(self, now: datetime) -> CloseOut:
         self.calls.append(now)
         closed, self.ended = tuple(self.ended), []
         return CloseOut(closed=closed, current_week_id=self.current_week_id)
+
+    def past(self) -> PastWeeks:
+        return PastWeeks(weeks=tuple(self.weeks), total_players=self.total_players)
+
+    def final(self, week_id: UUID) -> PastWeek | None:
+        return next((week for week in self.weeks if week.id == week_id), None)
 
 
 class FakeAllowedEmailsRepo:
