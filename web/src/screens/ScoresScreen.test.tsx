@@ -8,6 +8,7 @@ import {
   type LeaderboardScope,
 } from '../lib/api'
 import { ScoresScreen } from './ScoresScreen'
+import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({ getLeaderboard: vi.fn() }))
 
@@ -58,11 +59,12 @@ const serve = (boards: Record<LeaderboardScope, Leaderboard>) =>
     .mocked(getLeaderboard)
     .mockImplementation((scope: LeaderboardScope) => ok(boards[scope]))
 
-const renderScores = () =>
+const renderScores = (wrapper = queryWrapper()) =>
   render(
     <MemoryRouter>
       <ScoresScreen />
     </MemoryRouter>,
+    { wrapper },
   )
 
 describe('ScoresScreen', () => {
@@ -111,6 +113,23 @@ describe('ScoresScreen', () => {
     expect(
       screen.queryByLabelText('Loading the scores'),
     ).not.toBeInTheDocument()
+  })
+
+  it('shows the saved board right away when opened again', async () => {
+    serve({ all: ALL, week: WEEK })
+    const wrapper = queryWrapper()
+    const first = renderScores(wrapper)
+    await screen.findByText('Mom')
+    first.unmount()
+    vi.mocked(getLeaderboard).mockImplementation(() => never())
+
+    renderScores(wrapper)
+
+    expect(screen.getByText('Mom')).toBeInTheDocument()
+    expect(
+      screen.queryByLabelText('Loading the scores'),
+    ).not.toBeInTheDocument()
+    expect(getLeaderboard).toHaveBeenCalledTimes(4)
   })
 
   it('links to past weeks', async () => {

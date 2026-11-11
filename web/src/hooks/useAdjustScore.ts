@@ -4,7 +4,7 @@ import { getScores, postScoreAdjustment } from '../lib/api'
 import { useApiResource } from './useApiResource'
 
 export const useAdjustScore = () => {
-  const scores = useApiResource(getScores)
+  const scores = useApiResource(['scores'], getScores)
   const navigate = useNavigate()
   const [playerId, setPlayerId] = useState<string | null>(null)
   const [change, setChange] = useState(0)

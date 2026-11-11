@@ -10,7 +10,7 @@ const byEmail = (a: AllowedEmail, b: AllowedEmail) =>
   a.email.localeCompare(b.email)
 
 export const useAllowedEmails = () => {
-  const resource = useApiResource(getAllowedEmails)
+  const resource = useApiResource(['allowedEmails'], getAllowedEmails)
   const [edited, setEdited] = useState<AllowedEmail[] | null>(null)
   const [removeFailed, setRemoveFailed] = useState(false)
   const loaded = resource.data?.emails ?? []

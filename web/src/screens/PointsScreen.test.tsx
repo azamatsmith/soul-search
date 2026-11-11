@@ -3,6 +3,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getPointRules, putPointRules, type PointRules } from '../lib/api'
 import { PointsScreen } from './PointsScreen'
+import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({
   getPointRules: vi.fn(),
@@ -27,7 +28,7 @@ const renderPoints = () => {
     ],
     { initialEntries: ['/admin/points'] },
   )
-  render(<RouterProvider router={router} />)
+  render(<RouterProvider router={router} />, { wrapper: queryWrapper() })
   return router
 }
 

@@ -17,6 +17,7 @@ import {
 } from '../lib/api'
 import { type QueuedSighting, UPLOADS_FLUSHED } from '../lib/uploadQueue'
 import { SightingsScreen } from './SightingsScreen'
+import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({ getSightings: vi.fn() }))
 vi.mock('../hooks/useQueuedSightings', () => ({ useQueuedSightings: vi.fn() }))
@@ -95,6 +96,7 @@ const renderLog = (path = '/sightings') =>
     <MemoryRouter initialEntries={[path]}>
       <SightingsScreen />
     </MemoryRouter>,
+    { wrapper: queryWrapper() },
   )
 
 describe('SightingsScreen', () => {

@@ -4,7 +4,7 @@ import { getPointRules, putPointRules, type PointRules } from '../lib/api'
 import { useApiResource } from './useApiResource'
 
 export const usePointRulesForm = () => {
-  const resource = useApiResource(getPointRules)
+  const resource = useApiResource(['pointRules'], getPointRules)
   const navigate = useNavigate()
   const [draft, setDraft] = useState<PointRules | null>(null)
   const [saving, setSaving] = useState(false)

@@ -8,6 +8,7 @@ import {
   type Me,
 } from '../lib/api'
 import { AllowedEmailsScreen } from './AllowedEmailsScreen'
+import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({
   addAllowedEmail: vi.fn(),
@@ -44,7 +45,7 @@ const renderEmails = () => {
     ],
     { initialEntries: ['/admin/emails'] },
   )
-  render(<RouterProvider router={router} />)
+  render(<RouterProvider router={router} />, { wrapper: queryWrapper() })
 }
 
 const rowFor = async (email: string) =>

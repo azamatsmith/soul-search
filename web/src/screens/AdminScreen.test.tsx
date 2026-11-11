@@ -8,6 +8,7 @@ import {
   type ReviewItem,
 } from '../lib/api'
 import { AdminScreen } from './AdminScreen'
+import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({
   getAllowedEmails: vi.fn(),
@@ -24,7 +25,7 @@ const renderAdmin = () => {
     [{ path: '/admin', element: <AdminScreen /> }],
     { initialEntries: ['/admin'] },
   )
-  render(<RouterProvider router={router} />)
+  render(<RouterProvider router={router} />, { wrapper: queryWrapper() })
 }
 
 describe('AdminScreen', () => {

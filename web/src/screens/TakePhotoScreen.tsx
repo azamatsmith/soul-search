@@ -12,8 +12,8 @@ import styles from './TakePhotoScreen.module.css'
 export const TakePhotoScreen = () => {
   const { me } = useMeContext()
   const now = useNow()
-  const period = useApiResource(getPeriod)
-  const standing = useApiResource(getStanding)
+  const period = useApiResource(['period'], getPeriod)
+  const standing = useApiResource(['standing'], getStanding)
   const failed = period.status === 'error' || standing.status === 'error'
 
   const handleRetry = () => {

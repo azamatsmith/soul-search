@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getPastWeek, type ApiResult, type PastWeek } from '../lib/api'
 import { PastWeekScreen } from './PastWeekScreen'
+import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({ getPastWeek: vi.fn() }))
 
@@ -40,6 +41,7 @@ const renderScreen = () =>
         <Route element={<PastWeekScreen />} path="/past-weeks/:id" />
       </Routes>
     </MemoryRouter>,
+    { wrapper: queryWrapper() },
   )
 
 describe('PastWeekScreen', () => {

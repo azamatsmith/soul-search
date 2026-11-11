@@ -24,7 +24,7 @@ export const CaptureScreen = () => {
   const capture = useCapture()
   const camera = useCameraStream(capture.step === 'camera', capture.attempt)
   const location = useLocation(capture.step !== 'intro')
-  const period = useApiResource(getPeriod)
+  const period = useApiResource(['period'], getPeriod)
   const nativeCamera = useRef<HTMLInputElement>(null)
   const { me } = useMeContext()
   const sender = useSendSighting(me.id)

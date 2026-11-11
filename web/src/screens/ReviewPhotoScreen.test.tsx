@@ -3,6 +3,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getReviewItem, postReview, type ReviewDetail } from '../lib/api'
 import { ReviewPhotoScreen } from './ReviewPhotoScreen'
+import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({
   getReviewItem: vi.fn(),
@@ -49,7 +50,7 @@ const renderReview = () => {
     ],
     { initialEntries: ['/admin/flagged', '/admin/flagged/f1'] },
   )
-  render(<RouterProvider router={router} />)
+  render(<RouterProvider router={router} />, { wrapper: queryWrapper() })
   return router
 }
 

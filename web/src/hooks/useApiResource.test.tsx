@@ -1,15 +1,22 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { ApiResult } from '../lib/api'
+import { createQueryClient } from '../lib/queryClient'
+import { queryWrapper } from '../test/queryWrapper'
 import { useApiResource } from './useApiResource'
 
 const ok = <T,>(data: T): ApiResult<T> => ({ ok: true, data })
 const failed: ApiResult<never> = { ok: false, status: 0, error: 'network' }
 
+const renderResource = <T,>(
+  load: () => Promise<ApiResult<T>>,
+  wrapper = queryWrapper(),
+) => renderHook(() => useApiResource(['thing'], load), { wrapper })
+
 describe('useApiResource', () => {
   it('starts loading, then has the data', async () => {
     const load = vi.fn(() => Promise.resolve(ok({ points: 3 })))
-    const { result } = renderHook(() => useApiResource(load))
+    const { result } = renderResource(load)
 
     expect(result.current.status).toBe('loading')
     await waitFor(() => expect(result.current.status).toBe('ready'))
@@ -18,32 +25,23 @@ describe('useApiResource', () => {
   })
 
   it('reports an error and loads again on retry', async () => {
+    let resolveSecond: (value: ApiResult<{ points: number }>) => void = () => {}
     const load = vi
       .fn<() => Promise<ApiResult<{ points: number }>>>()
       .mockResolvedValueOnce(failed)
-      .mockResolvedValueOnce(ok({ points: 1 }))
-    const { result } = renderHook(() => useApiResource(load))
+      .mockImplementationOnce(() => new Promise((r) => (resolveSecond = r)))
+    const { result } = renderResource(load)
 
     await waitFor(() => expect(result.current.status).toBe('error'))
     expect(result.current.data).toBeNull()
+    expect(result.current.error).toBe('network')
 
     act(() => result.current.retry())
 
-    expect(result.current.status).toBe('loading')
+    await waitFor(() => expect(result.current.status).toBe('loading'))
+    act(() => resolveSecond(ok({ points: 1 })))
     await waitFor(() => expect(result.current.status).toBe('ready'))
     expect(result.current.data).toEqual({ points: 1 })
-  })
-
-  it('ignores a response that arrives after unmount', async () => {
-    let resolve: (value: ApiResult<number>) => void = () => {}
-    const load = () => new Promise<ApiResult<number>>((r) => (resolve = r))
-    const { result, unmount } = renderHook(() => useApiResource(load))
-
-    unmount()
-    resolve(ok(1))
-    await Promise.resolve()
-
-    expect(result.current.status).toBe('loading')
   })
 
   it('keeps showing data while a refresh loads', async () => {
@@ -52,15 +50,15 @@ describe('useApiResource', () => {
       .fn<() => Promise<ApiResult<number>>>()
       .mockResolvedValueOnce(ok(1))
       .mockImplementationOnce(() => new Promise((r) => (resolveSecond = r)))
-    const { result } = renderHook(() => useApiResource(load))
+    const { result } = renderResource(load)
     await waitFor(() => expect(result.current.status).toBe('ready'))
 
     act(() => result.current.refresh())
 
     expect(result.current.status).toBe('ready')
     expect(result.current.data).toBe(1)
-    await act(async () => resolveSecond(ok(2)))
-    expect(result.current.data).toBe(2)
+    act(() => resolveSecond(ok(2)))
+    await waitFor(() => expect(result.current.data).toBe(2))
   })
 
   it('keeps old data when a refresh fails', async () => {
@@ -68,7 +66,7 @@ describe('useApiResource', () => {
       .fn<() => Promise<ApiResult<number>>>()
       .mockResolvedValueOnce(ok(1))
       .mockResolvedValueOnce(failed)
-    const { result } = renderHook(() => useApiResource(load))
+    const { result } = renderResource(load)
     await waitFor(() => expect(result.current.status).toBe('ready'))
 
     act(() => result.current.refresh())
@@ -86,15 +84,14 @@ describe('useApiResource', () => {
       .fn<() => Promise<ApiResult<number>>>()
       .mockResolvedValueOnce(failed)
       .mockImplementationOnce(() => new Promise((r) => (resolveSecond = r)))
-    const { result } = renderHook(() => useApiResource(load))
+    const { result } = renderResource(load)
     await waitFor(() => expect(result.current.status).toBe('error'))
 
     act(() => result.current.refresh())
 
     expect(result.current.status).toBe('error')
-    await act(async () => resolveSecond(ok(5)))
-    expect(result.current.status).toBe('ready')
-    expect(result.current.data).toBe(5)
+    act(() => resolveSecond(ok(5)))
+    await waitFor(() => expect(result.current.data).toBe(5))
   })
 
   it('ignores refresh while the first load is still running', async () => {
@@ -102,12 +99,44 @@ describe('useApiResource', () => {
     const load = vi.fn(
       () => new Promise<ApiResult<number>>((r) => (resolveFirst = r)),
     )
-    const { result } = renderHook(() => useApiResource(load))
+    const { result } = renderResource(load)
 
     act(() => result.current.refresh())
 
     expect(load).toHaveBeenCalledTimes(1)
-    await act(async () => resolveFirst(ok(3)))
-    expect(result.current.data).toBe(3)
+    act(() => resolveFirst(ok(3)))
+    await waitFor(() => expect(result.current.data).toBe(3))
+    expect(load).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows saved data right away when opened again, then updates it', async () => {
+    let resolveSecond: (value: ApiResult<number>) => void = () => {}
+    const load = vi
+      .fn<() => Promise<ApiResult<number>>>()
+      .mockResolvedValueOnce(ok(1))
+      .mockImplementationOnce(() => new Promise((r) => (resolveSecond = r)))
+    const wrapper = queryWrapper(createQueryClient())
+    const first = renderResource(load, wrapper)
+    await waitFor(() => expect(first.result.current.status).toBe('ready'))
+    first.unmount()
+
+    const { result } = renderResource(load, wrapper)
+
+    expect(result.current.status).toBe('ready')
+    expect(result.current.data).toBe(1)
+    expect(load).toHaveBeenCalledTimes(2)
+    act(() => resolveSecond(ok(2)))
+    await waitFor(() => expect(result.current.data).toBe(2))
+  })
+
+  it('makes one request when two screens ask for the same data', async () => {
+    const load = vi.fn(() => Promise.resolve(ok(7)))
+    const wrapper = queryWrapper(createQueryClient())
+    const first = renderResource(load, wrapper)
+    const second = renderResource(load, wrapper)
+
+    await waitFor(() => expect(second.result.current.data).toBe(7))
+    expect(first.result.current.data).toBe(7)
+    expect(load).toHaveBeenCalledTimes(1)
   })
 })

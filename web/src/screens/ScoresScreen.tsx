@@ -30,8 +30,8 @@ const EMPTY = {
 
 export const ScoresScreen = () => {
   const [scope, setScope] = useState<LeaderboardScope>('week')
-  const week = useApiResource(loadWeek)
-  const all = useApiResource(loadAll)
+  const week = useApiResource(['leaderboard', 'week'], loadWeek)
+  const all = useApiResource(['leaderboard', 'all'], loadAll)
   const board = scope === 'week' ? week : all
   const scopeLabel = scope === 'week' ? 'This week' : 'All time'
 

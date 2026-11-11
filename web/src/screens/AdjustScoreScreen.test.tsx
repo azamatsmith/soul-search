@@ -3,6 +3,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getScores, postScoreAdjustment, type Scores } from '../lib/api'
 import { AdjustScoreScreen } from './AdjustScoreScreen'
+import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({
   getScores: vi.fn(),
@@ -28,7 +29,7 @@ const renderAdjust = () => {
     ],
     { initialEntries: ['/admin/adjust'] },
   )
-  render(<RouterProvider router={router} />)
+  render(<RouterProvider router={router} />, { wrapper: queryWrapper() })
   return router
 }
 

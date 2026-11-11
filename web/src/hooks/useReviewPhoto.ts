@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import {
   getReviewItem,
@@ -10,8 +10,12 @@ import { useApiResource } from './useApiResource'
 
 export const useReviewPhoto = (id: string) => {
   const navigate = useNavigate()
-  const load = useCallback(() => getReviewItem(id), [id])
-  const { data: item, error, retry, status } = useApiResource(load)
+  const {
+    data: item,
+    error,
+    retry,
+    status,
+  } = useApiResource(['reviewItem', id], () => getReviewItem(id))
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<ApiErrorCode | null>(null)
   const backTo =

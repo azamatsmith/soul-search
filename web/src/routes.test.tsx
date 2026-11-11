@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useSession } from './hooks/useSession'
 import { getMe } from './lib/api'
 import { routes } from './routes'
+import { queryWrapper } from './test/queryWrapper'
 
 vi.mock('./hooks/useSession', () => ({ useSession: vi.fn() }))
 vi.mock('./lib/api', () => ({
@@ -27,6 +28,7 @@ const renderAt = (path: string) =>
     <RouterProvider
       router={createMemoryRouter(routes, { initialEntries: [path] })}
     />,
+    { wrapper: queryWrapper() },
   )
 
 describe('routes', () => {

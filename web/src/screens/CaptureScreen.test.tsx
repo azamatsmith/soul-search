@@ -10,6 +10,7 @@ import {
 import { fileToJpeg, frameToJpeg } from '../lib/photo'
 import { deviceQueue, type QueuedSighting } from '../lib/uploadQueue'
 import { CaptureScreen } from './CaptureScreen'
+import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({ getPeriod: vi.fn(), postSighting: vi.fn() }))
 vi.mock('../lib/camera', () => ({
@@ -52,7 +53,7 @@ const renderCapture = () => {
     ],
     { initialEntries: ['/capture'] },
   )
-  render(<RouterProvider router={router} />)
+  render(<RouterProvider router={router} />, { wrapper: queryWrapper() })
 }
 
 const click = (name: string | RegExp) =>
