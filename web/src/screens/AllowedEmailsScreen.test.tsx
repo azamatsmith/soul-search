@@ -1,3 +1,4 @@
+import { QueryClient } from '@tanstack/react-query'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { createMemoryRouter, Outlet, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -88,6 +89,7 @@ describe('AllowedEmailsScreen', () => {
   })
 
   it('adds an email to the list and clears the field', async () => {
+    const refreshAll = vi.spyOn(QueryClient.prototype, 'invalidateQueries')
     add.mockResolvedValue({
       ok: true,
       data: { display_name: null, email: 'carol@example.com' },
@@ -100,6 +102,8 @@ describe('AllowedEmailsScreen', () => {
     expect(add).toHaveBeenCalledWith('Carol@Example.com')
     expect(screen.getByText('4 people')).toBeInTheDocument()
     expect(screen.getByLabelText('Add someone')).toHaveValue('')
+    expect(refreshAll).toHaveBeenCalledWith()
+    refreshAll.mockRestore()
   })
 
   it.each([
@@ -118,6 +122,7 @@ describe('AllowedEmailsScreen', () => {
   })
 
   it('removes someone who has not signed in yet right away', async () => {
+    const refreshAll = vi.spyOn(QueryClient.prototype, 'invalidateQueries')
     remove.mockResolvedValue({ ok: true, data: null })
     renderEmails()
     const nora = await rowFor('nora@example.com')
@@ -125,6 +130,8 @@ describe('AllowedEmailsScreen', () => {
     await screen.findByText('2 people')
     expect(remove).toHaveBeenCalledWith('nora@example.com')
     expect(screen.queryByText('nora@example.com')).not.toBeInTheDocument()
+    expect(refreshAll).toHaveBeenCalledWith()
+    refreshAll.mockRestore()
   })
 
   it('asks before removing someone who joined', async () => {

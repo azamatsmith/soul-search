@@ -1,3 +1,4 @@
+import { QueryClient } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -54,6 +55,7 @@ describe('AdjustScoreScreen', () => {
   })
 
   it('saves a change with a reason, then goes back', async () => {
+    const refreshAll = vi.spyOn(QueryClient.prototype, 'invalidateQueries')
     const router = renderAdjust()
     expect(await screen.findByText('This week')).toBeVisible()
     await fillIn()
@@ -68,6 +70,8 @@ describe('AdjustScoreScreen', () => {
     })
     expect(await screen.findByText('Admin home')).toBeVisible()
     expect(router.state.location.pathname).toBe('/admin')
+    expect(refreshAll).toHaveBeenCalledWith()
+    refreshAll.mockRestore()
   })
 
   it('keeps save disabled until there is a player, a change and a reason', async () => {

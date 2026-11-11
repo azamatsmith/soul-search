@@ -7,9 +7,11 @@ import {
   type ReviewAction,
 } from '../lib/api'
 import { useApiResource } from './useApiResource'
+import { useRefreshAll } from './useRefreshAll'
 
 export const useReviewPhoto = (id: string) => {
   const navigate = useNavigate()
+  const refreshAll = useRefreshAll()
   const {
     data: item,
     error,
@@ -28,8 +30,12 @@ export const useReviewPhoto = (id: string) => {
     setSaveError(null)
     const result = await postReview(id, action, category)
     setSaving(false)
-    if (result.ok) void navigate(backTo, { replace: true })
-    else setSaveError(result.error)
+    if (!result.ok) {
+      setSaveError(result.error)
+      return
+    }
+    refreshAll()
+    void navigate(backTo, { replace: true })
   }
 
   return {

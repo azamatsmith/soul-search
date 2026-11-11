@@ -1,3 +1,4 @@
+import { QueryClient } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -77,11 +78,14 @@ describe('ReviewPhotoScreen', () => {
   })
 
   it('changes a flagged photo to regular, then goes back to the list', async () => {
+    const refreshAll = vi.spyOn(QueryClient.prototype, 'invalidateQueries')
     const router = renderReview()
     await choose(/Change to Regular · \+1/)
     expect(save).toHaveBeenCalledWith('f1', 'regular', null)
     expect(await screen.findByText('Queue')).toBeVisible()
     expect(router.state.location.pathname).toBe('/admin/flagged')
+    expect(refreshAll).toHaveBeenCalledWith()
+    refreshAll.mockRestore()
   })
 
   it('restores a false call as special with a picked category', async () => {

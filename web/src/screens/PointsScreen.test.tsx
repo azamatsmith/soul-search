@@ -1,3 +1,4 @@
+import { QueryClient } from '@tanstack/react-query'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -46,6 +47,7 @@ describe('PointsScreen', () => {
   })
 
   it('saves edited points and categories, then goes back', async () => {
+    const refreshAll = vi.spyOn(QueryClient.prototype, 'invalidateQueries')
     save.mockResolvedValue({ ok: true, data: RULES })
     const router = renderPoints()
     await screen.findByText('Alien Green')
@@ -68,6 +70,8 @@ describe('PointsScreen', () => {
     })
     expect(await screen.findByText('Admin home')).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/admin')
+    expect(refreshAll).toHaveBeenCalledWith()
+    refreshAll.mockRestore()
   })
 
   it.each([
