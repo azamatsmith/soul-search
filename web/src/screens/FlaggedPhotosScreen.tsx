@@ -1,4 +1,5 @@
 import { useSearchParams } from 'react-router'
+import { EmptyNote } from '../components/EmptyNote'
 import { LoadError } from '../components/LoadError'
 import { PushedScreen } from '../components/PushedScreen'
 import { ReviewCard } from '../components/ReviewCard'
@@ -44,11 +45,11 @@ export const FlaggedPhotosScreen = () => {
         <LoadError onRetry={queue.retry} thing="flagged photos" />
       )}
       {queue.data && items.length === 0 && (
-        <p className={styles.empty}>
+        <EmptyNote>
           {tab === 'flagged'
             ? 'No flagged photos. Nothing to look at right now.'
             : 'No automatic false calls to look at.'}
-        </p>
+        </EmptyNote>
       )}
       {items.length > 0 && (
         <ul className={styles.list}>
