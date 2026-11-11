@@ -6,6 +6,7 @@ import {
 } from '../lib/api'
 import { useApiResource } from './useApiResource'
 import { useRefreshAll } from './useRefreshAll'
+import { useSaveAction } from './useSaveAction'
 
 const byEmail = (a: AllowedEmail, b: AllowedEmail) =>
   a.email.localeCompare(b.email)
@@ -13,7 +14,7 @@ const byEmail = (a: AllowedEmail, b: AllowedEmail) =>
 export const useAllowedEmails = () => {
   const resource = useApiResource(['allowedEmails'], getAllowedEmails)
   const [edited, setEdited] = useState<AllowedEmail[] | null>(null)
-  const [removeFailed, setRemoveFailed] = useState(false)
+  const { failure, run } = useSaveAction()
   const refreshAll = useRefreshAll()
   const loaded = resource.data?.emails ?? []
   const emails = edited ?? resource.data?.emails ?? null
@@ -24,12 +25,8 @@ export const useAllowedEmails = () => {
   }
 
   const handleRemove = async (email: string) => {
-    setRemoveFailed(false)
-    const result = await removeAllowedEmail(email)
-    if (!result.ok) {
-      setRemoveFailed(true)
-      return
-    }
+    const result = await run(() => removeAllowedEmail(email))
+    if (!result.ok) return
     setEdited((current) =>
       (current ?? loaded).filter((entry) => entry.email !== email),
     )
@@ -40,7 +37,7 @@ export const useAllowedEmails = () => {
     emails,
     handleAdded,
     handleRemove,
-    removeFailed,
+    removeFailed: failure !== null,
     retry: resource.retry,
     status: resource.status,
   }

@@ -1,13 +1,8 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import {
-  getReviewItem,
-  postReview,
-  type ApiErrorCode,
-  type ReviewAction,
-} from '../lib/api'
+import { getReviewItem, postReview, type ReviewAction } from '../lib/api'
 import { useApiResource } from './useApiResource'
 import { useRefreshAll } from './useRefreshAll'
+import { useSaveAction } from './useSaveAction'
 
 export const useReviewPhoto = (id: string) => {
   const navigate = useNavigate()
@@ -18,22 +13,15 @@ export const useReviewPhoto = (id: string) => {
     retry,
     status,
   } = useApiResource(['reviewItem', id], () => getReviewItem(id))
-  const [saving, setSaving] = useState(false)
-  const [saveError, setSaveError] = useState<ApiErrorCode | null>(null)
+  const { failure, run, saving } = useSaveAction()
   const backTo =
     item?.status === 'false_call'
       ? '/admin/flagged?tab=false_calls'
       : '/admin/flagged'
 
   const submit = async (action: ReviewAction, category: string | null) => {
-    setSaving(true)
-    setSaveError(null)
-    const result = await postReview(id, action, category)
-    setSaving(false)
-    if (!result.ok) {
-      setSaveError(result.error)
-      return
-    }
+    const result = await run(() => postReview(id, action, category))
+    if (!result.ok) return
     refreshAll()
     void navigate(backTo, { replace: true })
   }
@@ -43,7 +31,7 @@ export const useReviewPhoto = (id: string) => {
     gone: error === 'not_found',
     item,
     retry,
-    saveError,
+    saveError: failure?.error ?? null,
     saving,
     status,
     submit,
