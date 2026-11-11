@@ -1,0 +1,17 @@
+Welcome to Soul Search. You're on the list!
+
+Type this code into Soul Search to finish signing in. Then you'll pick the name other players see.
+
+{{ .Token }}
+
+It works for 10 minutes.
+
+How it works
+1. Spot a Kia Soul anywhere this week.
+2. Snap a photo in the app. Regular Souls are worth 1 point, special ones 2.
+3. Climb the leaderboard. It starts fresh every Monday.
+
+Didn't expect this? You can ignore this email. Nobody can sign in without the code.
+
+--
+Soul Search is invite-only. Questions? Ask Matthew or Heathyr.

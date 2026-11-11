@@ -1,0 +1,12 @@
+Your Soul Search code
+
+Type this code into Soul Search to sign in:
+
+{{ .Token }}
+
+It works for 10 minutes.
+
+Didn't ask for a code? You can ignore this email. Nobody can sign in without the code.
+
+--
+Soul Search is invite-only. Questions? Ask Matthew or Heathyr.

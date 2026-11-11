@@ -218,6 +218,15 @@ Two patterns, one for each kind of wait. Both are in `Soul Hunt Design System.dc
 - **Reduced motion** (`prefers-reduced-motion: reduce`): the car parks centered with still wheels; placeholders don't move. Labels stay.
 - Animate with `transform` in production (the prototypes animate `left` for simplicity).
 
+### Emails: `Soul Search Emails.dc.html` (previews) and `emails/` (templates)
+Two Supabase Auth templates that share one layout. Paste each HTML file into Supabase → Authentication → Email Templates. `{{ .Token }}` (the 6-digit code) and `{{ .Email }}` are Supabase template variables; don't use `{{ .ConfirmationURL }}`, since sign-in is code-only.
+- **Sign-in code** (`emails/sign-in-code.html`, Supabase "Magic Link" template). Subject: **`Your Soul Search code: {{ .Token }}`**. Hidden preheader: "Type it into Soul Search to sign in. It works for 10 minutes." Kicker "SIGN IN", title "Here's your code", "Type this code into Soul Search to sign in.", code box, then "Didn't ask for a code? You can ignore this email. Nobody can sign in without the code."
+- **First sign-in** (`emails/first-sign-in.html`, Supabase "Confirm signup" template, sent the first time an allowlisted email signs in). Subject: **`Welcome to Soul Search! Your code is {{ .Token }}`**. Kicker "WELCOME", title "You're on the list!", "Type this code into Soul Search to finish signing in. Then you'll pick the name other players see.", code box, a "How it works" list (1 Spot a Kia Soul anywhere this week. 2 Snap a photo in the app. Regular Souls are worth 1 point, special ones 2. 3 Climb the leaderboard. It starts fresh every Monday.), then the same ignore note. Check which template your Supabase setup sends to brand-new users and put this one there.
+- **Sender name:** "Soul Search" (not "Soul Search Login"), from noreply@soulsearch.cc. The old subject "Your sign-in link" is wrong now that there's no link.
+- **Layout:** 560px max-width card on cream (`#FAF4E8`), surface `#FFFCF5` with a 1px gold-soft border and 16px radius. Forest header band (3px gold bottom rule) with the app mark (44px forest-deep square, 2px gold border, serif "S") and "Soul Search" in serif 24px. Body padding 28px; body text 18px (larger than usual email text, for the same older-player reason as the app). Code box: cream background, 2px gold-soft border, radius 14, kicker "YOUR CODE", the digits in serif 44px forest with 10px letter-spacing, and "Works for 10 minutes" below. Footer under the card: "Soul Search is invite-only. Questions? Ask Matthew or Heathyr. This email was sent to {email}." (14px ink-muted, centered).
+- **Email-safe build:** table layout with inline styles (no flexbox or CSS variables), so it holds up in Gmail and Outlook. Young Serif and Figtree load from Google Fonts where the client allows it (Apple Mail, iOS Mail); everywhere else they fall back to Georgia and the system sans, which is expected. `color-scheme: light only` keeps clients from inverting the colors. Set the plain-text part from the matching `.txt` file if your sender supports it.
+- **Code as text:** the code must be real text, never an image, so iOS can offer it above the keyboard ("From Mail") and it can be copied.
+
 ## State Management
 - `auth`: `{ status: 'signedOut' | 'notAllowed' | 'codeSent' | 'checking' | 'wrongCode' | 'expired' | 'lockedOut' | 'needsName' | 'signedIn', email, triesLeft, lockedUntil, user }`
 - `user`: `{ id, displayName, email, isAdmin, settings: { textSize: 'standard' | 'large' } }`
@@ -245,4 +254,5 @@ Two patterns, one for each kind of wait. Both are in `Soul Hunt Design System.dc
 - `Soul Search Admin.dc.html`: admin tools.
 - `Soul Search Challenges.dc.html`: challenge admin and the player experience while one runs.
 - `Soul Hunt Design System.dc.html`: tokens, base components, app icon. ("Soul Hunt" is a paused Thanksgiving variant; the tokens apply unchanged.)
+- `Soul Search Emails.dc.html`: previews of the sign-in emails; the templates themselves are in `emails/`.
 - `support.js`: preview runtime only.
