@@ -121,6 +121,7 @@ class PgSightingsRepo:
             select id, name, starts_at, ends_at, rules from public.challenges
             where starts_at <= %s and %s < ends_at
             order by starts_at desc limit 1
+            for key share
             """,
             (at, at),
         ).fetchone()

@@ -8,6 +8,7 @@ from app.admin.challenges import Challenge, ChallengeDraft, ChallengeRules
 from app.admin.challenges_repo import ChallengeOverlaps, PgChallengesRepo, Winner
 from app.sightings.repo import PgSightingsRepo
 from app.weeks.repo import PgWeeksRepo
+from tests.conftest import TEST_DATABASE_URL
 from tests.sightings.test_sightings_repo_db import (
     ALICE,
     AT,
@@ -203,3 +204,25 @@ def test_winner_is_none_when_nobody_scored(db_conn: psycopg.Connection):
     (finished,) = [w for c, w in PgChallengesRepo(db_conn).list(AT).finished if c.id == flop.id]
 
     assert finished is None
+
+
+def test_a_photo_reading_the_challenge_holds_off_its_delete():
+    setup = psycopg.connect(TEST_DATABASE_URL)
+    starts_at = datetime(2031, 3, 4, 18, tzinfo=UTC)
+    challenge = create(setup, "Race Day", starts_at)
+    setup.commit()
+    uploader = psycopg.connect(TEST_DATABASE_URL)
+    admin = psycopg.connect(TEST_DATABASE_URL)
+    try:
+        PgSightingsRepo(uploader).period_at(starts_at + timedelta(minutes=5))
+        admin.execute("set lock_timeout = '200ms'")
+
+        with pytest.raises(psycopg.errors.LockNotAvailable):
+            PgChallengesRepo(admin).delete(challenge.id)
+    finally:
+        uploader.rollback()
+        admin.rollback()
+        setup.execute("delete from public.challenges where id = %s", (challenge.id,))
+        setup.commit()
+        for conn in (uploader, admin, setup):
+            conn.close()
