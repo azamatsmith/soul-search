@@ -450,4 +450,19 @@ describe('CaptureScreen', () => {
     ).toHaveLength(1)
     expect(screen.queryByText(/Brown means brown/)).not.toBeInTheDocument()
   })
+  it('warns with the false-call value from the rules', async () => {
+    vi.mocked(getPeriod).mockResolvedValue({
+      ok: true,
+      data: { ...PERIOD, rules: { ...PERIOD.rules, false_call: -2 } },
+    })
+    vi.mocked(postSighting).mockResolvedValue(SAVED)
+    await reachClaimStep()
+    pickBrownSpecial()
+
+    await act(async () => click('Send for 3 points'))
+
+    expect(
+      await screen.findByText(/it becomes a \u22122 in Sightings\./),
+    ).toBeInTheDocument()
+  })
 })
