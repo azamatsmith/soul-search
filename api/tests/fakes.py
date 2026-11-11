@@ -1,8 +1,10 @@
 from dataclasses import replace
 from datetime import datetime
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from app.admin.audit_repo import AuditEntry, HistoryEntry
+from app.admin.challenges import Challenge, ChallengeDraft
+from app.admin.challenges_repo import ChallengeList
 from app.admin.emails_repo import AllowedEmail
 from app.admin.review import Decision, ReviewItem
 from app.admin.rules_repo import PointRules
@@ -338,3 +340,47 @@ class FakeScoresRepo:
         self.adjustments.append((player_id, admin_id, period, change, reason))
         player = self.scores[player_id]
         self.scores[player_id] = replace(player, points=player.points + change)
+
+
+class FakeChallengesRepo:
+    def __init__(
+        self,
+        challenges: tuple[Challenge, ...] = (),
+        overlap: str | None = None,
+        listing: ChallengeList | None = None,
+    ) -> None:
+        self.challenges = {c.id: c for c in challenges}
+        self.overlap = overlap
+        self.listing = listing or ChallengeList(running=(), upcoming=(), finished=())
+        self.overlap_requests: list[tuple[datetime, datetime, UUID | None]] = []
+        self.created: list[tuple[ChallengeDraft, UUID]] = []
+        self.updated: list[tuple[UUID, ChallengeDraft]] = []
+        self.deleted: list[UUID] = []
+
+    def list(self, now: datetime) -> ChallengeList:
+        return self.listing
+
+    def get(self, challenge_id: UUID) -> Challenge | None:
+        return self.challenges.get(challenge_id)
+
+    def overlapping(
+        self, starts_at: datetime, ends_at: datetime, exclude_id: UUID | None
+    ) -> str | None:
+        self.overlap_requests.append((starts_at, ends_at, exclude_id))
+        return self.overlap
+
+    def create(self, draft: ChallengeDraft, admin_id: UUID) -> Challenge:
+        self.created.append((draft, admin_id))
+        challenge = Challenge(uuid4(), draft.name, draft.starts_at, draft.ends_at, draft.rules)
+        self.challenges[challenge.id] = challenge
+        return challenge
+
+    def update(self, challenge_id: UUID, draft: ChallengeDraft) -> Challenge:
+        self.updated.append((challenge_id, draft))
+        challenge = Challenge(challenge_id, draft.name, draft.starts_at, draft.ends_at, draft.rules)
+        self.challenges[challenge_id] = challenge
+        return challenge
+
+    def delete(self, challenge_id: UUID) -> None:
+        self.deleted.append(challenge_id)
+        self.challenges.pop(challenge_id, None)
