@@ -113,6 +113,15 @@ describe('ScoresScreen', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('links to past weeks', async () => {
+    serve({ all: ALL, week: WEEK })
+    renderScores()
+
+    expect(
+      await screen.findByRole('link', { name: /See past weeks/ }),
+    ).toHaveAttribute('href', '/past-weeks')
+  })
+
   it('shows the weekly empty state', async () => {
     serve({ all: ALL, week: { ...WEEK, rows: [] } })
     renderScores()

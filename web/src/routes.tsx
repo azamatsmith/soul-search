@@ -10,6 +10,8 @@ import { CaptureScreen } from './screens/CaptureScreen'
 import { ChangeHistoryScreen } from './screens/ChangeHistoryScreen'
 import { ChangeNameScreen } from './screens/ChangeNameScreen'
 import { FlaggedPhotosScreen } from './screens/FlaggedPhotosScreen'
+import { PastWeekScreen } from './screens/PastWeekScreen'
+import { PastWeeksScreen } from './screens/PastWeeksScreen'
 import { PointsScreen } from './screens/PointsScreen'
 import { ReviewPhotoScreen } from './screens/ReviewPhotoScreen'
 import { ScoresScreen } from './screens/ScoresScreen'
@@ -31,6 +33,8 @@ export const routes: RouteObject[] = [
       { path: '/capture', element: <CaptureScreen /> },
       { path: '/settings', element: <SettingsScreen /> },
       { path: '/settings/name', element: <ChangeNameScreen /> },
+      { path: '/past-weeks', element: <PastWeeksScreen /> },
+      { path: '/past-weeks/:id', element: <PastWeekScreen /> },
       {
         element: <RequireAdmin />,
         children: [
