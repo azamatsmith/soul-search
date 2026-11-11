@@ -67,11 +67,30 @@ Change history wording: "created Brown Week", "changed Brown Week", "deleted Bro
 
 ## PR 4: Web, C3 to C7
 
-- C3 and C3b Home: "Challenge · {name}" kicker, time left, Challenge points, rank, and the orange banner, including the short-challenge version.
-- C4 and C5 photo flow: "Counts toward {name}", challenge point values and bonus chips.
-- C6: the Leaderboard's first tab becomes the challenge, with a rules strip, while one runs.
-- C7: challenge tags and day headers show the challenge name.
-- Point values always come from data.
+Split into three PRs (A, B, C), each branched from fresh main. Point values and rule copy always come from data.
+
+### Decisions
+
+- Category names are admin-entered, so copy uses them as-is: "Brown paint is worth +3", never a hand-shortened "Brown Souls". Several bonuses join as "Brown paint is worth +3 and Alien Green +4." No bonuses drops the sentence. The C5 kicker stays "Special Soul saved".
+- The weekly Home header keeps the short "3 days left". Only challenges use the full "Ends Sun 11:59 pm · 2 days left".
+- The Special option shows the base special value. A bonus category chip shows its own value ("+3"). The Send label gives the exact total.
+- The Special description is built from the category list. The "Brown means brown" note shows only when a category starts with "Brown". The Saved note uses `rules.false_call`.
+
+### PR A: Home C3 and C3b, one time-left helper
+
+- `homeCopy.timeLeft` merges into `challengeTime`: a short form (weekly Home) and the full form (challenge Home, C1 chips, C6 kicker). Minutes round up everywhere, so it never says "0 min".
+- `HomeHeader` during a challenge: kicker "Challenge · {name}", full time left, "Challenge points", rank.
+- `ChallengeBanner` (orange) under the header: "{name} is on", the bonus sentence, then the long version when the end is on a later Pacific day ("Photos count toward the challenge until Sun 11:59 pm. Weekly scores pick up again after that.") or the short version when it ends today ("... until 6:00 pm today. After that, photos count toward your week again.").
+
+### PR B: Photo flow C4 and C5
+
+- ClaimForm: orange "Counts toward {name}" strip during a challenge; bonus chips show their points; derived Special description and conditional brown note.
+- SavedStep: false-call value from rules, with a real minus sign.
+
+### PR C: Leaderboard C6 and Sightings C7
+
+- The web `Leaderboard` type gains `scope: 'challenge'` and `name`. While `/period` is a challenge, the first tab is the challenge name, loaded with `scope=challenge`, kicker "Challenge · ends Sun 11:59 pm", and a rules strip ("Rules: Regular +1 · Special +2 · Brown paint +3 · False call −1"). A `no_challenge` 404 falls back to This week.
+- Sightings day headers add "· {challenge}" when any photo that day is in a challenge, and "· Weekly" for the other days of a week that has challenge photos. Weeks without a challenge are unchanged. Challenge cards get the orange tag with the name.
 
 ## Testing
 
