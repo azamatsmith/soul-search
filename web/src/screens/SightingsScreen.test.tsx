@@ -126,6 +126,21 @@ describe('SightingsScreen', () => {
     expect(within(wed).getByText('Marcus T.')).toBeInTheDocument()
   })
 
+  it('tags challenge photos with the challenge name', async () => {
+    serve([
+      sighting({ challenge_name: 'Brown Week', id: 'today' }),
+      EVERYONE[1],
+    ])
+    renderLog()
+
+    const today = await screen.findByRole('list', {
+      name: 'Today · Thu · Brown Week',
+    })
+    expect(within(today).getByText('Brown Week')).toBeInTheDocument()
+    const wed = screen.getByRole('list', { name: 'Yesterday · Wed · Weekly' })
+    expect(within(wed).queryByText('Brown Week')).not.toBeInTheDocument()
+  })
+
   it('switches to Just mine', async () => {
     serve(EVERYONE)
     renderLog()

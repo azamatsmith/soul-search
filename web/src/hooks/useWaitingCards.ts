@@ -16,6 +16,7 @@ export const useWaitingCards = (
     const photoUrl = objectUrlFor(item.photo)
     return {
       categories: item.categories,
+      challengeName: null,
       checkNote: null,
       claimType: item.claimType,
       fullPhotoUrl: photoUrl,

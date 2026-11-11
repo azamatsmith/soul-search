@@ -73,3 +73,9 @@
   font: 500 var(--t-label) / 1.35 var(--f-body);
   overflow-wrap: anywhere;
 }
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}

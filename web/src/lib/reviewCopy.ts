@@ -90,6 +90,7 @@ export const queueChip = (item: ReviewItem) =>
 
 export const reviewCard = (item: ReviewItem): LogCard => ({
   categories: item.categories,
+  challengeName: null,
   checkNote: item.check_note,
   claimType: item.claim_type,
   fullPhotoUrl: item.photo_url,
