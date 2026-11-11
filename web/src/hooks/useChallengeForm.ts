@@ -67,12 +67,22 @@ const savedFields = (challenge: ChallengeDetail): ChallengeFields => {
   }
 }
 
-const toInput = (fields: ChallengeFields): ChallengeInput => ({
+const toInput = (
+  fields: ChallengeFields,
+  lockedStart: string | null,
+): ChallengeInput => ({
   ends_at: pacificToIso(fields.endDate, fields.endTime),
   name: fields.name.trim(),
   rules: fields.rules,
-  starts_at: pacificToIso(fields.startDate, fields.startTime),
+  starts_at: lockedStart ?? pacificToIso(fields.startDate, fields.startTime),
 })
+
+const hasAllTimes = ({
+  endDate,
+  endTime,
+  startDate,
+  startTime,
+}: ChallengeFields) => Boolean(endDate && endTime && startDate && startTime)
 
 const noChallenge = (): Promise<ApiResult<ChallengeDetail | null>> =>
   Promise.resolve({ ok: true, data: null })
@@ -96,7 +106,7 @@ export const useChallengeForm = (id: string | null) => {
     : weekly.data && newFields(weekly.data, now)
   const fields = draft ?? initial ?? null
   const finished = challenge ? Date.parse(challenge.ends_at) <= now : false
-  const winner = list.data?.finished.find((c) => c.id === id)?.winner ?? null
+  const result = list.data?.finished.find((c) => c.id === id)
   const failed = weekly.status === 'error' || saved.status === 'error'
 
   const update = (change: Partial<ChallengeFields>) => {
@@ -118,7 +128,12 @@ export const useChallengeForm = (id: string | null) => {
 
   const save = () => {
     if (!fields) return
-    const input = toInput(fields)
+    if (!hasAllTimes(fields)) {
+      setError('Pick a start and end date and time.')
+      return
+    }
+    const lockedStart = challenge?.started ? challenge.starts_at : null
+    const input = toInput(fields, lockedStart)
     void finish(() => (id ? putChallenge(id, input) : postChallenge(input)))
   }
 
@@ -143,7 +158,7 @@ export const useChallengeForm = (id: string | null) => {
     saving,
     started: challenge?.started ?? false,
     update,
+    result,
     weekly: weekly.data,
-    winner,
   }
 }

@@ -186,7 +186,7 @@ describe('ChallengeEditScreen', () => {
     click('Save challenge')
 
     expect(vi.mocked(putChallenge).mock.calls[0][1].starts_at).toBe(
-      '2026-11-12T17:00:00.000Z',
+      '2026-11-12T17:00:00Z',
     )
   })
 
@@ -277,5 +277,48 @@ describe('ChallengeEditScreen', () => {
     expect(
       screen.queryByRole('button', { name: 'Delete challenge' }),
     ).toBeNull()
+  })
+
+  it('asks for a date instead of failing when one is cleared', async () => {
+    renderAt('/admin/challenges/new')
+    await screen.findByLabelText('Starts date')
+
+    change('Starts date', '')
+    click('Save challenge')
+
+    expect(
+      screen.getByText('Pick a start and end date and time.'),
+    ).toBeInTheDocument()
+    expect(postChallenge).not.toHaveBeenCalled()
+  })
+
+  it('sends a running challenge its saved start exactly', async () => {
+    vi.mocked(getChallenge).mockReturnValue(
+      ok({ ...BROWN, started: true, starts_at: '2026-11-12T17:00:42.500Z' }),
+    )
+    vi.mocked(putChallenge).mockReturnValue(saved(BROWN))
+    renderAt('/admin/challenges/c2')
+    await screen.findByLabelText('Name')
+
+    click('Save challenge')
+
+    expect(vi.mocked(putChallenge).mock.calls[0][1].starts_at).toBe(
+      '2026-11-12T17:00:42.500Z',
+    )
+  })
+
+  it('waits for the results before naming a winner', async () => {
+    const finished = {
+      ...BROWN,
+      ends_at: '2026-10-26T07:00:00Z',
+      started: true,
+      starts_at: '2026-10-19T07:00:00Z',
+    }
+    vi.mocked(getChallenge).mockReturnValue(ok(finished))
+    vi.mocked(getChallenges).mockReturnValue(new Promise(() => {}))
+    renderAt('/admin/challenges/c2')
+    await screen.findByLabelText('Name')
+
+    expect(screen.queryByText('Nobody scored')).toBeNull()
   })
 })

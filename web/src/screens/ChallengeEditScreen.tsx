@@ -10,10 +10,15 @@ import { LoadError } from '../components/LoadError'
 import { PushedScreen } from '../components/PushedScreen'
 import { TextField } from '../components/TextField'
 import { useChallengeForm } from '../hooks/useChallengeForm'
-import type { ChallengeRules } from '../lib/api'
+import type { ChallengeRules, FinishedChallenge } from '../lib/api'
 import { durationText, pacificToIso } from '../lib/challengeTime'
 import type { ChallengeFields } from '../hooks/useChallengeForm'
 import styles from './ChallengeEditScreen.module.css'
+
+const resultText = (winner: FinishedChallenge['winner']) =>
+  winner
+    ? `Won by ${winner.display_name} · ${winner.points} points`
+    : 'Nobody scored'
 
 const runText = (fields: ChallengeFields) => {
   const { endDate, endTime, startDate, startTime } = fields
@@ -54,12 +59,8 @@ export const ChallengeEditScreen = () => {
       )}
       {fields && weekly && (
         <>
-          {finished && (
-            <p className={styles.result}>
-              {form.winner
-                ? `Won by ${form.winner.display_name} · ${form.winner.points} points`
-                : 'Nobody scored'}
-            </p>
+          {finished && form.result && (
+            <p className={styles.result}>{resultText(form.result.winner)}</p>
           )}
           <TextField
             disabled={finished}
