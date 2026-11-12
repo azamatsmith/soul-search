@@ -71,11 +71,10 @@ describe('useApiResource', () => {
 
     act(() => result.current.refresh())
 
-    await waitFor(() => expect(load).toHaveBeenCalledTimes(2))
-    await act(async () => {})
+    await waitFor(() => expect(result.current.error).toBe('network'))
+    expect(load).toHaveBeenCalledTimes(2)
     expect(result.current.status).toBe('ready')
     expect(result.current.data).toBe(1)
-    expect(result.current.error).toBe('network')
   })
 
   it('keeps showing the error while a refresh after a failure loads', async () => {
