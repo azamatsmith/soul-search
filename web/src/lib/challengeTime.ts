@@ -83,7 +83,8 @@ export const durationText = (startIso: string, endIso: string) =>
 
 export const clockText = (at: number) => clock.format(at).toLowerCase()
 
-const dayText = (at: number) => `${weekday.format(at)} ${monthDay.format(at)}`
+export const dayText = (at: number) =>
+  `${weekday.format(at)} ${monthDay.format(at)}`
 
 export const rangeText = (startIso: string, endIso: string) => {
   const start = Date.parse(startIso)

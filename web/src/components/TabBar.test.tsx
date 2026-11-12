@@ -63,9 +63,20 @@ describe('TabBar', () => {
     ['/', '0'],
     ['/sightings', '1'],
     ['/scores', '2'],
+    ['/upcoming', '0'],
   ])('puts the indicator under the tab for %s', (path, index) => {
     renderAt(path)
     expect(indicatorIndex()).toBe(index)
+  })
+
+  it('keeps Take photo highlighted on upcoming challenges', () => {
+    renderAt('/upcoming')
+    expect(screen.getByRole('link', { name: 'Take photo' })).toHaveClass(
+      /active/,
+    )
+    expect(screen.getByRole('link', { name: 'Scores' })).not.toHaveClass(
+      /active/,
+    )
   })
 
   it('moves the indicator when a tab is tapped', () => {
