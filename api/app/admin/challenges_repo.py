@@ -34,6 +34,8 @@ class ChallengeOverlaps(Exception):
 class ChallengesRepo(Protocol):
     def list(self, now: datetime) -> ChallengeList: ...
 
+    def upcoming(self, now: datetime) -> tuple[Challenge, ...]: ...
+
     def get(self, challenge_id: UUID) -> Challenge | None: ...
 
     def overlapping(
@@ -70,6 +72,13 @@ class PgChallengesRepo:
             upcoming=tuple(c for c in challenges if now < c.starts_at),
             finished=tuple((c, self._winner(c.id)) for c in finished),
         )
+
+    def upcoming(self, now: datetime) -> tuple[Challenge, ...]:
+        rows = self._conn.execute(
+            f"select {COLUMNS} from public.challenges where starts_at > %s order by starts_at",
+            (now,),
+        ).fetchall()
+        return tuple(_challenge(row) for row in rows)
 
     def get(self, challenge_id: UUID) -> Challenge | None:
         row = self._conn.execute(
