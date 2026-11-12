@@ -322,6 +322,21 @@ describe('ChallengeEditScreen', () => {
     },
   )
 
+  it('opens the date and time pickers on click', async () => {
+    const showPicker = vi.fn()
+    Object.defineProperty(HTMLInputElement.prototype, 'showPicker', {
+      configurable: true,
+      value: showPicker,
+    })
+    renderAt('/admin/challenges/new')
+
+    fireEvent.click(await screen.findByLabelText('Starts date'))
+    fireEvent.click(screen.getByLabelText('Ends time'))
+
+    expect(showPicker).toHaveBeenCalledTimes(2)
+    Reflect.deleteProperty(HTMLInputElement.prototype, 'showPicker')
+  })
+
   it('sends a running challenge its saved start exactly', async () => {
     vi.mocked(getChallenge).mockReturnValue(
       ok({ ...BROWN, started: true, starts_at: '2026-11-12T17:00:42.500Z' }),

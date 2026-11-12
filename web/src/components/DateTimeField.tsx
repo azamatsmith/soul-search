@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent, MouseEvent } from 'react'
 import { clockText, isFullDateTime, pacificToIso } from '../lib/challengeTime'
 import styles from './DateTimeField.module.css'
 
@@ -17,6 +17,14 @@ const dateLabel = new Intl.DateTimeFormat('en-US', {
   timeZone: 'America/Los_Angeles',
   weekday: 'short',
 })
+
+const openPicker = (event: MouseEvent<HTMLInputElement>) => {
+  try {
+    event.currentTarget.showPicker()
+  } catch {
+    return
+  }
+}
 
 const shown = (date: string, time: string) => {
   if (!isFullDateTime(date, time))
@@ -51,6 +59,7 @@ export const DateTimeField = ({
             aria-label={`${label} date`}
             className={styles.input}
             onChange={handleDateChange}
+            onClick={openPicker}
             required
             type="date"
             value={date}
@@ -64,6 +73,7 @@ export const DateTimeField = ({
             aria-label={`${label} time`}
             className={styles.input}
             onChange={handleTimeChange}
+            onClick={openPicker}
             required
             type="time"
             value={time}
