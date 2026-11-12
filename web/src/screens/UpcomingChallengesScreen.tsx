@@ -41,8 +41,7 @@ export const UpcomingChallengesScreen = () => {
         </ul>
       )}
       <p className={styles.footnote}>
-        All times Pacific. New challenges show up here as soon as an admin adds
-        them.
+        New challenges show up here as soon as an admin adds them.
       </p>
     </PushedScreen>
   )

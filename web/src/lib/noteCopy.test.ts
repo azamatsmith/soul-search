@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Period } from './api'
 import { noteBody } from './noteCopy'
+import { PACIFIC } from './zonedTime'
 
 const NOW = Date.parse('2026-11-12T20:00:00Z')
 
@@ -61,6 +62,18 @@ describe('noteBody', () => {
   it('treats midnight as the next day', () => {
     expect(noteBody(challenge('2026-11-13T08:00:00Z', {}), NOW)).toBe(
       'Photos count toward the challenge until Fri 12:00 am. Weekly scores pick up again after that.',
+    )
+  })
+
+  it('decides "today" from the player calendar', () => {
+    const late = challenge('2026-11-13T07:30:00Z', {})
+    const now = Date.parse('2026-11-13T04:30:00Z')
+
+    expect(noteBody(late, now, PACIFIC)).toBe(
+      'Photos count toward the challenge until 11:30 pm today. After that, photos count toward your week again.',
+    )
+    expect(noteBody(late, now, 'America/New_York')).toBe(
+      'Photos count toward the challenge until Fri 2:30 am. Weekly scores pick up again after that.',
     )
   })
 })

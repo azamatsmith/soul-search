@@ -92,7 +92,7 @@ describe('UpcomingChallengesScreen', () => {
     expect(within(later).queryByText(/For those/)).not.toBeInTheDocument()
   })
 
-  it('heads back to Home with the times note', async () => {
+  it('heads back to Home with the footnote', async () => {
     vi.mocked(getUpcomingChallenges).mockReturnValue(ok([DASH]))
     renderScreen()
 
@@ -102,7 +102,12 @@ describe('UpcomingChallengesScreen', () => {
       'href',
       '/',
     )
-    expect(screen.getByText(/All times Pacific/)).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'New challenges show up here as soon as an admin adds them.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/All times Pacific/)).not.toBeInTheDocument()
   })
 
   it('says so when nothing is scheduled', async () => {
