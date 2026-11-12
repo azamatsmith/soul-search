@@ -1,6 +1,20 @@
-import type { Rules } from './api'
+import type { CategoryPoints, ClaimType, Rules } from './api'
 
-export type ClaimType = 'regular' | 'special'
+const DESCRIPTIONS: Record<string, string> = {
+  'alien green': 'Solid Alien Green paint.',
+  'brown paint':
+    "Solid brown paint. Champagne, pale gold and beige don't count.",
+  'exterior graphics': 'Graphics on any color.',
+  'racing stripes': 'Racing stripes on any color.',
+}
+
+export const isChallengeRules = (rules: Rules) => rules.special === null
+
+export const categoryClaim = (rules: Rules): ClaimType =>
+  isChallengeRules(rules) ? 'challenge' : 'special'
+
+export const categoryNames = (rules: Rules) =>
+  rules.categories.map((category) => category.name)
 
 export const claimPoints = (
   rules: Rules,
@@ -8,8 +22,8 @@ export const claimPoints = (
   category: string | null,
 ): number | null => {
   if (claimType === 'regular') return rules.regular
-  if (claimType !== 'special' || category === null) return null
-  return Math.max(rules.special, rules.bonuses[category] ?? 0)
+  if (claimType !== categoryClaim(rules) || category === null) return null
+  return rules.categories.find(({ name }) => name === category)?.points ?? null
 }
 
 export const sendLabel = (points: number | null) =>
@@ -22,24 +36,16 @@ export const specialDescription = (categories: string[]) =>
     ? (categories[0] ?? '')
     : `${categories.slice(0, -1).join(', ')} or ${categories.at(-1)}`
 
+export const categoryDescription = (category: string) =>
+  DESCRIPTIONS[category.toLowerCase()] ?? ''
+
 export const hasBrownCategory = (categories: string[]) =>
   categories.some((category) => category.toLowerCase().startsWith('brown'))
 
 export const pointsText = (points: number) =>
   points < 0 ? `−${Math.abs(points)}` : `+${points}`
 
-export const liveBonuses = (rules: Rules) =>
-  Object.fromEntries(
-    Object.entries(rules.bonuses).filter(
-      ([, points]) => points > rules.special,
-    ),
+export const sortedCategories = (categories: CategoryPoints[]) =>
+  [...categories].sort(
+    (a, b) => b.points - a.points || a.name.localeCompare(b.name),
   )
-
-export const sortBonusEntries = (bonuses: Record<string, number>) =>
-  Object.entries(bonuses).sort(
-    ([nameA, pointsA], [nameB, pointsB]) =>
-      pointsB - pointsA || nameA.localeCompare(nameB),
-  )
-
-export const sortedBonuses = (rules: Rules) =>
-  sortBonusEntries(liveBonuses(rules))

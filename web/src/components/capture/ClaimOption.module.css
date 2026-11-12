@@ -81,3 +81,8 @@
   background: var(--c-gold-soft);
   color: var(--c-ink);
 }
+
+.challenge {
+  background: var(--c-orange);
+  color: var(--c-on-dark);
+}

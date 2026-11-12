@@ -15,11 +15,17 @@ import { queryWrapper } from '../test/queryWrapper'
 vi.mock('../lib/api', () => ({ getLeaderboard: vi.fn(), getPeriod: vi.fn() }))
 
 const RULES = {
-  bonuses: { 'Brown paint': 3 },
-  categories: ['Brown paint'],
+  categories: [{ name: 'Brown paint', points: 2 }],
   false_call: -1,
   regular: 1,
   special: 2,
+}
+
+const BROWN_WEEK_RULES = {
+  categories: [{ name: 'Brown paint', points: 3 }],
+  false_call: -1,
+  regular: 1,
+  special: null,
 }
 
 const WEEK_PERIOD: Period = {
@@ -36,7 +42,7 @@ const CHALLENGE_PERIOD: Period = {
   id: 'c1',
   kind: 'challenge',
   name: 'Brown Week',
-  rules: RULES,
+  rules: BROWN_WEEK_RULES,
   starts_at: '2026-11-12T17:00:00Z',
 }
 
@@ -258,7 +264,7 @@ describe('ScoresScreen', () => {
       ).toBeInTheDocument()
       expect(
         screen.getByText(
-          'Rules: Regular +1 · Special +2 · Brown paint +3 · False call \u22121',
+          'Rules: Regular +1, Brown paint +3, False call \u22121',
         ),
       ).toBeInTheDocument()
     })

@@ -13,7 +13,7 @@ import { queryWrapper } from '../test/queryWrapper'
 vi.mock('../lib/api', () => ({ getChallenges: vi.fn() }))
 
 const NOW = Date.parse('2026-11-26T23:00:00Z')
-const RULES = { bonuses: {}, false_call: -1, regular: 1, special: 2 }
+const RULES = { categories: [], false_call: -1, regular: 1 }
 const challenge = (
   id: string,
   name: string,

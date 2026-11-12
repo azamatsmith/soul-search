@@ -1,4 +1,4 @@
-import type { LoggedSighting } from './api'
+import type { ClaimType, LoggedSighting } from './api'
 import { clock, dayBefore, pacificDay, weekday } from './pacificTime'
 import { signedPoints } from './signedPoints'
 
@@ -9,7 +9,7 @@ export interface LogCard {
   categories: string[]
   challengeName: string | null
   checkNote: string | null
-  claimType: 'regular' | 'special'
+  claimType: ClaimType
   fullPhotoUrl: string | null
   id: string
   kind: CardKind
@@ -31,15 +31,17 @@ export const cardKind = ({
 }: Pick<LoggedSighting, 'claim_type' | 'flagged' | 'status'>): CardKind => {
   if (status === 'false_call') return 'false_call'
   if (flagged) return 'flagged'
-  return claim_type === 'special' ? 'special' : 'counted'
+  return claim_type === 'regular' ? 'counted' : 'special'
 }
 
-export const chipText = ({ kind, points }: LogCard) => {
+export const chipText = ({ categories, claimType, kind, points }: LogCard) => {
   switch (kind) {
     case 'counted':
       return `${signedPoints(points)} Counted`
     case 'special':
-      return `${signedPoints(points)} Special`
+      return claimType === 'challenge'
+        ? `${signedPoints(points)} ${categories.join(', ')}`
+        : `${signedPoints(points)} Special`
     case 'flagged':
       return `${signedPoints(points)} · Flagged for a second look`
     case 'false_call':
@@ -51,8 +53,12 @@ export const chipText = ({ kind, points }: LogCard) => {
 
 const FALSE_CALL_FALLBACK = 'Photo check: not a Kia Soul'
 
-const claimed = ({ categories, claimType }: LogCard) =>
-  claimType === 'special' ? `Special · ${categories.join(', ')}` : 'Regular'
+const claimed = ({ categories, claimType }: LogCard) => {
+  if (claimType === 'challenge') return categories.join(', ')
+  return claimType === 'special'
+    ? `Special · ${categories.join(', ')}`
+    : 'Regular'
+}
 
 export const claimLine = (card: LogCard) =>
   card.kind === 'false_call'

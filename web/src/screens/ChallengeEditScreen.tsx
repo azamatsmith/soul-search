@@ -1,7 +1,7 @@
 import type { ChangeEvent } from 'react'
 import { useParams } from 'react-router'
-import { BonusEditor } from '../components/BonusEditor'
 import { Button } from '../components/Button'
+import { ChallengeCategoryEditor } from '../components/ChallengeCategoryEditor'
 import { ChallengeRuleSteppers } from '../components/ChallengeRuleSteppers'
 import { DateTimeField } from '../components/DateTimeField'
 import { DeleteChallenge } from '../components/DeleteChallenge'
@@ -10,7 +10,11 @@ import { LoadError } from '../components/LoadError'
 import { PushedScreen } from '../components/PushedScreen'
 import { TextField } from '../components/TextField'
 import { useChallengeForm } from '../hooks/useChallengeForm'
-import type { ChallengeRules, FinishedChallenge } from '../lib/api'
+import type {
+  CategoryPoints,
+  ChallengeRules,
+  FinishedChallenge,
+} from '../lib/api'
 import { durationText, pacificToIso } from '../lib/challengeTime'
 import type { ChallengeFields } from '../hooks/useChallengeForm'
 import styles from './ChallengeEditScreen.module.css'
@@ -41,8 +45,8 @@ export const ChallengeEditScreen = () => {
   const handleEndDateChange = (endDate: string) => update({ endDate })
   const handleEndTimeChange = (endTime: string) => update({ endTime })
   const handleRulesChange = (rules: ChallengeRules) => update({ rules })
-  const handleBonusesChange = (bonuses: Record<string, number>) =>
-    fields && update({ rules: { ...fields.rules, bonuses } })
+  const handleCategoriesChange = (categories: CategoryPoints[]) =>
+    fields && update({ rules: { ...fields.rules, categories } })
 
   const title = fields?.name.trim() || 'New challenge'
   const duration = fields && runText(fields)
@@ -100,12 +104,12 @@ export const ChallengeEditScreen = () => {
             rules={fields.rules}
             weekly={weekly}
           />
-          <BonusEditor
-            bonuses={fields.rules.bonuses}
-            categories={form.categories}
+          <ChallengeCategoryEditor
+            categories={fields.rules.categories}
             disabled={finished}
-            onChange={handleBonusesChange}
-            startingBonus={fields.rules.special + 1}
+            onChange={handleCategoriesChange}
+            options={form.categories}
+            startingPoints={weekly.special + 1}
           />
           {form.error && <FormError title={form.error} />}
           {!finished && (

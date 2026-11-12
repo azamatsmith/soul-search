@@ -1,6 +1,6 @@
 import type { Leaderboard, Rules } from './api'
 import { endsAtText } from './challengeTime'
-import { pointsText, sortedBonuses } from './claim'
+import { pointsText, sortedCategories } from './claim'
 import { weekRange } from './homeCopy'
 
 const players = (count: number) =>
@@ -17,16 +17,15 @@ export const leaderboardKicker = (board: Leaderboard, now: number) => {
   return `Since you joined · ${players(board.total_players)}`
 }
 
-export const rulesText = (rules: Rules) =>
-  [
+export const rulesText = (rules: Rules) => {
+  const parts = [
     `Regular ${pointsText(rules.regular)}`,
-    `Special ${pointsText(rules.special)}`,
-    ...sortedBonuses(rules).map(
-      ([name, points]) => `${name} ${pointsText(points)}`,
-    ),
+    ...(rules.special === null
+      ? sortedCategories(rules.categories).map(
+          ({ name, points }) => `${name} ${pointsText(points)}`,
+        )
+      : [`Special ${pointsText(rules.special)}`]),
     `False call ${pointsText(rules.false_call)}`,
-  ].reduce(
-    (text, part, index) =>
-      index === 0 ? `Rules: ${part}` : `${text} · ${part}`,
-    '',
-  )
+  ]
+  return `Rules: ${parts.join(', ')}`
+}

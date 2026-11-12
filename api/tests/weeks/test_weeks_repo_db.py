@@ -57,9 +57,7 @@ def test_closes_ended_week_with_final_standings(db_conn: psycopg.Connection):
 
 def test_challenge_points_stay_out_of_the_week(db_conn: psycopg.Connection):
     week = PgSightingsRepo(db_conn).week_at(AT)
-    challenge_id = add_challenge(
-        db_conn, {"regular": 1, "special": 2, "false_call": -1, "bonuses": {}}
-    )
+    challenge_id = add_challenge(db_conn, {"regular": 1, "false_call": -1, "categories": []})
     add_sighting(db_conn, BOB, week.id)
     add_sighting(db_conn, BOB, challenge_id, kind="challenge", points=5)
     add_adjustment(db_conn, BOB, challenge_id, change=3, kind="challenge")

@@ -30,7 +30,7 @@ PLAYERS = [
     Player(id=PLAYER_ID, display_name="Bob", is_admin=False, text_size="standard"),
 ]
 NOW = datetime(2026, 11, 12, 20, tzinfo=UTC)
-RULES = Rules(regular=1, special=2, false_call=-1, categories=(), bonuses={})
+RULES = Rules(regular=1, special=2, false_call=-1, categories={})
 WEEK = Period(
     kind="week",
     id=UUID("11111111-1111-1111-1111-111111111111"),

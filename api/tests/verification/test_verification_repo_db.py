@@ -32,7 +32,7 @@ def add_challenge(conn: psycopg.Connection, false_call: int) -> UUID:
         (
             NOW - timedelta(hours=1),
             NOW + timedelta(hours=3),
-            Jsonb({"regular": 1, "special": 2, "false_call": false_call, "bonuses": {}}),
+            Jsonb({"regular": 1, "false_call": false_call, "categories": []}),
         ),
     ).fetchone()
     assert row

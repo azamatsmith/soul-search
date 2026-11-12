@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { hasSeenCameraIntro, markCameraIntroSeen } from '../lib/camera'
-import type { ClaimType } from '../lib/claim'
+import type { ClaimType } from '../lib/api'
 
 export type CaptureStep = 'intro' | 'camera' | 'review' | 'claim'
 

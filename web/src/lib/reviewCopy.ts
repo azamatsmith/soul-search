@@ -1,5 +1,5 @@
 import type { ReviewAction, ReviewItem, Rules } from './api'
-import { claimPoints } from './claim'
+import { categoryClaim, claimPoints, isChallengeRules } from './claim'
 import { cardKind, type LogCard } from './sightingsCopy'
 import { signedPoints } from './signedPoints'
 
@@ -10,10 +10,12 @@ export interface ReviewChoice {
   tone: 'danger' | 'plain' | 'primary'
 }
 
-const claimed = ({ categories, claim_type }: ReviewItem) =>
-  claim_type === 'special'
+const claimed = ({ categories, claim_type }: ReviewItem) => {
+  if (claim_type === 'challenge') return categories.join(', ')
+  return claim_type === 'special'
     ? `Special Soul · ${categories.join(', ')}`
     : 'Regular Soul'
+}
 
 export const claimSummary = (item: ReviewItem) =>
   item.status === 'false_call'
@@ -27,11 +29,14 @@ const flaggedChoices = (item: ReviewItem, rules: Rules): ReviewChoice[] => [
     label: `Keep the claim · ${signedPoints(item.points)}`,
     tone: 'primary',
   },
-  ...(item.claim_type === 'special'
+  ...(item.claim_type !== 'regular'
     ? [
         {
           action: 'regular',
-          hint: "It's a Soul, but not special.",
+          hint:
+            item.claim_type === 'challenge'
+              ? `It's a Soul, but not ${item.categories.join(', ')}.`
+              : "It's a Soul, but not special.",
           label: `Change to Regular · ${signedPoints(rules.regular)}`,
           tone: 'plain',
         } as const,
@@ -52,12 +57,20 @@ const falseCallChoices = (item: ReviewItem, rules: Rules): ReviewChoice[] => [
     label: `Restore as Regular · ${signedPoints(rules.regular)}`,
     tone: 'primary',
   },
-  {
-    action: 'special',
-    hint: 'Pick what makes it special.',
-    label: 'Restore as Special',
-    tone: 'plain',
-  },
+  ...(rules.categories.length > 0
+    ? [
+        {
+          action: 'category',
+          hint: isChallengeRules(rules)
+            ? 'Pick the challenge category.'
+            : 'Pick what makes it special.',
+          label: isChallengeRules(rules)
+            ? 'Restore with a challenge category'
+            : 'Restore as Special',
+          tone: 'plain',
+        } as const,
+      ]
+    : []),
   {
     action: 'keep',
     hint: "It isn't a Kia Soul.",
@@ -71,17 +84,21 @@ export const reviewChoices = (item: ReviewItem, rules: Rules) =>
     ? falseCallChoices(item, rules)
     : flaggedChoices(item, rules)
 
-export const specialLabel = (rules: Rules, category: string | null) => {
-  const points = claimPoints(rules, 'special', category)
-  return points === null
-    ? 'Pick a category'
-    : `Restore as Special · ${signedPoints(points)}`
+export const categoryLabel = (rules: Rules, category: string | null) => {
+  const points = claimPoints(rules, categoryClaim(rules), category)
+  if (points === null || category === null) return 'Pick a category'
+  const name = isChallengeRules(rules) ? category : 'Special'
+  return `Restore as ${name} · ${signedPoints(points)}`
 }
 
-export const claimedLine = (item: ReviewItem) =>
-  item.claim_type === 'special'
+export const claimedLine = (item: ReviewItem) => {
+  if (item.claim_type === 'challenge') {
+    return `Claimed: ${item.categories.join(', ')}`
+  }
+  return item.claim_type === 'special'
     ? `Claimed: Special · ${item.categories.join(', ')}`
     : 'Claimed: Regular'
+}
 
 export const queueChip = (item: ReviewItem) =>
   item.status === 'false_call'

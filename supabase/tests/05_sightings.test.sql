@@ -1,7 +1,7 @@
 begin;
 set local client_min_messages = warning;
 create extension if not exists pgtap with schema extensions;
-select plan(15);
+select plan(18);
 
 select has_table('public', 'sightings', 'sightings table exists');
 select is(
@@ -62,6 +62,25 @@ select throws_ok(
   null,
   'a special claim needs at least one category'
 );
+select lives_ok(
+  $$insert into public.sightings (player_id, photo_path, taken_at, claim_type, categories, points, challenge_id)
+    select player_id, photo_path, taken_at, 'challenge', array['Brown paint'], 3, '20000000-0000-0000-0000-000000000001' from base$$,
+  'a challenge-category sighting in a challenge is accepted'
+);
+select throws_ok(
+  $$insert into public.sightings (player_id, photo_path, taken_at, claim_type, categories, points, week_id)
+    select player_id, photo_path, taken_at, 'challenge', array['Brown paint'], 3, '10000000-0000-0000-0000-000000000001' from base$$,
+  '23514',
+  null,
+  'a challenge-category claim must belong to a challenge'
+);
+select throws_ok(
+  $$insert into public.sightings (player_id, photo_path, taken_at, claim_type, categories, points, challenge_id)
+    select player_id, photo_path, taken_at, 'challenge', array['Brown paint', 'Fins'], 3, '20000000-0000-0000-0000-000000000001' from base$$,
+  '23514',
+  null,
+  'a challenge-category claim has exactly one category'
+);
 select throws_ok(
   $$insert into public.sightings (player_id, photo_path, taken_at, claim_type, points, week_id, latitude)
     select player_id, photo_path, taken_at, 'regular', 1, '10000000-0000-0000-0000-000000000001', 47.6 from base$$,
@@ -74,7 +93,7 @@ select throws_ok(
     select player_id, photo_path, taken_at, 'fancy', 1, '10000000-0000-0000-0000-000000000001' from base$$,
   '23514',
   null,
-  'claim_type only accepts regular or special'
+  'claim_type only accepts regular, special or challenge'
 );
 select throws_ok(
   $$update public.sightings set status = 'maybe'$$,

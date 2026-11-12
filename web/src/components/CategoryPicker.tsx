@@ -1,25 +1,27 @@
 import { useState } from 'react'
 import type { Rules } from '../lib/api'
-import { specialLabel } from '../lib/reviewCopy'
+import { categoryNames, isChallengeRules } from '../lib/claim'
+import { categoryLabel } from '../lib/reviewCopy'
 import { Button } from './Button'
 import { CategoryChip } from './capture/CategoryChip'
-import styles from './SpecialPicker.module.css'
+import styles from './CategoryPicker.module.css'
 
-export interface SpecialPickerProps {
+export interface CategoryPickerProps {
   disabled: boolean
   initial: string | null
   onConfirm: (category: string) => void
   rules: Rules
 }
 
-export const SpecialPicker = ({
+export const CategoryPicker = ({
   disabled,
   initial,
   onConfirm,
   rules,
-}: SpecialPickerProps) => {
+}: CategoryPickerProps) => {
+  const names = categoryNames(rules)
   const [category, setCategory] = useState(
-    initial && rules.categories.includes(initial) ? initial : null,
+    initial && names.includes(initial) ? initial : null,
   )
 
   const handleConfirm = () => {
@@ -28,13 +30,13 @@ export const SpecialPicker = ({
 
   return (
     <fieldset className={styles.picker}>
-      <legend className={styles.legend}>What makes it special?</legend>
-      <div
-        aria-label="Special category"
-        className={styles.chips}
-        role="radiogroup"
-      >
-        {rules.categories.map((option) => (
+      <legend className={styles.legend}>
+        {isChallengeRules(rules)
+          ? 'Which challenge category?'
+          : 'What makes it special?'}
+      </legend>
+      <div aria-label="Category" className={styles.chips} role="radiogroup">
+        {names.map((option) => (
           <CategoryChip
             key={option}
             label={option}
@@ -44,7 +46,7 @@ export const SpecialPicker = ({
         ))}
       </div>
       <Button disabled={disabled || !category} onClick={handleConfirm}>
-        {specialLabel(rules, category)}
+        {categoryLabel(rules, category)}
       </Button>
     </fieldset>
   )

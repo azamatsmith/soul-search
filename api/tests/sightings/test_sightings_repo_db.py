@@ -96,7 +96,7 @@ def test_period_at_creates_the_pacific_week_with_settings_rules(db_conn: psycopg
     assert period.ends_at == WEEK_START + timedelta(days=7)
     assert period.closed is False
     assert period.rules == Rules(
-        regular=1, special=2, false_call=-1, categories=CATEGORIES, bonuses={}
+        regular=1, special=2, false_call=-1, categories=dict.fromkeys(CATEGORIES, 2)
     )
     assert repo.period_at(AT).id == period.id
 
@@ -112,7 +112,7 @@ def test_period_at_reports_closed_week(db_conn: psycopg.Connection):
 def test_period_at_prefers_running_challenge(db_conn: psycopg.Connection):
     challenge_id = add_challenge(
         db_conn,
-        {"regular": 1, "special": 2, "false_call": -1, "bonuses": {"Brown paint": 3}},
+        {"regular": 1, "false_call": -1, "categories": [{"name": "Brown paint", "points": 3}]},
     )
 
     period = PgSightingsRepo(db_conn).period_at(AT)
@@ -120,12 +120,13 @@ def test_period_at_prefers_running_challenge(db_conn: psycopg.Connection):
     assert period.kind == "challenge"
     assert period.id == challenge_id
     assert period.name == "Brown Week"
-    assert period.rules.bonuses == {"Brown paint": 3}
-    assert period.rules.categories == CATEGORIES
+    assert period.rules == Rules(
+        regular=1, special=None, false_call=-1, categories={"Brown paint": 3}
+    )
 
 
 def test_challenge_end_is_exclusive(db_conn: psycopg.Connection):
-    add_challenge(db_conn, {"regular": 1, "special": 2, "false_call": -1, "bonuses": {}})
+    add_challenge(db_conn, {"regular": 1, "false_call": -1, "categories": []})
 
     assert PgSightingsRepo(db_conn).period_at(AT + timedelta(hours=3)).kind == "week"
 
@@ -224,9 +225,7 @@ def test_standing_last_photo_is_newest(db_conn: psycopg.Connection):
 def test_standing_only_counts_its_period(db_conn: psycopg.Connection):
     repo = PgSightingsRepo(db_conn)
     week = repo.period_at(AT)
-    challenge_id = add_challenge(
-        db_conn, {"regular": 1, "special": 2, "false_call": -1, "bonuses": {}}
-    )
+    challenge_id = add_challenge(db_conn, {"regular": 1, "false_call": -1, "categories": []})
     add_sighting(db_conn, BOB, week.id)
     add_sighting(db_conn, BOB, challenge_id, kind="challenge", points=5)
 
@@ -236,7 +235,7 @@ def test_standing_only_counts_its_period(db_conn: psycopg.Connection):
 
 def test_week_at_ignores_running_challenge(db_conn: psycopg.Connection):
     repo = PgSightingsRepo(db_conn)
-    add_challenge(db_conn, {"regular": 1, "special": 2, "false_call": -1, "bonuses": {}})
+    add_challenge(db_conn, {"regular": 1, "false_call": -1, "categories": []})
 
     week = repo.week_at(AT)
 
@@ -263,12 +262,12 @@ def test_standing_ranks_false_call_player_among_participants_only(db_conn: psyco
     assert repo.standing(BOB, week).rank == 2
 
 
-NO_BONUS_RULES = {"regular": 1, "special": 2, "false_call": -1, "bonuses": {}}
+NO_CATEGORY_RULES = {"regular": 1, "false_call": -1, "categories": []}
 
 
 def _week_and_challenge_setup(conn: psycopg.Connection, repo: PgSightingsRepo):
     week = repo.week_at(AT)
-    challenge_id = add_challenge(conn, NO_BONUS_RULES)
+    challenge_id = add_challenge(conn, NO_CATEGORY_RULES)
     add_sighting(conn, ALICE, week.id)
     add_sighting(conn, BOB, challenge_id, kind="challenge", points=5)
     add_adjustment(conn, BOB, challenge_id, change=2, kind="challenge")
@@ -422,7 +421,7 @@ def test_week_log_includes_challenge_photos_taken_this_week_with_the_name(
 ):
     repo = PgSightingsRepo(db_conn)
     week = repo.week_at(AT)
-    challenge = add_challenge(db_conn, {"regular": 1, "special": 2, "false_call": -1})
+    challenge = add_challenge(db_conn, NO_CATEGORY_RULES)
     weekly = add_sighting(db_conn, ALICE, week.id, taken_at=AT - timedelta(hours=2))
     during = add_sighting(db_conn, BOB, challenge, kind="challenge")
 
@@ -439,7 +438,7 @@ def test_week_log_leaves_out_challenge_photos_from_another_week(
 ):
     repo = PgSightingsRepo(db_conn)
     week = repo.week_at(AT)
-    challenge = add_challenge(db_conn, {"regular": 1, "special": 2, "false_call": -1})
+    challenge = add_challenge(db_conn, NO_CATEGORY_RULES)
     add_sighting(db_conn, BOB, challenge, kind="challenge", taken_at=AT + timedelta(days=7))
 
     assert repo.week_log(week, None) == ()
@@ -450,7 +449,7 @@ def test_week_log_shows_a_late_challenge_upload_in_the_challenge_week(
 ):
     repo = PgSightingsRepo(db_conn)
     week = repo.week_at(AT)
-    challenge = add_challenge(db_conn, {"regular": 1, "special": 2, "false_call": -1})
+    challenge = add_challenge(db_conn, NO_CATEGORY_RULES)
     late = add_sighting(
         db_conn, BOB, challenge, kind="challenge", taken_at=WEEK_START - timedelta(minutes=10)
     )

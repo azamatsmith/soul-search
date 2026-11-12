@@ -4,7 +4,7 @@
   gap: var(--s-2);
 }
 
-.bonus {
+.category {
   display: flex;
   flex-direction: column;
   gap: var(--s-1);

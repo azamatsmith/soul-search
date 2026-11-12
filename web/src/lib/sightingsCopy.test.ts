@@ -87,6 +87,7 @@ describe('cardKind', () => {
     expect(cardKind(base)).toBe('counted')
     expect(cardKind({ ...base, status: 'waiting_review' })).toBe('counted')
     expect(cardKind({ ...base, claim_type: 'special' })).toBe('special')
+    expect(cardKind({ ...base, claim_type: 'challenge' })).toBe('special')
     expect(cardKind({ ...base, flagged: true })).toBe('flagged')
   })
 
@@ -108,6 +109,18 @@ describe('chipText', () => {
       '−1 False call',
     )
     expect(chipText(card({ kind: 'waiting' }))).toBe('Waiting to send')
+  })
+
+  it('names the challenge category instead of Special', () => {
+    const brown = card({
+      categories: ['Brown paint'],
+      claimType: 'challenge',
+      kind: 'special',
+      points: 3,
+    })
+
+    expect(chipText(brown)).toBe('+3 Brown paint')
+    expect(claimLine(brown)).toBe('Brown paint')
   })
 })
 

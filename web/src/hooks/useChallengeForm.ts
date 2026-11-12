@@ -45,10 +45,9 @@ const newFields = (rules: PointRules, now: number): ChallengeFields => {
     endTime: '23:59',
     name: '',
     rules: {
-      bonuses: {},
+      categories: [],
       false_call: rules.false_call,
       regular: rules.regular,
-      special: rules.special,
     },
     startDate: tomorrow,
     startTime: '09:00',

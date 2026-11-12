@@ -1,11 +1,12 @@
 import { useStatusBarColor } from '../../hooks/useStatusBarColor'
+import type { ClaimType } from '../../lib/api'
 import { pointsText } from '../../lib/claim'
 import { Button } from '../Button'
 import styles from './SavedStep.module.css'
 
 export interface SavedStepProps {
   challengeName: string | null
-  claimType: 'regular' | 'special'
+  claimType: ClaimType
   falseCall: number
   onDone: () => void
   onSnapAnother: () => void

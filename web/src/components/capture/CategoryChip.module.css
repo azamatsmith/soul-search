@@ -32,11 +32,3 @@
 .brownPaint {
   background: var(--c-brown-paint);
 }
-
-.bonus {
-  padding: 2px var(--s-2);
-  border-radius: var(--r-pill);
-  background: var(--c-orange);
-  color: var(--c-on-dark);
-  font: 700 var(--t-label) / 1.2 var(--f-body);
-}

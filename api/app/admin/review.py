@@ -5,7 +5,7 @@ from uuid import UUID
 
 from app.sightings.scoring import InvalidClaim, Rules, points_for
 
-Action = Literal["keep", "regular", "special", "false_call"]
+Action = Literal["keep", "regular", "category", "false_call"]
 
 
 @dataclass(frozen=True)
@@ -44,4 +44,5 @@ def decide(item: ReviewItem, action: Action, category: str | None, rules: Rules)
     if category is None:
         raise InvalidClaim
     categories = (category,)
-    return Decision("counted", "special", categories, points_for(rules, "special", categories))
+    claim_type = rules.category_claim
+    return Decision("counted", claim_type, categories, points_for(rules, claim_type, categories))

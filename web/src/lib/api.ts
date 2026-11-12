@@ -13,13 +13,19 @@ export interface Me {
   flagged_count: number | null
 }
 
-export interface Rules {
-  regular: number
-  special: number
-  false_call: number
-  categories: string[]
-  bonuses: Record<string, number>
+export interface CategoryPoints {
+  name: string
+  points: number
 }
+
+export interface Rules {
+  categories: CategoryPoints[]
+  false_call: number
+  regular: number
+  special: number | null
+}
+
+export type ClaimType = 'challenge' | 'regular' | 'special'
 
 export interface Period {
   kind: 'week' | 'challenge'
@@ -336,7 +342,7 @@ export interface LoggedSighting {
   categories: string[]
   challenge_name: string | null
   check_note: string | null
-  claim_type: 'regular' | 'special'
+  claim_type: ClaimType
   display_name: string
   flagged: boolean
   id: string
@@ -361,7 +367,7 @@ export const getSightings = (mine: boolean) =>
 export interface SightingOut {
   id: string
   taken_at: string
-  claim_type: 'regular' | 'special'
+  claim_type: ClaimType
   categories: string[]
   points: number
   status: string
@@ -375,7 +381,7 @@ export interface PostSightingResult {
 
 export interface NewSighting {
   categories: string[]
-  claimType: 'regular' | 'special'
+  claimType: ClaimType
   id: string
   location: { latitude: number; longitude: number } | null
   photo: Blob
@@ -442,10 +448,9 @@ export const putPointRules = (rules: PointRules) =>
   request<PointRules>('/admin/settings', 'PUT', rules, true)
 
 export interface ChallengeRules {
-  bonuses: Record<string, number>
+  categories: CategoryPoints[]
   false_call: number
   regular: number
-  special: number
 }
 
 export interface Challenge {
@@ -505,7 +510,7 @@ export const deleteChallenge = (id: string) =>
 export interface ReviewItem {
   categories: string[]
   check_note: string | null
-  claim_type: 'regular' | 'special'
+  claim_type: ClaimType
   display_name: string
   id: string
   photo_url: string | null
@@ -520,7 +525,7 @@ export interface ReviewDetail extends ReviewItem {
   rules: Rules
 }
 
-export type ReviewAction = 'false_call' | 'keep' | 'regular' | 'special'
+export type ReviewAction = 'category' | 'false_call' | 'keep' | 'regular'
 
 export const getReviewItem = (id: string) =>
   request<ReviewDetail>(

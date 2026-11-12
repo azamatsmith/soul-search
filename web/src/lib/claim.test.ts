@@ -1,21 +1,31 @@
 import { describe, expect, it } from 'vitest'
 import type { Rules } from './api'
 import {
+  categoryClaim,
+  categoryDescription,
   claimPoints,
   hasBrownCategory,
-  liveBonuses,
   pointsText,
   sendLabel,
-  sortedBonuses,
+  sortedCategories,
   specialDescription,
 } from './claim'
 
 const RULES: Rules = {
+  categories: [
+    { name: 'Alien Green', points: 2 },
+    { name: 'Brown paint', points: 2 },
+  ],
+  false_call: -1,
   regular: 1,
   special: 2,
+}
+
+const BROWN_WEEK: Rules = {
+  categories: [{ name: 'Brown paint', points: 3 }],
   false_call: -1,
-  categories: ['Alien Green', 'Brown paint'],
-  bonuses: { 'Brown paint': 3 },
+  regular: 1,
+  special: null,
 }
 
 describe('claimPoints', () => {
@@ -29,8 +39,34 @@ describe('claimPoints', () => {
     expect(claimPoints(RULES, 'special', 'Alien Green')).toBe(2)
   })
 
-  it('uses the category bonus when it beats special points', () => {
-    expect(claimPoints(RULES, 'special', 'Brown paint')).toBe(3)
+  it('scores a challenge category with its own points', () => {
+    expect(claimPoints(BROWN_WEEK, 'challenge', 'Brown paint')).toBe(3)
+    expect(claimPoints(BROWN_WEEK, 'regular', null)).toBe(1)
+  })
+
+  it('is null for a claim the period does not allow', () => {
+    expect(claimPoints(BROWN_WEEK, 'special', 'Brown paint')).toBeNull()
+    expect(claimPoints(RULES, 'challenge', 'Brown paint')).toBeNull()
+    expect(claimPoints(BROWN_WEEK, 'challenge', 'Alien Green')).toBeNull()
+  })
+})
+
+describe('categoryClaim', () => {
+  it('is special in a week and challenge during a challenge', () => {
+    expect(categoryClaim(RULES)).toBe('special')
+    expect(categoryClaim(BROWN_WEEK)).toBe('challenge')
+  })
+})
+
+describe('categoryDescription', () => {
+  it('describes known categories, ignoring case', () => {
+    expect(categoryDescription('brown paint')).toBe(
+      "Solid brown paint. Champagne, pale gold and beige don't count.",
+    )
+  })
+
+  it('is empty for other categories', () => {
+    expect(categoryDescription('Fins')).toBe('')
   })
 })
 
@@ -92,25 +128,15 @@ describe('pointsText', () => {
   })
 })
 
-describe('liveBonuses', () => {
-  it('keeps only bonuses worth more than a special Soul', () => {
+describe('sortedCategories', () => {
+  it('lists categories highest first, then by name', () => {
     expect(
-      liveBonuses({
-        ...RULES,
-        bonuses: { 'Alien Green': 2, 'Brown paint': 3, Graphics: 1 },
-      }),
-    ).toEqual({ 'Brown paint': 3 })
-  })
-})
-
-describe('sortedBonuses', () => {
-  it('lists live bonuses highest first, then by name', () => {
-    expect(
-      sortedBonuses({ ...RULES, bonuses: { A: 2, B: 3, C: 5, D: 3 } }),
-    ).toEqual([
-      ['C', 5],
-      ['B', 3],
-      ['D', 3],
-    ])
+      sortedCategories([
+        { name: 'A', points: 2 },
+        { name: 'D', points: 3 },
+        { name: 'C', points: 5 },
+        { name: 'B', points: 3 },
+      ]).map(({ name }) => name),
+    ).toEqual(['C', 'B', 'D', 'A'])
   })
 })

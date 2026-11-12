@@ -36,7 +36,7 @@ from app.sightings.repo import (
     SightingsRepo,
     get_sightings_repo,
 )
-from app.sightings.scoring import InvalidClaim, points_for
+from app.sightings.scoring import InvalidClaim, Rules, points_for
 from app.sightings.url_cache import (
     SIGNED_URL_SECONDS,
     SignedUrlCache,
@@ -59,12 +59,25 @@ UrlCache = Annotated[SignedUrlCache, Depends(get_url_cache)]
 Verify = Annotated[Callable[[], None], Depends(get_verification_runner)]
 
 
+class CategoryOut(BaseModel):
+    name: str
+    points: int
+
+
 class RulesOut(BaseModel):
     regular: int
-    special: int
+    special: int | None
     false_call: int
-    categories: list[str]
-    bonuses: dict[str, int]
+    categories: list[CategoryOut]
+
+
+def rules_out(rules: Rules) -> RulesOut:
+    return RulesOut(
+        regular=rules.regular,
+        special=rules.special,
+        false_call=rules.false_call,
+        categories=[CategoryOut(name=n, points=p) for n, p in rules.categories.items()],
+    )
 
 
 class PeriodOut(BaseModel):
@@ -143,20 +156,13 @@ class PostSightingOut(BaseModel):
 
 
 def period_out(period: Period) -> PeriodOut:
-    rules = period.rules
     return PeriodOut(
         kind=period.kind,
         id=period.id,
         name=period.name,
         starts_at=period.starts_at,
         ends_at=period.ends_at,
-        rules=RulesOut(
-            regular=rules.regular,
-            special=rules.special,
-            false_call=rules.false_call,
-            categories=list(rules.categories),
-            bonuses=dict(rules.bonuses),
-        ),
+        rules=rules_out(period.rules),
     )
 
 
