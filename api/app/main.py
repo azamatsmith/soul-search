@@ -1,4 +1,5 @@
 import asyncio
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -52,6 +53,10 @@ def create_app() -> FastAPI:
     @app.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    @app.get("/version")
+    def version() -> dict[str, str]:
+        return {"commit": os.environ.get("RENDER_GIT_COMMIT", "unknown")}
 
     return app
 
