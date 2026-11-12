@@ -58,7 +58,8 @@
   --thumb: 76px;
   --rank-w: calc(var(--t-h3) * 1.4);
   --camera-button: 250px;
-  --camera-button-compact: 230px;
+  --camera-button-min: 160px;
+  --camera-ring: 12px;
   --camera-glyph-w: 64px;
   --camera-glyph-h: 48px;
   --camera-lens: 22px;
@@ -101,7 +102,8 @@
   --shadow-knob: 0 1px 3px rgba(58, 38, 24, 0.3);
   --shadow-segment: 0 1px 3px rgba(58, 38, 24, 0.15);
   --shadow-camera:
-    0 0 0 10px var(--c-orange-tint), 0 0 0 12px var(--c-gold-soft),
+    0 0 0 10px var(--c-orange-tint),
+    0 0 0 var(--camera-ring) var(--c-gold-soft),
     inset 0 -6px 0 var(--c-orange-deep), 0 14px 30px rgba(148, 62, 19, 0.35);
   --stripes: repeating-linear-gradient(
     135deg,

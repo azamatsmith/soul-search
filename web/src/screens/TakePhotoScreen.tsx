@@ -48,16 +48,12 @@ export const TakePhotoScreen = () => {
       {running && period.data && standing.data && (
         <ChallengeBanner now={now} period={period.data} />
       )}
-      <div
-        className={
-          nextShown ? `${styles.center} ${styles.compact}` : styles.center
-        }
-      >
+      <div className={styles.cameraSpace}>
         <CameraButton />
-        <p className={styles.helper}>
-          Spotted one? Tap the big button, point, and shoot.
-        </p>
       </div>
+      <p className={styles.helper}>
+        Spotted one? Tap the big button, point, and shoot.
+      </p>
       {failed && (
         <div className={styles.error}>
           <LoadError onRetry={handleRetry} thing="your points" />
