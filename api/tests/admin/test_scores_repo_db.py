@@ -58,7 +58,7 @@ def test_adjust_adds_to_the_week(db_conn: psycopg.Connection):
 
 
 def test_adjust_adds_to_a_running_challenge(db_conn: psycopg.Connection):
-    add_challenge(db_conn, {"regular": 1, "special": 2, "false_call": -1, "bonuses": {}})
+    add_challenge(db_conn, {"regular": 1, "false_call": -1, "categories": []})
     sightings = PgSightingsRepo(db_conn)
     challenge = sightings.period_at(AT)
     assert challenge.kind == "challenge"

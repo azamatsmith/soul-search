@@ -55,23 +55,29 @@ describe('leaderboardKicker for a challenge', () => {
 })
 
 describe('rulesText', () => {
-  const RULES = {
-    bonuses: { 'Brown paint': 3 },
-    categories: [],
+  const WEEKLY = {
+    categories: [{ name: 'Brown paint', points: 2 }],
     false_call: -1,
     regular: 1,
     special: 2,
   }
 
-  it('lists the points, bonuses and false call', () => {
-    expect(rulesText(RULES)).toBe(
-      'Rules: Regular +1 · Special +2 · Brown paint +3 · False call \u22121',
+  it('lists the weekly rules with Special', () => {
+    expect(rulesText(WEEKLY)).toBe(
+      'Rules: Regular +1, Special +2, False call \u22121',
     )
   })
 
-  it('leaves out bonuses when there are none', () => {
-    expect(rulesText({ ...RULES, bonuses: {} })).toBe(
-      'Rules: Regular +1 · Special +2 · False call \u22121',
+  it('lists challenge categories instead of Special', () => {
+    const brownWeek = {
+      categories: [{ name: 'Brown paint', points: 3 }],
+      false_call: -1,
+      regular: 1,
+      special: null,
+    }
+
+    expect(rulesText(brownWeek)).toBe(
+      'Rules: Regular +1, Brown paint +3, False call \u22121',
     )
   })
 })

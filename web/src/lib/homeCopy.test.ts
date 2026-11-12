@@ -61,12 +61,33 @@ describe('behindText', () => {
 })
 
 describe('pointsIntro', () => {
+  const weekly = (regular: number, special: number) => ({
+    categories: [],
+    false_call: -1,
+    regular,
+    special,
+  })
+
   it('uses the current point values', () => {
-    expect(pointsIntro({ regular: 1, special: 2 })).toBe(
+    expect(pointsIntro(weekly(1, 2))).toBe(
       'Regular Souls are +1, special ones +2.',
     )
-    expect(pointsIntro({ regular: 2, special: 5 })).toBe(
+    expect(pointsIntro(weekly(2, 5))).toBe(
       'Regular Souls are +2, special ones +5.',
+    )
+  })
+
+  it('names challenge categories instead of special ones', () => {
+    const brownWeek = {
+      categories: [{ name: 'Brown paint', points: 3 }],
+      false_call: -1,
+      regular: 1,
+      special: null,
+    }
+
+    expect(pointsIntro(brownWeek)).toBe('Regular Souls are +1, Brown paint +3.')
+    expect(pointsIntro({ ...brownWeek, categories: [] })).toBe(
+      'Regular Souls are +1.',
     )
   })
 })

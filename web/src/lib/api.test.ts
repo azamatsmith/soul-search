@@ -325,7 +325,7 @@ describe('api', () => {
     const input = {
       ends_at: '2026-11-27T02:00:00.000Z',
       name: 'Thanksgiving Dash',
-      rules: { bonuses: {}, false_call: -1, regular: 1, special: 2 },
+      rules: { categories: [], false_call: -1, regular: 1 },
       starts_at: '2026-11-26T22:00:00.000Z',
     }
     expect(await putChallenge('c1', input)).toEqual({
@@ -591,7 +591,7 @@ describe('api', () => {
     const fetchMock = stubFetch(() =>
       respond(409, { error: 'already_reviewed' }),
     )
-    expect(await postReview('s1', 'special', 'Brown paint')).toEqual({
+    expect(await postReview('s1', 'category', 'Brown paint')).toEqual({
       ok: false,
       status: 409,
       error: 'already_reviewed',
@@ -603,7 +603,7 @@ describe('api', () => {
     expect(url).toBe('http://localhost:8000/admin/review/s1')
     expect(init.method).toBe('POST')
     expect(init.body).toBe(
-      JSON.stringify({ action: 'special', category: 'Brown paint' }),
+      JSON.stringify({ action: 'category', category: 'Brown paint' }),
     )
   })
 

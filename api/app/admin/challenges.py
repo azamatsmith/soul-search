@@ -13,25 +13,25 @@ MAX_POINTS = 10
 @dataclass(frozen=True)
 class ChallengeRules:
     regular: int
-    special: int
     false_call: int
-    bonuses: Mapping[str, int] = field(default_factory=dict)
+    categories: Mapping[str, int] = field(default_factory=dict)
 
     def to_json(self) -> dict[str, object]:
         return {
             "regular": self.regular,
-            "special": self.special,
             "false_call": self.false_call,
-            "bonuses": dict(self.bonuses),
+            "categories": [
+                {"name": name, "points": points} for name, points in self.categories.items()
+            ],
         }
 
     @classmethod
     def from_json(cls, data: Mapping[str, object]) -> "ChallengeRules":
+        categories = cast(list[Mapping[str, object]], data["categories"])
         return cls(
             regular=cast(int, data["regular"]),
-            special=cast(int, data["special"]),
             false_call=cast(int, data["false_call"]),
-            bonuses=dict(cast(Mapping[str, int], data.get("bonuses") or {})),
+            categories={cast(str, c["name"]): cast(int, c["points"]) for c in categories},
         )
 
 
@@ -53,16 +53,11 @@ class Challenge:
 
 
 def _check_rules(rules: ChallengeRules, categories: Sequence[str]) -> None:
-    in_range = (
-        1 <= rules.regular <= MAX_POINTS
-        and 1 <= rules.special <= MAX_POINTS
-        and -MAX_POINTS <= rules.false_call <= 0
-    )
-    if not in_range:
+    if not (1 <= rules.regular <= MAX_POINTS and -MAX_POINTS <= rules.false_call <= 0):
         raise ApiError(422, "invalid_points")
-    for category, bonus in rules.bonuses.items():
-        if category not in categories or not 1 <= bonus <= MAX_POINTS:
-            raise ApiError(422, "invalid_bonus")
+    for category, points in rules.categories.items():
+        if category not in categories or not 1 <= points <= MAX_POINTS:
+            raise ApiError(422, "invalid_category")
 
 
 def validate_draft(

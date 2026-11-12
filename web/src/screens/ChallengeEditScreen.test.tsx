@@ -26,12 +26,12 @@ vi.mock('../lib/api', () => ({
 }))
 
 const NOW = Date.parse('2026-11-12T20:00:00Z')
-const RULES = { bonuses: {}, false_call: -1, regular: 1, special: 2 }
+const RULES = { categories: [], false_call: -1, regular: 1 }
 const BROWN: ChallengeDetail = {
   ends_at: '2026-12-03T07:59:00Z',
   id: 'c2',
   name: 'Brown Week',
-  rules: { ...RULES, bonuses: { 'Brown paint': 3 } },
+  rules: { ...RULES, categories: [{ name: 'Brown paint', points: 3 }] },
   started: false,
   starts_at: '2026-11-29T17:00:00Z',
 }
@@ -102,13 +102,19 @@ describe('ChallengeEditScreen', () => {
     change('Starts time', '14:00')
     change('Ends date', '2026-11-26')
     change('Ends time', '18:00')
-    click('More for Special Soul')
+    click('More for Regular Soul')
+    click('+ Add a challenge category')
+    click('Alien Green')
     click('Save challenge')
 
     expect(postChallenge).toHaveBeenCalledWith({
       ends_at: '2026-11-27T02:00:00.000Z',
       name: 'Thanksgiving Dash',
-      rules: { bonuses: {}, false_call: -1, regular: 1, special: 3 },
+      rules: {
+        categories: [{ name: 'Alien Green', points: 3 }],
+        false_call: -1,
+        regular: 2,
+      },
       starts_at: '2026-11-26T22:00:00.000Z',
     })
     expect(await screen.findByText('Challenge list')).toBeInTheDocument()
@@ -224,22 +230,29 @@ describe('ChallengeEditScreen', () => {
     ).toBeInTheDocument()
   })
 
-  it('adds and removes a category bonus', async () => {
+  it('has no Special row', async () => {
     renderAt('/admin/challenges/new')
     await screen.findByLabelText('Name')
 
-    click('+ Add a category bonus')
+    expect(screen.queryByText('Special Soul')).toBeNull()
+  })
+
+  it('adds and removes a challenge category', async () => {
+    renderAt('/admin/challenges/new')
+    await screen.findByLabelText('Name')
+
+    click('+ Add a challenge category')
     click('Alien Green')
 
-    expect(screen.getByText('Category bonus')).toBeInTheDocument()
+    expect(screen.getByText('Challenge category')).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: 'More for Alien Green' }),
     ).toBeInTheDocument()
     expect(screen.getByText('+3')).toBeInTheDocument()
 
-    click('Remove Alien Green bonus')
+    click('Remove Alien Green')
 
-    expect(screen.queryByText('Category bonus')).toBeNull()
+    expect(screen.queryByText('Challenge category')).toBeNull()
   })
 
   it('deletes after an in-page confirm', async () => {

@@ -46,7 +46,7 @@ export const CaptureScreen = () => {
     const { category, claimType, photo } = capture
     if (!photo || !claimType) return
     await sender.send({
-      categories: claimType === 'special' && category ? [category] : [],
+      categories: claimType !== 'regular' && category ? [category] : [],
       claimType,
       id: photo.id,
       location,

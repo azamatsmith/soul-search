@@ -20,7 +20,7 @@ from tests.sightings.test_sightings_repo_db import (
 
 pytestmark = pytest.mark.db
 
-RULES = ChallengeRules(regular=1, special=2, false_call=-1, bonuses={"Brown paint": 3})
+RULES = ChallengeRules(regular=1, false_call=-1, categories={"Brown paint": 3})
 
 
 def draft(name: str, starts_at: datetime, hours: int = 4) -> ChallengeDraft:
@@ -51,7 +51,7 @@ def test_update_changes_name_times_and_rules(db_conn: psycopg.Connection):
         name="Green Week",
         starts_at=AT + timedelta(hours=1),
         ends_at=AT + timedelta(hours=9),
-        rules=ChallengeRules(regular=2, special=3, false_call=-2),
+        rules=ChallengeRules(regular=2, false_call=-2, categories={"Alien Green": 4}),
     )
 
     updated = repo.update(created.id, changed)

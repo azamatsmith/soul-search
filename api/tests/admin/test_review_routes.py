@@ -37,8 +37,7 @@ RULES = Rules(
     regular=1,
     special=2,
     false_call=-1,
-    categories=("Alien Green", "Racing stripes"),
-    bonuses={},
+    categories={"Alien Green": 2, "Racing stripes": 2},
 )
 FLAGGED = item()
 FALSE_CALL = item(
@@ -134,8 +133,10 @@ def test_get_one_returns_the_item_with_its_rules(admin: Harness):
         "regular": 1,
         "special": 2,
         "false_call": -1,
-        "categories": ["Alien Green", "Racing stripes"],
-        "bonuses": {},
+        "categories": [
+            {"name": "Alien Green", "points": 2},
+            {"name": "Racing stripes", "points": 2},
+        ],
     }
 
 
@@ -175,9 +176,9 @@ def test_change_to_regular_saves_and_records_history(admin: Harness):
     ]
 
 
-def test_restore_as_special_uses_the_picked_category(admin: Harness):
+def test_restore_with_a_category_uses_the_picked_category(admin: Harness):
     response = admin.client.post(
-        f"/admin/review/{FALSE_CALL.id}", json={"action": "special", "category": "Racing stripes"}
+        f"/admin/review/{FALSE_CALL.id}", json={"action": "category", "category": "Racing stripes"}
     )
 
     assert response.status_code == 204
@@ -187,8 +188,10 @@ def test_restore_as_special_uses_the_picked_category(admin: Harness):
     )
 
 
-@pytest.mark.parametrize("body", [{"action": "special"}, {"action": "special", "category": "Fins"}])
-def test_special_needs_a_known_category(admin: Harness, body: dict[str, str]):
+@pytest.mark.parametrize(
+    "body", [{"action": "category"}, {"action": "category", "category": "Fins"}]
+)
+def test_category_needs_a_known_category(admin: Harness, body: dict[str, str]):
     response = admin.client.post(f"/admin/review/{FALSE_CALL.id}", json=body)
 
     assert response.status_code == 422

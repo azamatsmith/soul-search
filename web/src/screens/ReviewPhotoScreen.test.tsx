@@ -23,8 +23,10 @@ const FLAGGED: ReviewDetail = {
   photo_url: 'https://signed.test/photo.jpg',
   points: 2,
   rules: {
-    bonuses: { 'Brown paint': 3 },
-    categories: ['Racing stripes', 'Brown paint'],
+    categories: [
+      { name: 'Racing stripes', points: 2 },
+      { name: 'Brown paint', points: 2 },
+    ],
     false_call: -1,
     regular: 1,
     special: 2,
@@ -96,9 +98,9 @@ describe('ReviewPhotoScreen', () => {
     expect(confirm).toBeDisabled()
     fireEvent.click(screen.getByRole('radio', { name: 'Brown paint' }))
     fireEvent.click(
-      screen.getByRole('button', { name: 'Restore as Special · +3' }),
+      screen.getByRole('button', { name: 'Restore as Special · +2' }),
     )
-    expect(save).toHaveBeenCalledWith('f1', 'special', 'Brown paint')
+    expect(save).toHaveBeenCalledWith('f1', 'category', 'Brown paint')
     await screen.findByText('Queue')
     expect(router.state.location.search).toBe('?tab=false_calls')
   })

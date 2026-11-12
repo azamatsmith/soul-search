@@ -42,9 +42,9 @@ RULES = Rules(
     regular=1,
     special=2,
     false_call=-1,
-    categories=("Alien Green", "Brown paint"),
-    bonuses={"Brown paint": 3},
+    categories={"Alien Green": 2, "Brown paint": 2},
 )
+BROWN_WEEK_RULES = Rules(regular=1, special=None, false_call=-1, categories={"Brown paint": 3})
 WEEK = Period(
     kind="week",
     id=UUID("11111111-1111-1111-1111-111111111111"),
@@ -107,19 +107,27 @@ def test_get_period_returns_rules(harness: Harness):
             "regular": 1,
             "special": 2,
             "false_call": -1,
-            "categories": ["Alien Green", "Brown paint"],
-            "bonuses": {"Brown paint": 3},
+            "categories": [
+                {"name": "Alien Green", "points": 2},
+                {"name": "Brown paint", "points": 2},
+            ],
         },
     }
     assert harness.repo.period_requests == [NOW]
 
 
-def test_get_period_names_a_running_challenge():
-    challenge = replace(WEEK, kind="challenge", name="Brown Week")
+def test_get_period_names_a_running_challenge_and_its_categories():
+    challenge = replace(WEEK, kind="challenge", name="Brown Week", rules=BROWN_WEEK_RULES)
 
     body = Harness(FakeSightingsRepo(challenge)).client.get("/period").json()
 
     assert (body["kind"], body["name"]) == ("challenge", "Brown Week")
+    assert body["rules"] == {
+        "regular": 1,
+        "special": None,
+        "false_call": -1,
+        "categories": [{"name": "Brown paint", "points": 3}],
+    }
 
 
 def test_standing_before_any_sighting(harness: Harness):
@@ -208,11 +216,31 @@ def test_post_prefers_phone_location_over_exif(harness: Harness):
     assert (new.latitude, new.longitude) == (45.5, -122.6)
 
 
-def test_post_special_uses_bonus_points(harness: Harness):
+def test_post_special_uses_special_points(harness: Harness):
     response = harness.post(claim_type="special", categories=["Brown paint"])
 
-    assert response.json()["sighting"]["points"] == 3
+    assert response.json()["sighting"]["points"] == 2
     assert harness.repo.inserted[0].categories == ("Brown paint",)
+
+
+def test_post_challenge_category_uses_its_points():
+    challenge = replace(WEEK, kind="challenge", name="Brown Week", rules=BROWN_WEEK_RULES)
+    harness = Harness(FakeSightingsRepo(challenge))
+
+    response = harness.post(claim_type="challenge", categories=["Brown paint"])
+
+    assert response.json()["sighting"]["points"] == 3
+    assert harness.repo.inserted[0].claim_type == "challenge"
+
+
+def test_post_special_during_a_challenge_is_rejected():
+    challenge = replace(WEEK, kind="challenge", name="Brown Week", rules=BROWN_WEEK_RULES)
+    harness = Harness(FakeSightingsRepo(challenge))
+
+    response = harness.post(claim_type="special", categories=["Brown paint"])
+
+    assert response.json() == {"error": "invalid_claim"}
+    assert harness.repo.inserted == []
 
 
 def test_post_during_challenge_tags_challenge():

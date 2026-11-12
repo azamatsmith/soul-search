@@ -10,9 +10,9 @@ RULES = Rules(
     regular=1,
     special=2,
     false_call=-1,
-    categories=("Alien Green", "Racing stripes"),
-    bonuses={"Racing stripes": 3},
+    categories={"Alien Green": 2, "Racing stripes": 2},
 )
+CHALLENGE_RULES = Rules(regular=1, special=None, false_call=-1, categories={"Brown paint": 3})
 
 
 def item(**overrides: object) -> ReviewItem:
@@ -61,15 +61,23 @@ def test_false_call_keeps_the_claim_with_false_call_points():
     )
 
 
-def test_special_uses_the_picked_category_and_its_bonus():
+def test_category_restores_a_special_claim_in_a_week():
     regular_false_call = item(claim_type="regular", categories=(), status="false_call", points=-1)
 
-    assert decide(regular_false_call, "special", "Racing stripes", RULES) == Decision(
-        status="counted", claim_type="special", categories=("Racing stripes",), points=3
+    assert decide(regular_false_call, "category", "Racing stripes", RULES) == Decision(
+        status="counted", claim_type="special", categories=("Racing stripes",), points=2
+    )
+
+
+def test_category_restores_a_challenge_claim_during_a_challenge():
+    regular_false_call = item(claim_type="regular", categories=(), status="false_call", points=-1)
+
+    assert decide(regular_false_call, "category", "Brown paint", CHALLENGE_RULES) == Decision(
+        status="counted", claim_type="challenge", categories=("Brown paint",), points=3
     )
 
 
 @pytest.mark.parametrize("category", [None, "Fins"])
-def test_special_needs_a_known_category(category: str | None):
+def test_category_needs_a_known_category(category: str | None):
     with pytest.raises(InvalidClaim):
-        decide(item(), "special", category, RULES)
+        decide(item(), "category", category, RULES)

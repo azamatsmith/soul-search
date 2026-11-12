@@ -30,8 +30,12 @@ PLAYERS = [
     Player(id=PLAYER_ID, display_name="Bob", is_admin=False, text_size="standard"),
 ]
 NOW = datetime(2026, 11, 12, 20, tzinfo=UTC)
-RULES = ChallengeRules(regular=1, special=2, false_call=-1, bonuses={"Brown paint": 3})
-RULES_JSON = {"regular": 1, "special": 2, "false_call": -1, "bonuses": {"Brown paint": 3}}
+RULES = ChallengeRules(regular=1, false_call=-1, categories={"Brown paint": 3})
+RULES_JSON = {
+    "regular": 1,
+    "false_call": -1,
+    "categories": [{"name": "Brown paint", "points": 3}],
+}
 UPCOMING = Challenge(
     id=UUID("c3333333-3333-3333-3333-333333333333"),
     name="Brown Week",
@@ -162,11 +166,21 @@ def test_create_rejects_overlap_with_its_name():
 
 
 def test_create_passes_settings_categories_to_validation(admin: Harness):
-    body = {**BODY, "rules": {**RULES_JSON, "bonuses": {"Purple": 3}}}
+    body = {**BODY, "rules": {**RULES_JSON, "categories": [{"name": "Purple", "points": 3}]}}
 
     response = admin.client.post("/admin/challenges", json=body)
 
-    assert response.json() == {"error": "invalid_bonus"}
+    assert response.json() == {"error": "invalid_category"}
+
+
+def test_create_rejects_a_repeated_category(admin: Harness):
+    brown = {"name": "Brown paint", "points": 3}
+    body = {**BODY, "rules": {**RULES_JSON, "categories": [brown, brown]}}
+
+    response = admin.client.post("/admin/challenges", json=body)
+
+    assert response.json() == {"error": "invalid_category"}
+    assert admin.challenges.created == []
 
 
 def test_naive_datetimes_are_rejected(admin: Harness):

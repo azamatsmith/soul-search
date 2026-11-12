@@ -6,15 +6,24 @@ import {
   queueChip,
   reviewCard,
   reviewChoices,
-  specialLabel,
+  categoryLabel,
 } from './reviewCopy'
 
 const RULES: Rules = {
-  bonuses: { 'Brown paint': 3 },
-  categories: ['Alien Green', 'Brown paint'],
+  categories: [
+    { name: 'Alien Green', points: 2 },
+    { name: 'Brown paint', points: 2 },
+  ],
   false_call: -1,
   regular: 1,
   special: 2,
+}
+
+const BROWN_WEEK: Rules = {
+  categories: [{ name: 'Brown paint', points: 3 }],
+  false_call: -1,
+  regular: 1,
+  special: null,
 }
 
 const ITEM: ReviewItem = {
@@ -90,7 +99,7 @@ describe('reviewChoices', () => {
         tone: 'primary',
       },
       {
-        action: 'special',
+        action: 'category',
         hint: 'Pick what makes it special.',
         label: 'Restore as Special',
         tone: 'plain',
@@ -105,13 +114,51 @@ describe('reviewChoices', () => {
   })
 })
 
-describe('specialLabel', () => {
-  it('asks for a category until one is picked', () => {
-    expect(specialLabel(RULES, null)).toBe('Pick a category')
+describe('reviewChoices during a challenge', () => {
+  it('restores with a challenge category instead of Special', () => {
+    expect(reviewChoices(FALSE_CALL, BROWN_WEEK)[1]).toEqual({
+      action: 'category',
+      hint: 'Pick the challenge category.',
+      label: 'Restore with a challenge category',
+      tone: 'plain',
+    })
   })
 
-  it('uses the category bonus when it is bigger', () => {
-    expect(specialLabel(RULES, 'Brown paint')).toBe('Restore as Special · +3')
+  it('offers no category restore when the challenge has none', () => {
+    const actions = reviewChoices(FALSE_CALL, { ...BROWN_WEEK, categories: [] })
+
+    expect(actions.map(({ action }) => action)).toEqual(['regular', 'keep'])
+  })
+
+  it('offers Regular for a flagged challenge claim', () => {
+    const brown = {
+      ...ITEM,
+      categories: ['Brown paint'],
+      claim_type: 'challenge' as const,
+    }
+
+    expect(reviewChoices(brown, BROWN_WEEK)[1]).toMatchObject({
+      action: 'regular',
+      hint: "It's a Soul, but not Brown paint.",
+    })
+    expect(claimedLine(brown)).toBe('Claimed: Brown paint')
+    expect(claimSummary(brown)).toBe('Brown paint · +2')
+  })
+})
+
+describe('categoryLabel', () => {
+  it('asks for a category until one is picked', () => {
+    expect(categoryLabel(RULES, null)).toBe('Pick a category')
+  })
+
+  it('restores as Special in a week', () => {
+    expect(categoryLabel(RULES, 'Brown paint')).toBe('Restore as Special · +2')
+  })
+
+  it('restores as the challenge category during a challenge', () => {
+    expect(categoryLabel(BROWN_WEEK, 'Brown paint')).toBe(
+      'Restore as Brown paint · +3',
+    )
   })
 })
 

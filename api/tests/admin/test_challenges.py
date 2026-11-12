@@ -10,7 +10,7 @@ from app.errors import ApiError
 
 NOW = datetime(2026, 11, 12, 20, tzinfo=UTC)
 CATEGORIES = ("Alien Green", "Brown paint")
-RULES = ChallengeRules(regular=1, special=2, false_call=-1, bonuses={"Brown paint": 3})
+RULES = ChallengeRules(regular=1, false_call=-1, categories={"Brown paint": 3})
 DRAFT = ChallengeDraft(
     name="Brown Week",
     starts_at=NOW + timedelta(days=1),
@@ -56,7 +56,6 @@ def test_end_must_be_after_start():
     [
         replace(RULES, regular=0),
         replace(RULES, regular=11),
-        replace(RULES, special=0),
         replace(RULES, false_call=1),
         replace(RULES, false_call=-11),
     ],
@@ -66,13 +65,19 @@ def test_points_outside_a4_ranges_are_rejected(rules: ChallengeRules):
 
 
 @pytest.mark.parametrize(
-    "bonuses",
+    "categories",
     [{"Purple": 3}, {"brown paint": 3}, {"Brown paint": 0}, {"Brown paint": 11}],
 )
-def test_bonus_must_use_a_known_category_and_range(bonuses: dict[str, int]):
-    draft = replace(DRAFT, rules=replace(RULES, bonuses=bonuses))
+def test_category_must_be_a_weekly_category_in_range(categories: dict[str, int]):
+    draft = replace(DRAFT, rules=replace(RULES, categories=categories))
 
-    assert error_code(draft) == "invalid_bonus"
+    assert error_code(draft) == "invalid_category"
+
+
+def test_challenge_without_categories_is_allowed():
+    draft = replace(DRAFT, rules=replace(RULES, categories={}))
+
+    assert validate_draft(draft, CATEGORIES, NOW).rules.categories == {}
 
 
 def test_started_challenge_cannot_move_its_start():
@@ -104,7 +109,9 @@ def test_rules_round_trip_json():
     assert ChallengeRules.from_json(RULES.to_json()) == RULES
 
 
-def test_rules_without_bonuses_default_to_none():
-    rules = ChallengeRules.from_json({"regular": 1, "special": 2, "false_call": -1})
-
-    assert rules.bonuses == {}
+def test_rules_json_lists_categories_with_points():
+    assert RULES.to_json() == {
+        "regular": 1,
+        "false_call": -1,
+        "categories": [{"name": "Brown paint", "points": 3}],
+    }

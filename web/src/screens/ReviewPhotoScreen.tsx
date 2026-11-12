@@ -6,7 +6,7 @@ import { LoadError } from '../components/LoadError'
 import { PhotoViewer } from '../components/PhotoViewer'
 import { PushedScreen } from '../components/PushedScreen'
 import { ReviewChoiceButton } from '../components/ReviewChoiceButton'
-import { SpecialPicker } from '../components/SpecialPicker'
+import { CategoryPicker } from '../components/CategoryPicker'
 import { useReviewPhoto } from '../hooks/useReviewPhoto'
 import { SAVE_FAILED } from '../lib/errorCopy'
 import {
@@ -27,11 +27,11 @@ export const ReviewPhotoScreen = () => {
   const isFalseCall = item?.status === 'false_call'
 
   const handleChoose = ({ action }: ReviewChoice) => {
-    if (action === 'special') setPicking(true)
+    if (action === 'category') setPicking(true)
     else void review.submit(action, null)
   }
-  const handleSpecial = (category: string) => {
-    void review.submit('special', category)
+  const handleCategory = (category: string) => {
+    void review.submit('category', category)
   }
   const handleOpenPhoto = () => setViewing(true)
   const handleClosePhoto = () => setViewing(false)
@@ -92,11 +92,11 @@ export const ReviewPhotoScreen = () => {
                 disabled={review.saving}
                 onChoose={handleChoose}
               />
-              {picking && choice.action === 'special' && (
-                <SpecialPicker
+              {picking && choice.action === 'category' && (
+                <CategoryPicker
                   disabled={review.saving}
                   initial={item.categories[0] ?? null}
-                  onConfirm={handleSpecial}
+                  onConfirm={handleCategory}
                   rules={item.rules}
                 />
               )}

@@ -19,8 +19,6 @@ export const ChallengeRuleSteppers = ({
 }: ChallengeRuleSteppersProps) => {
   const handleRegularChange = (regular: number) =>
     onChange({ ...rules, regular })
-  const handleSpecialChange = (special: number) =>
-    onChange({ ...rules, special })
   const handleFalseCallChange = (false_call: number) =>
     onChange({ ...rules, false_call })
 
@@ -34,15 +32,6 @@ export const ChallengeRuleSteppers = ({
         min={1}
         onChange={handleRegularChange}
         value={rules.regular}
-      />
-      <Stepper
-        disabled={disabled}
-        hint={weeklyHint(weekly.special)}
-        label="Special Soul"
-        max={10}
-        min={1}
-        onChange={handleSpecialChange}
-        value={rules.special}
       />
       <Stepper
         disabled={disabled}

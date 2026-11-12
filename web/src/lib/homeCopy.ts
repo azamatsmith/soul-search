@@ -1,3 +1,6 @@
+import type { Rules } from './api'
+import { sortedCategories } from './claim'
+
 const PACIFIC = 'America/Los_Angeles'
 const HOUR = 60 * 60 * 1000
 
@@ -48,5 +51,13 @@ export const behindText = (
   return `${plural(pointsBehind, 'pt', 'pts')} behind ${ordinal(nextRank)} place`
 }
 
-export const pointsIntro = (rules: { regular: number; special: number }) =>
-  `Regular Souls are +${rules.regular}, special ones +${rules.special}.`
+export const pointsIntro = (rules: Rules) => {
+  const regular = `Regular Souls are +${rules.regular}`
+  if (rules.special !== null) {
+    return `${regular}, special ones +${rules.special}.`
+  }
+  const extras = sortedCategories(rules.categories).map(
+    ({ name, points }) => `${name} +${points}`,
+  )
+  return `${[regular, ...extras].join(', ')}.`
+}

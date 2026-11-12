@@ -89,6 +89,18 @@ def test_regular_claim_lists_no_categories():
     assert "Racing stripes" not in text
 
 
+def test_challenge_claim_lists_its_category():
+    messages = StubMessages(response(VERDICT))
+    brown = Claim(
+        claim_type="challenge", categories=("Brown paint",), points=3, false_call_points=-1
+    )
+
+    checker_with(messages).check(b"jpeg", brown)
+
+    text = messages.calls[0]["messages"][0]["content"][1]["text"]
+    assert "Claimed features:\n- Brown paint" in text
+
+
 def test_check_maps_the_verdict_to_a_check_result():
     result = checker_with(StubMessages(response(VERDICT))).check(b"jpeg", SPECIAL)
 

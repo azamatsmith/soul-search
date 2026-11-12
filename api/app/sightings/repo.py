@@ -137,10 +137,9 @@ class PgSightingsRepo:
                 closed=False,
                 rules=Rules(
                     regular=rules["regular"],
-                    special=rules["special"],
+                    special=None,
                     false_call=rules["false_call"],
-                    categories=settings.categories,
-                    bonuses=rules.get("bonuses", {}),
+                    categories={c["name"]: c["points"] for c in rules["categories"]},
                 ),
             )
         return self._week_at(at, settings)
@@ -322,8 +321,7 @@ class PgSightingsRepo:
             regular=regular,
             special=special,
             false_call=false_call,
-            categories=tuple(categories),
-            bonuses={},
+            categories=dict.fromkeys(categories, special),
         )
 
 

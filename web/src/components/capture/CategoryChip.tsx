@@ -1,8 +1,6 @@
-import { pointsText } from '../../lib/claim'
 import styles from './CategoryChip.module.css'
 
 export interface CategoryChipProps {
-  bonus?: number
   label: string
   onSelect: (label: string) => void
   selected: boolean
@@ -14,7 +12,6 @@ const DOTS: Record<string, string> = {
 }
 
 export const CategoryChip = ({
-  bonus,
   label,
   onSelect,
   selected,
@@ -32,9 +29,6 @@ export const CategoryChip = ({
     >
       {dot && <span aria-hidden className={`${styles.dot} ${dot}`} />}
       {label}
-      {bonus !== undefined && (
-        <span className={styles.bonus}>{pointsText(bonus)}</span>
-      )}
     </button>
   )
 }

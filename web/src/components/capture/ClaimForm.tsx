@@ -1,15 +1,15 @@
 import { useId } from 'react'
-import type { Rules } from '../../lib/api'
+import type { ClaimType, Rules } from '../../lib/api'
 import {
+  categoryNames,
   claimPoints,
   hasBrownCategory,
-  liveBonuses,
   sendLabel,
   specialDescription,
-  type ClaimType,
 } from '../../lib/claim'
 import { Button } from '../Button'
 import { CategoryChip } from './CategoryChip'
+import { ChallengeClaimOptions } from './ChallengeClaimOptions'
 import { ClaimOption } from './ClaimOption'
 import styles from './ClaimForm.module.css'
 import { StepHeading } from './StepHeading'
@@ -37,7 +37,14 @@ export const ClaimForm = ({
 }: ClaimFormProps) => {
   const legendId = useId()
   const points = claimPoints(rules, claimType, category)
-  const bonuses = liveBonuses(rules)
+  const names = categoryNames(rules)
+
+  const handleRegularPick = () => onClaimTypeChange('regular')
+  const handleSpecialPick = () => onClaimTypeChange('special')
+  const handleChallengeCategoryPick = (name: string) => {
+    onClaimTypeChange('challenge')
+    onCategoryChange(name)
+  }
 
   return (
     <main className={styles.screen}>
@@ -53,55 +60,70 @@ export const ClaimForm = ({
         {challengeName && (
           <p className={styles.counts}>Counts toward {challengeName}</p>
         )}
-        <div
-          aria-label="Kind of Soul"
-          className={styles.options}
-          role="radiogroup"
-        >
-          <ClaimOption
-            checked={claimType === 'regular'}
-            description="Any color not listed below"
-            label="Regular Soul"
-            onChange={onClaimTypeChange}
-            points={rules.regular}
-            value="regular"
+        {rules.special === null ? (
+          <ChallengeClaimOptions
+            category={category}
+            challengeName={challengeName ?? 'the challenge'}
+            claimType={claimType}
+            onCategoryPick={handleChallengeCategoryPick}
+            onRegularPick={handleRegularPick}
+            rules={rules}
           />
-          <ClaimOption
-            checked={claimType === 'special'}
-            description={specialDescription(rules.categories)}
-            label="Special Soul"
-            onChange={onClaimTypeChange}
-            points={rules.special}
-            value="special"
-          />
-        </div>
-        {claimType === 'special' && (
-          <fieldset className={styles.categories}>
-            <legend className={styles.legend} id={legendId}>
-              What makes it special?{' '}
-              <span className={styles.hint}>Pick one</span>
-            </legend>
+        ) : (
+          <>
             <div
-              aria-labelledby={legendId}
-              className={styles.chips}
+              aria-label="Kind of Soul"
+              className={styles.options}
               role="radiogroup"
             >
-              {rules.categories.map((option) => (
-                <CategoryChip
-                  bonus={bonuses[option]}
-                  key={option}
-                  label={option}
-                  onSelect={onCategoryChange}
-                  selected={option === category}
-                />
-              ))}
+              <ClaimOption
+                checked={claimType === 'regular'}
+                description="Any color not listed below"
+                label="Regular Soul"
+                onSelect={handleRegularPick}
+                points={rules.regular}
+                tone="regular"
+                value="regular"
+              />
+              <ClaimOption
+                checked={claimType === 'special'}
+                description={specialDescription(names)}
+                label="Special Soul"
+                onSelect={handleSpecialPick}
+                points={rules.special}
+                tone="special"
+                value="special"
+              />
             </div>
-            {hasBrownCategory(rules.categories) && (
-              <p className={styles.note}>
-                Brown means brown: champagne, pale gold and beige don't count.
-              </p>
+            {claimType === 'special' && (
+              <fieldset className={styles.categories}>
+                <legend className={styles.legend} id={legendId}>
+                  What makes it special?{' '}
+                  <span className={styles.hint}>Pick one</span>
+                </legend>
+                <div
+                  aria-labelledby={legendId}
+                  className={styles.chips}
+                  role="radiogroup"
+                >
+                  {names.map((option) => (
+                    <CategoryChip
+                      key={option}
+                      label={option}
+                      onSelect={onCategoryChange}
+                      selected={option === category}
+                    />
+                  ))}
+                </div>
+                {hasBrownCategory(names) && (
+                  <p className={styles.note}>
+                    Brown means brown: champagne, pale gold and beige don't
+                    count.
+                  </p>
+                )}
+              </fieldset>
             )}
-          </fieldset>
+          </>
         )}
       </div>
       <footer className={styles.footer}>

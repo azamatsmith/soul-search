@@ -13,8 +13,8 @@ from app.auth.tokens import CurrentUser
 from app.clock import get_now
 from app.errors import ApiError
 from app.sightings.photo_store import PhotoStore, get_photo_store, thumb_path
-from app.sightings.routes import RulesOut
-from app.sightings.scoring import InvalidClaim, Rules
+from app.sightings.routes import RulesOut, rules_out
+from app.sightings.scoring import InvalidClaim
 from app.sightings.url_cache import SignedUrlCache, cached_signed_urls, get_url_cache
 
 router = APIRouter(prefix="/admin/review")
@@ -76,16 +76,6 @@ def items_out(
         )
         for i in items
     ]
-
-
-def rules_out(rules: Rules) -> RulesOut:
-    return RulesOut(
-        regular=rules.regular,
-        special=rules.special,
-        false_call=rules.false_call,
-        categories=list(rules.categories),
-        bonuses=dict(rules.bonuses),
-    )
 
 
 def snapshot(decision: Decision, flagged: bool) -> dict[str, object]:

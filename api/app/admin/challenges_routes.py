@@ -30,11 +30,15 @@ Rules = Annotated[PointRulesRepo, Depends(get_point_rules_repo)]
 Now = Annotated[datetime, Depends(get_now)]
 
 
+class CategoryBody(BaseModel):
+    name: str
+    points: int
+
+
 class RulesBody(BaseModel):
     regular: int
-    special: int
     false_call: int
-    bonuses: dict[str, int] = {}
+    categories: list[CategoryBody] = []
 
 
 class ChallengeBody(BaseModel):
@@ -77,12 +81,7 @@ def challenge_out(challenge: Challenge) -> ChallengeOut:
         name=challenge.name,
         starts_at=challenge.starts_at,
         ends_at=challenge.ends_at,
-        rules=RulesBody(
-            regular=challenge.rules.regular,
-            special=challenge.rules.special,
-            false_call=challenge.rules.false_call,
-            bonuses=dict(challenge.rules.bonuses),
-        ),
+        rules=RulesBody.model_validate(challenge.rules.to_json()),
     )
 
 
@@ -100,15 +99,17 @@ def history_json(challenge: Challenge) -> dict[str, object]:
 
 
 def to_draft(body: ChallengeBody) -> ChallengeDraft:
+    names = [category.name for category in body.rules.categories]
+    if len(set(names)) != len(names):
+        raise ApiError(422, "invalid_category")
     return ChallengeDraft(
         name=body.name,
         starts_at=body.starts_at,
         ends_at=body.ends_at,
         rules=ChallengeRules(
             regular=body.rules.regular,
-            special=body.rules.special,
             false_call=body.rules.false_call,
-            bonuses=body.rules.bonuses,
+            categories={category.name: category.points for category in body.rules.categories},
         ),
     )
 

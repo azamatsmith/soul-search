@@ -34,8 +34,7 @@ const WEEK: Period = {
     regular: 1,
     special: 2,
     false_call: -1,
-    categories: ['Alien Green'],
-    bonuses: {},
+    categories: [{ name: 'Alien Green', points: 2 }],
   },
 }
 
@@ -162,13 +161,17 @@ describe('TakePhotoScreen', () => {
     expect(await screen.findByText('6 Souls in Brown Week')).toBeInTheDocument()
   })
 
-  it('shows the challenge banner with its bonuses', async () => {
+  it('shows the challenge banner with its categories', async () => {
     vi.mocked(getPeriod).mockReturnValue(
       ok({
         ...WEEK,
         kind: 'challenge',
         name: 'Brown Week',
-        rules: { ...WEEK.rules, bonuses: { 'Brown paint': 3 } },
+        rules: {
+          ...WEEK.rules,
+          categories: [{ name: 'Brown paint', points: 3 }],
+          special: null,
+        },
       }),
     )
     renderHome()

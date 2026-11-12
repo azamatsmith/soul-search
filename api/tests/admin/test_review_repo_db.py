@@ -7,6 +7,7 @@ import pytest
 from app.admin.review import Decision
 from app.admin.review_repo import PgReviewRepo
 from app.sightings.repo import PgSightingsRepo
+from app.sightings.scoring import Rules
 from app.weeks.repo import PgWeeksRepo
 from tests.sightings.test_sightings_repo_db import (
     ALICE,
@@ -144,7 +145,8 @@ def test_resolve_rebuilds_a_closed_weeks_results(db_conn: psycopg.Connection):
 
 def test_rules_for_uses_the_challenge_rules(db_conn: psycopg.Connection):
     challenge = add_challenge(
-        db_conn, {"regular": 3, "special": 4, "false_call": -2, "bonuses": {"Brown paint": 5}}
+        db_conn,
+        {"regular": 3, "false_call": -2, "categories": [{"name": "Brown paint", "points": 5}]},
     )
     path = add_sighting(db_conn, BOB, challenge, kind="challenge")
     repo = PgReviewRepo(db_conn)
@@ -153,7 +155,7 @@ def test_rules_for_uses_the_challenge_rules(db_conn: psycopg.Connection):
 
     rules = repo.rules_for(item)
 
-    assert (rules.regular, rules.false_call, dict(rules.bonuses)) == (3, -2, {"Brown paint": 5})
+    assert rules == Rules(regular=3, special=None, false_call=-2, categories={"Brown paint": 5})
 
 
 def test_rules_for_a_week_uses_the_settings(db_conn: psycopg.Connection):

@@ -39,11 +39,24 @@ const PERIOD: Period = {
   starts_at: '2026-11-09T08:00:00Z',
   ends_at: '2026-11-16T08:00:00Z',
   rules: {
+    categories: [
+      { name: 'Alien Green', points: 2 },
+      { name: 'Brown paint', points: 2 },
+    ],
+    false_call: -1,
     regular: 1,
     special: 2,
+  },
+}
+const BROWN_WEEK: Period = {
+  ...PERIOD,
+  kind: 'challenge',
+  name: 'Brown Week',
+  rules: {
+    categories: [{ name: 'Brown paint', points: 3 }],
     false_call: -1,
-    categories: ['Alien Green', 'Brown paint'],
-    bonuses: { 'Brown paint': 3 },
+    regular: 1,
+    special: null,
   },
 }
 const STREAM = { getTracks: () => [] } as unknown as MediaStream
@@ -248,7 +261,7 @@ describe('CaptureScreen', () => {
     ).toBeEnabled()
   })
 
-  it('needs a category for a special claim and shows bonus points', async () => {
+  it('needs a category for a special claim', async () => {
     await reachClaimStep()
 
     fireEvent.click(screen.getByRole('radio', { name: /Special Soul/ }))
@@ -260,11 +273,6 @@ describe('CaptureScreen', () => {
     pickCategory('Alien Green')
     expect(
       screen.getByRole('button', { name: 'Send for 2 points' }),
-    ).toBeEnabled()
-
-    pickCategory('Brown paint')
-    expect(
-      screen.getByRole('button', { name: 'Send for 3 points' }),
     ).toBeEnabled()
   })
 
@@ -302,7 +310,7 @@ describe('CaptureScreen', () => {
     await reachClaimStep()
     pickBrownSpecial()
 
-    await act(async () => click('Send for 3 points'))
+    await act(async () => click('Send for 2 points'))
 
     expect(await screen.findByText('Special Soul saved')).toBeInTheDocument()
     expect(screen.getByText('+3')).toBeInTheDocument()
@@ -360,7 +368,7 @@ describe('CaptureScreen', () => {
     await reachClaimStep()
     pickBrownSpecial()
 
-    await act(async () => click('Send for 3 points'))
+    await act(async () => click('Send for 2 points'))
 
     expect(
       await screen.findByRole('heading', { name: "Your photo didn't send" }),
@@ -382,7 +390,7 @@ describe('CaptureScreen', () => {
     })
     await reachClaimStep()
     pickBrownSpecial()
-    await act(async () => click('Send for 3 points'))
+    await act(async () => click('Send for 2 points'))
 
     click('OK, send it later')
 
@@ -399,7 +407,7 @@ describe('CaptureScreen', () => {
     await reachClaimStep()
     pickBrownSpecial()
 
-    await act(async () => click('Send for 3 points'))
+    await act(async () => click('Send for 2 points'))
 
     expect(
       await screen.findByText("This photo can't be used"),
@@ -413,18 +421,50 @@ describe('CaptureScreen', () => {
     await reachClaimStep()
     pickBrownSpecial()
 
-    await act(async () => click('Send for 3 points'))
+    await act(async () => click('Send for 2 points'))
 
     expect(await screen.findByText('Special Soul saved')).toBeInTheDocument()
   })
   it('says which challenge the photo counts toward', async () => {
-    vi.mocked(getPeriod).mockResolvedValue({
-      ok: true,
-      data: { ...PERIOD, kind: 'challenge', name: 'Brown Week' },
-    })
+    vi.mocked(getPeriod).mockResolvedValue({ ok: true, data: BROWN_WEEK })
     await reachClaimStep()
 
     expect(screen.getByText('Counts toward Brown Week')).toBeInTheDocument()
+  })
+
+  it('offers Regular and the challenge categories instead of Special', async () => {
+    vi.mocked(getPeriod).mockResolvedValue({ ok: true, data: BROWN_WEEK })
+    await reachClaimStep()
+
+    expect(
+      screen.getByRole('radio', { name: /Regular Soul/ }),
+    ).toHaveAccessibleName(/Any other Kia Soul/)
+    expect(
+      screen.queryByRole('radio', { name: /Special Soul/ }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('radio', { name: /^Brown paint/ }),
+    ).toHaveAccessibleName(/Champagne, pale gold and beige/)
+    expect(
+      screen.getByText(
+        'During Brown Week only Brown paint Souls earn extra. Every other Soul is Regular.',
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it('sends a challenge category claim for its points', async () => {
+    vi.mocked(getPeriod).mockResolvedValue({ ok: true, data: BROWN_WEEK })
+    vi.mocked(postSighting).mockResolvedValue(SAVED)
+    await reachClaimStep()
+
+    fireEvent.click(screen.getByRole('radio', { name: /^Brown paint/ }))
+    await act(async () => click('Send for 3 points'))
+
+    const queued = vi.mocked(deviceQueue.add).mock.calls[0][0] as QueuedSighting
+    expect(queued).toMatchObject({
+      categories: ['Brown paint'],
+      claimType: 'challenge',
+    })
   })
 
   it('shows no challenge strip during a normal week', async () => {
@@ -433,22 +473,23 @@ describe('CaptureScreen', () => {
     expect(screen.queryByText(/Counts toward/)).not.toBeInTheDocument()
   })
 
-  it('describes special Souls and bonus points from the rules', async () => {
+  it('describes special Souls from the rules', async () => {
     await reachClaimStep()
 
     expect(screen.getByText('Alien Green or Brown paint')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('radio', { name: /Special Soul/ }))
-    expect(chip('Brown paint')).toHaveTextContent('+3')
-    expect(chip('Alien Green')).not.toHaveTextContent('+')
     expect(screen.getByText(/Brown means brown/)).toBeInTheDocument()
   })
 
-  it('skips bonuses for categories that no longer exist', async () => {
+  it('lists only the current categories', async () => {
     vi.mocked(getPeriod).mockResolvedValue({
       ok: true,
       data: {
         ...PERIOD,
-        rules: { ...PERIOD.rules, categories: ['Alien Green'] },
+        rules: {
+          ...PERIOD.rules,
+          categories: [{ name: 'Alien Green', points: 2 }],
+        },
       },
     })
     await reachClaimStep()
@@ -468,25 +509,11 @@ describe('CaptureScreen', () => {
     await reachClaimStep()
     pickBrownSpecial()
 
-    await act(async () => click('Send for 3 points'))
+    await act(async () => click('Send for 2 points'))
 
     expect(
       await screen.findByText(/it becomes a \u22122 in Sightings\./),
     ).toBeInTheDocument()
-  })
-
-  it('shows no badge for a bonus worth no more than a special Soul', async () => {
-    vi.mocked(getPeriod).mockResolvedValue({
-      ok: true,
-      data: {
-        ...PERIOD,
-        rules: { ...PERIOD.rules, bonuses: { 'Brown paint': 2 } },
-      },
-    })
-    await reachClaimStep()
-    fireEvent.click(screen.getByRole('radio', { name: /Special Soul/ }))
-
-    expect(chip('Brown paint')).not.toHaveTextContent('+')
   })
 
   it('turns the status bar dark for the camera', async () => {
@@ -507,7 +534,7 @@ describe('CaptureScreen', () => {
     await reachClaimStep()
     pickBrownSpecial()
 
-    await act(async () => click('Send for 3 points'))
+    await act(async () => click('Send for 2 points'))
     await screen.findByText('Special Soul saved')
 
     expect(statusBarColor()).toBe(FOREST)
