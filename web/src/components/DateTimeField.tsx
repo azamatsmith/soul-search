@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react'
-import { clockText, pacificToIso } from '../lib/challengeTime'
+import { clockText, isFullDateTime, pacificToIso } from '../lib/challengeTime'
 import styles from './DateTimeField.module.css'
 
 export interface DateTimeFieldProps {
@@ -19,7 +19,8 @@ const dateLabel = new Intl.DateTimeFormat('en-US', {
 })
 
 const shown = (date: string, time: string) => {
-  if (!date || !time) return { date: 'Pick a date', time: 'Pick a time' }
+  if (!isFullDateTime(date, time))
+    return { date: 'Pick a date', time: 'Pick a time' }
   const at = Date.parse(pacificToIso(date, time))
   return { date: dateLabel.format(at), time: clockText(at) }
 }

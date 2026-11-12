@@ -39,6 +39,14 @@ const offsetAt = (at: number) => {
   return wallClockAsUtc(date, time) - at
 }
 
+const FULL_DATE = /^[1-9]\d{3}-\d{2}-\d{2}$/
+const FULL_TIME = /^\d{2}:\d{2}$/
+
+export const isFullDateTime = (date: string, time: string) =>
+  FULL_DATE.test(date) &&
+  FULL_TIME.test(time) &&
+  !Number.isNaN(wallClockAsUtc(date, time))
+
 export const pacificToIso = (date: string, time: string) => {
   const wall = wallClockAsUtc(date, time)
   const guess = wall - offsetAt(wall)
