@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AuthLayout } from '../components/AuthLayout'
 import { Button } from '../components/Button'
-import { CODE_LENGTH, CodeInput } from '../components/CodeInput'
+import { CodeInput } from '../components/CodeInput'
 import { CodeStatusMessage } from '../components/CodeStatusMessage'
 import { LockoutCountdown } from '../components/LockoutCountdown'
 import type { CodeState, CodeStatus } from '../hooks/useSignIn'
@@ -24,6 +24,7 @@ const READ_ONLY_INPUT: CodeStatus[] = ['checking', 'sending']
 const WITH_RESEND: CodeStatus[] = ['wrong', 'too_soon', 'unavailable']
 
 const clearsCode = (previous: CodeStatus, next: CodeStatus) =>
+  next === 'wrong' ||
   next === 'expired' ||
   next === 'locked' ||
   (previous === 'sending' && next === 'idle')
@@ -37,14 +38,20 @@ export const CodeScreen = ({
   const { status } = state
   const [code, setCode] = useState('')
   const [shownStatus, setShownStatus] = useState(status)
+  const [markedWrong, setMarkedWrong] = useState(status === 'wrong')
 
   if (shownStatus !== status) {
     setShownStatus(status)
+    setMarkedWrong(status === 'wrong')
     if (clearsCode(shownStatus, status)) setCode('')
   }
 
+  const handleCodeChange = (next: string) => {
+    setCode(next)
+    setMarkedWrong(false)
+  }
+
   const sending = status === 'sending'
-  const invalid = status === 'wrong' && code.length === CODE_LENGTH
 
   return (
     <AuthLayout
@@ -56,8 +63,8 @@ export const CodeScreen = ({
       </p>
       <CodeInput
         disabled={DISABLED_INPUT.includes(status)}
-        invalid={invalid}
-        onChange={setCode}
+        invalid={markedWrong}
+        onChange={handleCodeChange}
         onComplete={onSubmitCode}
         readOnly={READ_ONLY_INPUT.includes(status)}
         value={code}

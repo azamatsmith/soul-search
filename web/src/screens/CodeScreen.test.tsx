@@ -137,6 +137,55 @@ describe('CodeScreen', () => {
     expect(onChangeEmail).toHaveBeenCalledTimes(1)
   })
 
+  const enterWrongCode = () => {
+    const view = renderScreen(stateWith('idle'))
+    const { rerender, ...props } = view
+    fireEvent.change(screen.getByLabelText('6-digit code'), {
+      target: { value: '482931' },
+    })
+    rerender(<CodeScreen state={stateWith('checking')} {...props} />)
+    rerender(
+      <CodeScreen state={stateWith('wrong', { triesLeft: 3 })} {...props} />,
+    )
+    return view
+  }
+
+  const boxesInvalid = () =>
+    screen.getByTestId('code-boxes').getAttribute('data-invalid')
+
+  it('clears a wrong code and keeps the boxes red', () => {
+    enterWrongCode()
+    const input = screen.getByLabelText('6-digit code')
+    expect(input).toHaveValue('')
+    expect(input).toHaveFocus()
+    expect(boxesInvalid()).toBe('true')
+    expect(alertText()).toBe(
+      "That code isn't right.Check the email and try again. 3 tries left.",
+    )
+  })
+
+  it('drops the red on the first new digit and submits a new code', () => {
+    const { onSubmitCode } = enterWrongCode()
+    const input = screen.getByLabelText('6-digit code')
+    fireEvent.change(input, { target: { value: '1' } })
+    expect(boxesInvalid()).toBe('false')
+    expect(alertText()).toContain("That code isn't right.")
+    fireEvent.change(input, { target: { value: '' } })
+    expect(boxesInvalid()).toBe('false')
+    fireEvent.change(input, { target: { value: '123456' } })
+    expect(onSubmitCode).toHaveBeenLastCalledWith('123456')
+  })
+
+  it('keeps the code when it could not be checked', () => {
+    const { rerender, ...props } = renderScreen(stateWith('idle'))
+    fireEvent.change(screen.getByLabelText('6-digit code'), {
+      target: { value: '482931' },
+    })
+    rerender(<CodeScreen state={stateWith('checking')} {...props} />)
+    rerender(<CodeScreen state={stateWith('unavailable')} {...props} />)
+    expect(screen.getByLabelText('6-digit code')).toHaveValue('482931')
+  })
+
   it('clears the code when a new one is sent', () => {
     const { rerender, ...props } = renderScreen(
       stateWith('wrong', { triesLeft: 3 }),
