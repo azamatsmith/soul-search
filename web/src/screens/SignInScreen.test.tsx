@@ -60,18 +60,41 @@ describe('SignInScreen', () => {
     )
   })
 
-  it('shows the could-not-reach error', () => {
+  it('shows the could-not-send error', () => {
     render(
       <SignInScreen error="unavailable" onSubmit={vi.fn()} sending={false} />,
     )
     expect(screen.getByRole('alert')).toHaveTextContent(
-      "We couldn't reach Soul Search.Check your connection and try again.",
+      "Couldn't send your code.Check your Wi-Fi or signal, then try again.",
     )
   })
 
-  it('disables the button while sending', () => {
+  it('swaps the button for a sending status while the code is sent', () => {
     render(<SignInScreen error={null} onSubmit={vi.fn()} sending />)
+    expect(screen.getByRole('status')).toHaveTextContent('Sending your code…')
+    expect(
+      screen.queryByRole('button', { name: 'Email me a code' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('makes the email read-only while sending', () => {
+    render(<SignInScreen error={null} onSubmit={vi.fn()} sending />)
+    expect(screen.getByLabelText('Your email')).toHaveAttribute('readonly')
+  })
+
+  it('keeps the typed email when the send fails', () => {
+    const { rerender } = render(
+      <SignInScreen error={null} onSubmit={vi.fn()} sending={false} />,
+    )
     typeEmail('heathyr@example.com')
-    expect(button()).toBeDisabled()
+    rerender(<SignInScreen error={null} onSubmit={vi.fn()} sending />)
+    rerender(
+      <SignInScreen error="unavailable" onSubmit={vi.fn()} sending={false} />,
+    )
+    expect(screen.getByLabelText('Your email')).toHaveValue(
+      'heathyr@example.com',
+    )
+    expect(screen.getByLabelText('Your email')).not.toHaveAttribute('readonly')
+    expect(button()).toBeEnabled()
   })
 })
