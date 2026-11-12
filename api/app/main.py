@@ -11,6 +11,7 @@ from app.admin.review_routes import router as review_router
 from app.admin.routes import router as admin_router
 from app.admin.scores_routes import router as scores_router
 from app.auth.routes import router as auth_router
+from app.challenges.routes import router as player_challenges_router
 from app.config import check_settings, get_cors_origin_regex, get_cors_origins
 from app.errors import UnhandledErrorMiddleware, register_error_handler
 from app.me.routes import router as me_router
@@ -44,6 +45,7 @@ def create_app() -> FastAPI:
     app.include_router(scores_router)
     app.include_router(history_router)
     app.include_router(challenges_router)
+    app.include_router(player_challenges_router)
     app.include_router(auth_router)
     app.include_router(me_router)
     app.include_router(sightings_router)
