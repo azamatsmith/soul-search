@@ -80,6 +80,17 @@ def test_list_splits_running_upcoming_finished(db_conn: psycopg.Connection):
     assert [c.name for c, _ in listed.finished] == ["Recent", "Old"]
 
 
+def test_upcoming_lists_unstarted_challenges_soonest_first(db_conn: psycopg.Connection):
+    repo = PgChallengesRepo(db_conn)
+    create(db_conn, "Old", AT - timedelta(days=20))
+    create(db_conn, "Live", AT - timedelta(hours=1))
+    create(db_conn, "Later", AT + timedelta(days=9))
+    create(db_conn, "Soon", AT + timedelta(days=2))
+
+    assert [c.name for c in repo.upcoming(AT)] == ["Soon", "Later"]
+    assert [c.name for c in repo.upcoming(AT + timedelta(days=2))] == ["Later"]
+
+
 def test_finished_winner_is_top_scorer_including_adjustments(db_conn: psycopg.Connection):
     scored = create(db_conn, "Scored", AT - timedelta(days=3))
     create(db_conn, "Empty", AT - timedelta(days=5))

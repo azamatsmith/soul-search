@@ -361,6 +361,9 @@ class FakeChallengesRepo:
     def list(self, now: datetime) -> ChallengeList:
         return self.listing
 
+    def upcoming(self, now: datetime) -> tuple[Challenge, ...]:
+        return self.listing.upcoming
+
     def get(self, challenge_id: UUID) -> Challenge | None:
         return self.challenges.get(challenge_id)
 
