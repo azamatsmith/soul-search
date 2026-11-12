@@ -118,7 +118,7 @@ def _unreachable(error: anthropic.APIConnectionError) -> str:
 
 
 def _claim_text(claim: Claim) -> str:
-    if claim.claim_type == "special":
+    if claim.categories:
         features = "\n".join(f"- {category}" for category in claim.categories)
         return f"Claim: Special. Claimed features:\n{features}"
     return "Claim: Regular."
