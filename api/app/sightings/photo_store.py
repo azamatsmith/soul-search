@@ -11,6 +11,10 @@ def thumb_path(photo_path: str) -> str:
     return f"{photo_path.removesuffix('.jpg')}.thumb.jpg"
 
 
+def display_path(photo_path: str) -> str:
+    return f"{photo_path.removesuffix('.jpg')}.display.jpg"
+
+
 class StorageUnavailable(Exception):
     pass
 

@@ -25,6 +25,7 @@ from app.sightings.photo_meta import CleanPhoto, InvalidPhoto, clean_photo
 from app.sightings.photo_store import (
     PhotoStore,
     StorageUnavailable,
+    display_path,
     get_photo_store,
     thumb_path,
 )
@@ -354,6 +355,7 @@ def post_sighting(
     try:
         store.upload(path, cleaned.data)
         store.upload(thumb_path(path), cleaned.thumbnail)
+        store.upload(display_path(path), cleaned.display)
     except StorageUnavailable as error:
         raise ApiError(502, "storage_unavailable") from error
 

@@ -4,7 +4,12 @@ from collections.abc import Callable
 import httpx
 import pytest
 
-from app.sightings.photo_store import PhotoStore, StorageUnavailable, thumb_path
+from app.sightings.photo_store import (
+    PhotoStore,
+    StorageUnavailable,
+    display_path,
+    thumb_path,
+)
 
 
 def make_store(handler: Callable[[httpx.Request], httpx.Response]) -> PhotoStore:
@@ -79,6 +84,10 @@ def test_download_error_raises_unavailable():
 
 def test_thumb_path_sits_next_to_the_photo():
     assert thumb_path("p1/abc.jpg") == "p1/abc.thumb.jpg"
+
+
+def test_display_path_sits_next_to_the_photo():
+    assert display_path("p1/abc.jpg") == "p1/abc.display.jpg"
 
 
 def test_signed_urls_signs_many_paths_in_one_call():
