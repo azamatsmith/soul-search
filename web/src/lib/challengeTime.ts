@@ -1,6 +1,7 @@
-import { clock, pacificDay, weekday } from './pacificTime'
+import { dayIn, formattersFor, PACIFIC } from './zonedTime'
 
-const PACIFIC = 'America/Los_Angeles'
+const { clock, monthDay, weekday } = formattersFor(PACIFIC)
+
 const MINUTE_MS = 60_000
 const HOUR_MS = 60 * MINUTE_MS
 const DAY_MS = 24 * HOUR_MS
@@ -13,12 +14,6 @@ const parts = new Intl.DateTimeFormat('en-US', {
   month: '2-digit',
   timeZone: PACIFIC,
   year: 'numeric',
-})
-
-const monthDay = new Intl.DateTimeFormat('en-US', {
-  day: 'numeric',
-  month: 'short',
-  timeZone: PACIFIC,
 })
 
 const pacificParts = (at: number) => {
@@ -90,7 +85,7 @@ export const rangeText = (startIso: string, endIso: string) => {
   const start = Date.parse(startIso)
   const end = Date.parse(endIso)
   const endClock = clockText(end)
-  if (pacificDay(start) !== pacificDay(end)) {
+  if (dayIn(start, PACIFIC) !== dayIn(end, PACIFIC)) {
     return `${dayText(start)}, ${clockText(start)} – ${dayText(end)}, ${endClock}`
   }
   const startClock = clockText(start)
@@ -109,7 +104,7 @@ export const dayRangeText = (startIso: string, endIso: string) => {
 
 const momentText = (at: number, now: number) => {
   const time = clockText(at)
-  return pacificDay(at) === pacificDay(now)
+  return dayIn(at, PACIFIC) === dayIn(now, PACIFIC)
     ? time
     : `${weekday.format(at)} ${time}`
 }

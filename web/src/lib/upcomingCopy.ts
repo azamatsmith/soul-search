@@ -1,13 +1,13 @@
 import type { ChallengeRules } from './api'
 import { clockText, dayText, lengthText, rangeText } from './challengeTime'
-import { pacificDay } from './pacificTime'
+import { dayIn, PACIFIC } from './zonedTime'
 import { signedPoints } from './signedPoints'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const MINUTE_MS = 60 * 1000
 
 const dayNumber = (at: number) =>
-  Math.round(Date.parse(`${pacificDay(at)}T12:00:00Z`) / DAY_MS)
+  Math.round(Date.parse(`${dayIn(at, PACIFIC)}T12:00:00Z`) / DAY_MS)
 
 export const howSoonText = (startIso: string, now: number) => {
   const days = dayNumber(Date.parse(startIso)) - dayNumber(now)
@@ -21,7 +21,7 @@ export const howSoonText = (startIso: string, now: number) => {
 export const upcomingRangeText = (startIso: string, endIso: string) => {
   const start = Date.parse(startIso)
   const lastMoment = Date.parse(endIso) - MINUTE_MS
-  if (pacificDay(start) === pacificDay(lastMoment)) {
+  if (dayIn(start, PACIFIC) === dayIn(lastMoment, PACIFIC)) {
     return rangeText(startIso, endIso)
   }
   return `${dayText(start)} – ${dayText(lastMoment)}`

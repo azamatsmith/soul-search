@@ -1,16 +1,12 @@
 import type { HistoryEntry, HistoryType } from './api'
-import { clock, pacificDay, weekday } from './pacificTime'
+import { dayIn, formattersFor, PACIFIC } from './zonedTime'
 import { signedPoints } from './signedPoints'
+
+const { clock, monthDay, weekday } = formattersFor(PACIFIC)
 
 type Snapshot = Record<string, unknown> | null
 
 const DAY_MS = 24 * 60 * 60 * 1000
-
-const monthDay = new Intl.DateTimeFormat('en-US', {
-  day: 'numeric',
-  month: 'short',
-  timeZone: 'America/Los_Angeles',
-})
 
 const TAGS: Record<HistoryType, string> = {
   challenge: 'Challenge',
@@ -140,7 +136,7 @@ export const historyTag = (type: HistoryType) => TAGS[type]
 export const historyTime = (createdAt: string, now: number) => {
   const at = Date.parse(createdAt)
   const daysAgo =
-    (Date.parse(pacificDay(now)) - Date.parse(pacificDay(at))) / DAY_MS
+    (Date.parse(dayIn(now, PACIFIC)) - Date.parse(dayIn(at, PACIFIC))) / DAY_MS
   const time = clock.format(at)
   if (daysAgo === 0) return `Today ${time}`
   if (daysAgo < 7) return `${weekday.format(at)} ${time}`

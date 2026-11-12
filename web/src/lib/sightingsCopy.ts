@@ -1,6 +1,8 @@
 import type { ClaimType, LoggedSighting } from './api'
-import { clock, dayBefore, pacificDay, weekday } from './pacificTime'
+import { dayBefore, dayIn, formattersFor, PACIFIC } from './zonedTime'
 import { signedPoints } from './signedPoints'
+
+const { clock, weekday } = formattersFor(PACIFIC)
 
 export type CardKind =
   'counted' | 'false_call' | 'flagged' | 'special' | 'waiting'
@@ -86,8 +88,8 @@ export const viewerTime = (takenAt: string) => {
 
 export const dayHeader = (takenAt: string, now: number) => {
   const at = Date.parse(takenAt)
-  const day = pacificDay(at)
-  const today = pacificDay(now)
+  const day = dayIn(at, PACIFIC)
+  const today = dayIn(now, PACIFIC)
   const name = weekday.format(at)
   if (day === today) return `Today · ${name}`
   if (day === dayBefore(today)) return `Yesterday · ${name}`
