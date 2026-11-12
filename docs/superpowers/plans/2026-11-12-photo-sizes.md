@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Thumbnail: 480px long edge, quality 80 (unchanged). Display: 1600px long edge, quality 80. Never upscale.
+- Thumbnail: 256px long edge (was 480), quality 80. Display: 1600px long edge, quality 80. Never upscale.
 - Paths: `thumb_path(p)` = `<p without .jpg>.thumb.jpg` (unchanged); `display_path(p)` = `<p without .jpg>.display.jpg`.
 - API field names unchanged. Fallback order: thumbnail, display, original.
 - Commits: single-line conventional subject, GPG-signed, no AI attribution. Run `uv run ruff check`, `uv run ruff format --check`, `uv run pytest` (whatever the repo's CI uses).
@@ -49,7 +49,7 @@
 
 **Interfaces:** `backfill(paths: Iterable[str], store, *, dry_run: bool) -> BackfillResult(checked, created, failed)`; `main(argv: list[str] | None = None) -> int` reads all `photo_path` from `sightings` (`select photo_path from sightings order by taken_at`) and prints `Checked N photos, created M sizes, F failed` (dry run says "would create").
 
-- [ ] Failing tests with `FakePhotoStore`: creates only the missing size(s); dry run uploads nothing but counts; a missing original counts as failed and the run continues; a second run creates nothing; `main` returns 1 when anything failed, else 0.
+- [ ] Failing tests with `FakePhotoStore`: creates only the missing size(s); dry run uploads nothing but counts; a missing original counts as failed and the run continues; a second run creates nothing; `redo_thumbnails` rewrites existing thumbnails at 256px; `main` returns 1 when anything failed, else 0.
 - [ ] Run: FAIL. Implement (batch-sign to find missing, download original, `make_sizes`, upload). Run: PASS.
 - [ ] README: how to run it in Render Shell (`python -m app.sightings.backfill_sizes --dry-run`, then without).
 - [ ] Commit `feat: add a command to backfill photo sizes`.
