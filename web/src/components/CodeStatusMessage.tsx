@@ -1,8 +1,7 @@
 import type { CodeState } from '../hooks/useSignIn'
 import { ConnectionError } from './ConnectionError'
 import { FormError } from './FormError'
-import { RollingCar } from './RollingCar'
-import styles from './CodeStatusMessage.module.css'
+import { LoadingStatus } from './LoadingStatus'
 
 export interface CodeStatusMessageProps {
   state: CodeState
@@ -17,12 +16,7 @@ const triesText = (triesLeft: number | null) => {
 export const CodeStatusMessage = ({ state }: CodeStatusMessageProps) => {
   switch (state.status) {
     case 'checking':
-      return (
-        <div className={styles.checking} role="status">
-          <RollingCar size="small" />
-          Checking your code…
-        </div>
-      )
+      return <LoadingStatus label="Checking your code…" />
     case 'wrong':
       return (
         <FormError title="That code isn't right.">

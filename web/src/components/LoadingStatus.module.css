@@ -1,8 +1,9 @@
-.checking {
+.status {
   display: flex;
   gap: var(--s-3);
   align-items: center;
   justify-content: center;
+  min-height: var(--tap-lg);
   padding: var(--s-3);
   border-radius: var(--r-md);
   background: var(--c-forest-tint);
