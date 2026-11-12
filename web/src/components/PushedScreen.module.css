@@ -5,6 +5,10 @@
   padding-top: env(safe-area-inset-top);
 }
 
+.inTabs {
+  padding-top: 0;
+}
+
 .nav {
   display: flex;
   padding: var(--s-1) var(--s-3) 0;
@@ -32,6 +36,10 @@
   flex-direction: column;
   gap: var(--s-4);
   padding: var(--s-1) var(--s-5) calc(env(safe-area-inset-bottom) + var(--s-6));
+}
+
+.inTabs .content {
+  padding-bottom: var(--s-5);
 }
 
 .heading {

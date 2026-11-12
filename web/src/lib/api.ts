@@ -477,6 +477,9 @@ export interface ChallengeDetail extends Challenge {
 
 export type ChallengeInput = Omit<Challenge, 'id'>
 
+export const getUpcomingChallenges = () =>
+  request<Challenge[]>('/challenges/upcoming', 'GET', undefined, true)
+
 export const getChallenges = () =>
   request<ChallengeList>('/admin/challenges', 'GET', undefined, true)
 

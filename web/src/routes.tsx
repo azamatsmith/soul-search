@@ -21,6 +21,7 @@ import { SettingsScreen } from './screens/SettingsScreen'
 import { SightingsScreen } from './screens/SightingsScreen'
 import { SignInPage } from './screens/SignInPage'
 import { TakePhotoScreen } from './screens/TakePhotoScreen'
+import { UpcomingChallengesScreen } from './screens/UpcomingChallengesScreen'
 import { WelcomeScreen } from './screens/WelcomeScreen'
 
 export const routes: RouteObject[] = [
@@ -58,6 +59,7 @@ export const routes: RouteObject[] = [
           { index: true, element: <TakePhotoScreen /> },
           { path: 'sightings', element: <SightingsScreen /> },
           { path: 'scores', element: <ScoresScreen /> },
+          { path: 'upcoming', element: <UpcomingChallengesScreen /> },
         ],
       },
     ],
