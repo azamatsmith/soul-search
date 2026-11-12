@@ -29,10 +29,18 @@ const build = (timeZone: string): ZoneFormatters => ({
   weekday: new Intl.DateTimeFormat('en-US', { timeZone, weekday: 'short' }),
 })
 
+const buildOrPacific = (zone: string) => {
+  try {
+    return build(zone)
+  } catch {
+    return build(PACIFIC)
+  }
+}
+
 export const formattersFor = (zone: string) => {
   const cached = cache.get(zone)
   if (cached) return cached
-  const made = build(zone)
+  const made = buildOrPacific(zone)
   cache.set(zone, made)
   return made
 }
