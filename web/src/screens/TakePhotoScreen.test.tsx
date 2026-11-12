@@ -139,6 +139,25 @@ describe('TakePhotoScreen', () => {
     ).toHaveAttribute('src', 'https://signed.test/last.jpg')
   })
 
+  it('shows stripes until the last photo loads', async () => {
+    renderHome()
+
+    const photo = await screen.findByRole('img', { name: 'Your last photo' })
+    expect(photo.parentElement).toHaveAttribute('data-state', 'loading')
+    fireEvent.load(photo)
+    expect(photo.parentElement).toHaveAttribute('data-state', 'loaded')
+  })
+
+  it('keeps the stripes when the last photo fails to load', async () => {
+    renderHome()
+
+    fireEvent.error(await screen.findByRole('img', { name: 'Your last photo' }))
+
+    expect(
+      screen.getByRole('img', { name: 'Your last photo' }),
+    ).toHaveAttribute('data-state', 'failed')
+  })
+
   it('opens settings from the avatar', () => {
     renderHome()
 

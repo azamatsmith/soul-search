@@ -3,6 +3,7 @@ import type { ReviewItem } from '../lib/api'
 import { claimedLine, queueChip } from '../lib/reviewCopy'
 import { viewerTime } from '../lib/sightingsCopy'
 import { PACIFIC } from '../lib/zonedTime'
+import { Photo } from './Photo'
 import styles from './ReviewCard.module.css'
 
 export interface ReviewCardProps {
@@ -20,12 +21,7 @@ export const ReviewCard = ({ item }: ReviewCardProps) => {
       <Link className={styles.card} to={`/admin/flagged/${item.id}`}>
         <span className={styles.photo}>
           {item.thumb_url && (
-            <img
-              alt=""
-              className={styles.image}
-              loading="lazy"
-              src={item.thumb_url}
-            />
+            <Photo alt="" className={styles.image} lazy src={item.thumb_url} />
           )}
         </span>
         <span className={styles.body}>

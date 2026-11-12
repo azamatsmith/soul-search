@@ -1,5 +1,6 @@
 import { claimLine, type LogCard, timeText } from '../lib/sightingsCopy'
 import { ChallengeTag } from './ChallengeTag'
+import { Photo } from './Photo'
 import styles from './SightingCard.module.css'
 import { StatusChip } from './StatusChip'
 
@@ -23,12 +24,7 @@ export const SightingCard = ({ card, onOpen }: SightingCardProps) => {
       >
         <span className={styles.photo}>
           {card.photoUrl && (
-            <img
-              alt=""
-              className={styles.image}
-              loading="lazy"
-              src={card.photoUrl}
-            />
+            <Photo alt="" className={styles.image} lazy src={card.photoUrl} />
           )}
         </span>
         <span className={styles.body}>
