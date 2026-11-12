@@ -106,7 +106,11 @@ export const ReviewPhotoScreen = () => {
             </Fragment>
           ))}
           {viewing && (
-            <PhotoViewer card={reviewCard(item)} onClose={handleClosePhoto} />
+            <PhotoViewer
+              card={reviewCard(item)}
+              onClose={handleClosePhoto}
+              zone={PACIFIC}
+            />
           )}
         </>
       )}

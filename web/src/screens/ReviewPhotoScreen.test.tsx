@@ -1,5 +1,5 @@
 import { QueryClient } from '@tanstack/react-query'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getReviewItem, postReview, type ReviewDetail } from '../lib/api'
@@ -138,5 +138,15 @@ describe('ReviewPhotoScreen', () => {
     renderReview()
     await choose(/Enlarge photo from Marcus T\./)
     expect(screen.getByRole('dialog')).toBeVisible()
+  })
+
+  it('shows Pacific time in the enlarged photo on a phone elsewhere', async () => {
+    stubDeviceZone('America/Phoenix')
+    renderReview()
+    await choose(/Enlarge photo from Marcus T\./)
+
+    expect(
+      within(screen.getByRole('dialog')).getByText(/^Thu 2:40/),
+    ).toBeVisible()
   })
 })
