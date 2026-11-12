@@ -13,7 +13,9 @@ type Settled = { src: string; state: 'failed' | 'loaded' }
 export const Photo = ({ alt, className, lazy = false, src }: PhotoProps) => {
   const imageRef = useRef<HTMLImageElement>(null)
   const [settled, setSettled] = useState<Settled | null>(null)
-  const state = settled?.src === src ? settled.state : 'loading'
+  const keepShowing = settled?.state === 'loaded'
+  const state =
+    settled?.src === src ? settled.state : keepShowing ? 'loaded' : 'loading'
   const failed = state === 'failed'
 
   useLayoutEffect(() => {

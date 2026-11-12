@@ -44,13 +44,31 @@ describe('Photo', () => {
     )
   })
 
-  it('goes back to the placeholder for a new photo', () => {
-    const { container, rerender } = render(<Photo alt="" src="/a.jpg" />)
+  it('keeps showing the photo when its link is refreshed', () => {
+    const { container, rerender } = render(<Photo alt="" src="/a.jpg?t=1" />)
     fireEvent.load(container.querySelector('img') as HTMLImageElement)
+
+    rerender(<Photo alt="" src="/a.jpg?t=2" />)
+
+    expect(frameOf(container)).toHaveAttribute('data-state', 'loaded')
+  })
+
+  it('stays on the placeholder for a new link before anything loaded', () => {
+    const { container, rerender } = render(<Photo alt="" src="/a.jpg" />)
 
     rerender(<Photo alt="" src="/b.jpg" />)
 
     expect(frameOf(container)).toHaveAttribute('data-state', 'loading')
+  })
+
+  it('falls back to the stripes when a refreshed link fails', () => {
+    const { container, rerender } = render(<Photo alt="" src="/a.jpg?t=1" />)
+    fireEvent.load(container.querySelector('img') as HTMLImageElement)
+    rerender(<Photo alt="" src="/a.jpg?t=2" />)
+
+    fireEvent.error(container.querySelector('img') as HTMLImageElement)
+
+    expect(frameOf(container)).toHaveAttribute('data-state', 'failed')
   })
 
   it('loads lazily when asked', () => {
