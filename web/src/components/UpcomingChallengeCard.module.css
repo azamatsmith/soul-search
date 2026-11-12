@@ -16,16 +16,19 @@
 
 .top {
   display: flex;
-  gap: var(--s-3);
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-3);
   align-items: center;
   justify-content: space-between;
 }
 
 .name {
+  flex: 1 1 7em;
+  min-width: 0;
   margin: 0;
   color: var(--c-forest);
   font: 400 var(--t-h2) / 1.15 var(--f-display);
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .chip {
