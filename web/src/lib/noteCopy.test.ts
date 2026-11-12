@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Period } from './api'
-import { noteBody, noteTitle } from './noteCopy'
+import { noteBody } from './noteCopy'
 
 const NOW = Date.parse('2026-11-12T20:00:00Z')
 
@@ -19,12 +19,6 @@ const challenge = (endsAt: string, points: Record<string, number>): Period => ({
     special: null,
   },
   starts_at: '2026-11-09T08:00:00Z',
-})
-
-describe('noteTitle', () => {
-  it('says the challenge is on', () => {
-    expect(noteTitle('Brown Week')).toBe('Brown Week is on')
-  })
 })
 
 describe('noteBody', () => {

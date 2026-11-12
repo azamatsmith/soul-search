@@ -17,8 +17,6 @@ const categoryClause = (categories: CategoryPoints[]) => {
   ])
 }
 
-export const noteTitle = (name: string) => `${name} is on`
-
 export const noteBody = (period: Period, now: number) => {
   const end = Date.parse(period.ends_at)
   const clause = categoryClause(period.rules.categories)

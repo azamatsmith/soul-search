@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import type { Period } from '../lib/api'
-import { noteBody, noteTitle } from '../lib/noteCopy'
+import { noteBody } from '../lib/noteCopy'
 import styles from './ChallengeNote.module.css'
 
 export interface ChallengeNoteProps {
@@ -12,11 +12,12 @@ export const ChallengeNote = ({ now, period }: ChallengeNoteProps) => {
   const titleId = useId()
 
   return (
-    <section aria-labelledby={titleId} className={styles.note}>
+    <div aria-labelledby={titleId} className={styles.note} role="note">
       <h2 className={styles.title} id={titleId}>
-        {noteTitle(period.name ?? 'A challenge')}
+        <span className={styles.live}>LIVE</span>{' '}
+        <span className={styles.name}>{period.name ?? 'A challenge'}</span>
       </h2>
       <p className={styles.body}>{noteBody(period, now)}</p>
-    </section>
+    </div>
   )
 }

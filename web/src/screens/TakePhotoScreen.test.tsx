@@ -191,28 +191,47 @@ describe('TakePhotoScreen', () => {
     expect(await screen.findByText('6 Souls in Brown Week')).toBeInTheDocument()
   })
 
-  it('shows the challenge banner with its categories', async () => {
-    vi.mocked(getPeriod).mockReturnValue(
-      ok({
-        ...WEEK,
-        kind: 'challenge',
-        name: 'Brown Week',
-        rules: {
-          ...WEEK.rules,
-          categories: [{ name: 'Brown paint', points: 3 }],
-          special: null,
-        },
-      }),
-    )
+  const BROWN_WEEK = {
+    ...WEEK,
+    kind: 'challenge' as const,
+    name: 'Brown Week',
+    rules: {
+      ...WEEK.rules,
+      categories: [{ name: 'Brown paint', points: 3 }],
+      special: null,
+    },
+  }
+
+  it('shows the challenge note with its categories', async () => {
+    vi.mocked(getPeriod).mockReturnValue(ok(BROWN_WEEK))
     renderHome()
 
-    const banner = await screen.findByRole('region', {
-      name: 'Brown Week is on',
-    })
-    expect(banner).toHaveTextContent('Brown paint is worth +3.')
+    const note = await screen.findByRole('note', { name: 'LIVE Brown Week' })
+    expect(note).toHaveTextContent('Brown paint is worth +3.')
   })
 
-  it('hides the challenge banner once the challenge has ended', async () => {
+  it('titles the challenge note with a live tag and the challenge name', async () => {
+    vi.mocked(getPeriod).mockReturnValue(ok(BROWN_WEEK))
+    renderHome()
+
+    const title = await screen.findByRole('heading', {
+      name: 'LIVE Brown Week',
+    })
+    expect(within(title).getByText('LIVE')).toBeInTheDocument()
+    expect(within(title).getByText('Brown Week')).toBeInTheDocument()
+  })
+
+  it('keeps the challenge note out of the controls', async () => {
+    vi.mocked(getPeriod).mockReturnValue(ok(BROWN_WEEK))
+    renderHome()
+
+    const note = await screen.findByRole('note')
+    expect(within(note).queryByRole('button')).not.toBeInTheDocument()
+    expect(within(note).queryByRole('link')).not.toBeInTheDocument()
+    expect(note.closest('button, a')).toBeNull()
+  })
+
+  it('hides the challenge note once the challenge has ended', async () => {
     vi.setSystemTime(new Date('2026-11-16T08:05:00Z'))
     vi.mocked(getPeriod).mockReturnValue(
       ok({ ...WEEK, kind: 'challenge', name: 'Brown Week' }),
@@ -220,14 +239,14 @@ describe('TakePhotoScreen', () => {
     renderHome()
 
     expect(await screen.findByText('Ending now')).toBeInTheDocument()
-    expect(screen.queryByRole('region')).not.toBeInTheDocument()
+    expect(screen.queryByRole('note')).not.toBeInTheDocument()
   })
 
-  it('shows no challenge banner during a normal week', async () => {
+  it('shows no challenge note during a normal week', async () => {
     renderHome()
 
     expect(await screen.findByText('Week of Nov 9-15')).toBeInTheDocument()
-    expect(screen.queryByRole('region')).not.toBeInTheDocument()
+    expect(screen.queryByRole('note')).not.toBeInTheDocument()
   })
 
   it('links to the soonest upcoming challenge during a normal week', async () => {
