@@ -17,9 +17,7 @@ const categoryClause = (categories: CategoryPoints[]) => {
   ])
 }
 
-export const bannerTitle = (name: string) => `${name} is on`
-
-export const bannerBody = (period: Period, now: number) => {
+export const noteBody = (period: Period, now: number) => {
   const end = Date.parse(period.ends_at)
   const clause = categoryClause(period.rules.categories)
   if (pacificDay(end) === pacificDay(now)) {
