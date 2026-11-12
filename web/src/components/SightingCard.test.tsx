@@ -64,6 +64,16 @@ describe('SightingCard', () => {
     )
   })
 
+  it('shows stripes until the photo loads, lazily', () => {
+    const { container } = render(
+      <SightingCard card={card()} onOpen={vi.fn()} />,
+    )
+
+    const image = container.querySelector('img')
+    expect(image).toHaveAttribute('loading', 'lazy')
+    expect(image?.parentElement).toHaveAttribute('data-state', 'loading')
+  })
+
   it('renders without a photo url', () => {
     const { container } = render(
       <SightingCard card={card({ photoUrl: null })} onOpen={vi.fn()} />,

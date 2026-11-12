@@ -3,6 +3,7 @@ import { useParams } from 'react-router'
 import { ConnectionError } from '../components/ConnectionError'
 import { FormError } from '../components/FormError'
 import { LoadError } from '../components/LoadError'
+import { Photo } from '../components/Photo'
 import { PhotoViewer } from '../components/PhotoViewer'
 import { PushedScreen } from '../components/PushedScreen'
 import { ReviewChoiceButton } from '../components/ReviewChoiceButton'
@@ -60,7 +61,7 @@ export const ReviewPhotoScreen = () => {
             type="button"
           >
             {item.photo_url && (
-              <img alt="" className={styles.image} src={item.photo_url} />
+              <Photo alt="" className={styles.image} src={item.photo_url} />
             )}
           </button>
           <div className={styles.who}>

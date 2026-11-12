@@ -1,5 +1,6 @@
 import type { Period, Standing } from '../lib/api'
 import { behindText, pointsIntro, soulCountText } from '../lib/homeCopy'
+import { Photo } from './Photo'
 import styles from './SummaryCard.module.css'
 
 export interface SummaryCardProps {
@@ -26,7 +27,7 @@ export const SummaryCard = ({ period, standing }: SummaryCardProps) => {
   return (
     <section className={styles.card}>
       {standing.last_photo_url ? (
-        <img
+        <Photo
           alt="Your last photo"
           className={styles.thumb}
           src={standing.last_photo_url}

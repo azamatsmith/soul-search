@@ -21,7 +21,6 @@
   width: var(--thumb);
   height: var(--thumb);
   border-radius: var(--r-sm);
-  object-fit: cover;
 }
 
 .noPhoto {
