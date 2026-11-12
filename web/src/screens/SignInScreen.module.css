@@ -63,3 +63,11 @@
   font: 500 var(--t-small) / 1.45 var(--f-body);
   text-align: center;
 }
+
+.sendingEmail,
+.sendingEmail:focus {
+  border-color: var(--c-gold-soft);
+  background: var(--c-cream-deep);
+  box-shadow: none;
+  color: var(--c-ink-muted);
+}

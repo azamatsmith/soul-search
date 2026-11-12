@@ -2,6 +2,7 @@ import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { AuthLayout } from '../components/AuthLayout'
 import { Button } from '../components/Button'
 import { FormError } from '../components/FormError'
+import { LoadingStatus } from '../components/LoadingStatus'
 import { TextField } from '../components/TextField'
 import type { EmailError } from '../hooks/useSignIn'
 import { CHECK_CONNECTION, UNREACHABLE } from '../lib/errorCopy'
@@ -57,6 +58,7 @@ export const SignInScreen = ({
           aria-invalid={message ? true : undefined}
           autoCapitalize="none"
           autoComplete="email"
+          className={sending ? styles.sendingEmail : undefined}
           hint={
             message
               ? undefined
@@ -65,15 +67,20 @@ export const SignInScreen = ({
           inputMode="email"
           label="Your email"
           onChange={handleEmailChange}
+          readOnly={sending}
           spellCheck={false}
           type="email"
           value={email}
         />
         {message && <FormError title={message.title}>{message.body}</FormError>}
         <div className={styles.spacer} />
-        <Button disabled={!canSubmit} type="submit">
-          Email me a code
-        </Button>
+        {sending ? (
+          <LoadingStatus label="Sending your code…" />
+        ) : (
+          <Button disabled={!canSubmit} type="submit">
+            Email me a code
+          </Button>
+        )}
         <p className={styles.footnote}>Soul Search is invite-only.</p>
       </form>
     </AuthLayout>
