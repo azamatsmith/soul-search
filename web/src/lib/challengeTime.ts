@@ -1,6 +1,4 @@
-import { dayIn, formattersFor, PACIFIC } from './zonedTime'
-
-const { clock, monthDay, weekday } = formattersFor(PACIFIC)
+import { dayIn, deviceZone, formattersFor, PACIFIC } from './zonedTime'
 
 const MINUTE_MS = 60_000
 const HOUR_MS = 60 * MINUTE_MS
@@ -76,37 +74,47 @@ export const lengthText = (startIso: string, endIso: string) => {
 export const durationText = (startIso: string, endIso: string) =>
   `Runs ${lengthText(startIso, endIso)}`
 
-export const clockText = (at: number) => clock.format(at).toLowerCase()
+export const clockText = (at: number, zone = deviceZone()) =>
+  formattersFor(zone).clock.format(at).toLowerCase()
 
-export const dayText = (at: number) =>
-  `${weekday.format(at)} ${monthDay.format(at)}`
-
-export const rangeText = (startIso: string, endIso: string) => {
-  const start = Date.parse(startIso)
-  const end = Date.parse(endIso)
-  const endClock = clockText(end)
-  if (dayIn(start, PACIFIC) !== dayIn(end, PACIFIC)) {
-    return `${dayText(start)}, ${clockText(start)} – ${dayText(end)}, ${endClock}`
-  }
-  const startClock = clockText(start)
-  const sameHalf = startClock.slice(-2) === endClock.slice(-2)
-  const startShown = sameHalf ? startClock.slice(0, -3) : startClock
-  return `${dayText(start)}, ${startShown} – ${endClock}`
+export const dayText = (at: number, zone = deviceZone()) => {
+  const { monthDay, weekday } = formattersFor(zone)
+  return `${weekday.format(at)} ${monthDay.format(at)}`
 }
 
-export const dayRangeText = (startIso: string, endIso: string) => {
+export const rangeText = (
+  startIso: string,
+  endIso: string,
+  zone = deviceZone(),
+) => {
   const start = Date.parse(startIso)
-  const lastMoment = Date.parse(endIso) - MINUTE_MS
-  const first = monthDay.format(start)
-  const last = monthDay.format(lastMoment)
+  const end = Date.parse(endIso)
+  const endClock = clockText(end, zone)
+  if (dayIn(start, zone) !== dayIn(end, zone)) {
+    return `${dayText(start, zone)}, ${clockText(start, zone)} – ${dayText(end, zone)}, ${endClock}`
+  }
+  const startClock = clockText(start, zone)
+  const sameHalf = startClock.slice(-2) === endClock.slice(-2)
+  const startShown = sameHalf ? startClock.slice(0, -3) : startClock
+  return `${dayText(start, zone)}, ${startShown} – ${endClock}`
+}
+
+export const dayRangeText = (
+  startIso: string,
+  endIso: string,
+  zone = deviceZone(),
+) => {
+  const { monthDay } = formattersFor(zone)
+  const first = monthDay.format(Date.parse(startIso))
+  const last = monthDay.format(Date.parse(endIso) - MINUTE_MS)
   return first === last ? first : `${first} – ${last}`
 }
 
-const momentText = (at: number, now: number) => {
-  const time = clockText(at)
-  return dayIn(at, PACIFIC) === dayIn(now, PACIFIC)
+const momentText = (at: number, now: number, zone: string) => {
+  const time = clockText(at, zone)
+  return dayIn(at, zone) === dayIn(now, zone)
     ? time
-    : `${weekday.format(at)} ${time}`
+    : `${formattersFor(zone).weekday.format(at)} ${time}`
 }
 
 const distance = (at: number, now: number) => {
@@ -117,15 +125,19 @@ const distance = (at: number, now: number) => {
   return `${minutes} min`
 }
 
-export const endsAtText = (endIso: string, now: number) =>
-  `ends ${momentText(Date.parse(endIso), now)}`
+export const endsAtText = (endIso: string, now: number, zone = deviceZone()) =>
+  `ends ${momentText(Date.parse(endIso), now, zone)}`
 
 const ENDING_NOW = 'Ending now'
 
-export const timeLeftText = (endIso: string, now: number) => {
+export const timeLeftText = (
+  endIso: string,
+  now: number,
+  zone = deviceZone(),
+) => {
   const end = Date.parse(endIso)
   if (end <= now) return ENDING_NOW
-  return `Ends ${momentText(end, now)} · ${distance(end, now)} left`
+  return `Ends ${momentText(end, now, zone)} · ${distance(end, now)} left`
 }
 
 export const shortTimeLeftText = (endIso: string, now: number) => {
@@ -133,10 +145,14 @@ export const shortTimeLeftText = (endIso: string, now: number) => {
   return end <= now ? ENDING_NOW : `${distance(end, now)} left`
 }
 
-export const startsInText = (startIso: string, now: number) => {
+export const startsInText = (
+  startIso: string,
+  now: number,
+  zone = deviceZone(),
+) => {
   const start = Date.parse(startIso)
-  return `Starts ${momentText(start, now)} · in ${distance(start, now)}`
+  return `Starts ${momentText(start, now, zone)} · in ${distance(start, now)}`
 }
 
-export const liveText = (endIso: string, now: number) =>
-  `Live · e${timeLeftText(endIso, now).slice(1)}`
+export const liveText = (endIso: string, now: number, zone = deviceZone()) =>
+  `Live · e${timeLeftText(endIso, now, zone).slice(1)}`

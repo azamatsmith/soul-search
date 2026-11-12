@@ -13,6 +13,7 @@ import {
   rangeText,
   startsInText,
 } from '../lib/challengeTime'
+import { PACIFIC } from '../lib/zonedTime'
 import styles from './ChallengesScreen.module.css'
 
 interface CardContent {
@@ -30,8 +31,8 @@ const sections = (list: ChallengeList, now: number) =>
         id: c.id,
         live: true,
         name: c.name,
-        status: liveText(c.ends_at, now),
-        subtitle: rangeText(c.starts_at, c.ends_at),
+        status: liveText(c.ends_at, now, PACIFIC),
+        subtitle: rangeText(c.starts_at, c.ends_at, PACIFIC),
       })),
       title: 'Running now',
     },
@@ -39,8 +40,8 @@ const sections = (list: ChallengeList, now: number) =>
       cards: list.upcoming.map((c) => ({
         id: c.id,
         name: c.name,
-        status: startsInText(c.starts_at, now),
-        subtitle: rangeText(c.starts_at, c.ends_at),
+        status: startsInText(c.starts_at, now, PACIFIC),
+        subtitle: rangeText(c.starts_at, c.ends_at, PACIFIC),
       })),
       title: 'Coming up',
     },
@@ -49,7 +50,7 @@ const sections = (list: ChallengeList, now: number) =>
         id: c.id,
         name: c.name,
         status: c.winner ? `Won by ${c.winner.display_name}` : 'Nobody scored',
-        subtitle: dayRangeText(c.starts_at, c.ends_at),
+        subtitle: dayRangeText(c.starts_at, c.ends_at, PACIFIC),
       })),
       title: 'Finished',
     },
