@@ -3,6 +3,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getReviewQueue, type ReviewItem } from '../lib/api'
 import { FlaggedPhotosScreen } from './FlaggedPhotosScreen'
+import { stubDeviceZone } from '../test/deviceZone'
 import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({ getReviewQueue: vi.fn() }))
@@ -60,6 +61,13 @@ describe('FlaggedPhotosScreen', () => {
     expect(screen.getByText('“Stripes may be a reflection.”')).toBeVisible()
     expect(screen.getByText('Counting +2 for now')).toBeVisible()
     expect(screen.queryByText('Sam W.')).not.toBeInTheDocument()
+  })
+
+  it('shows photo times in Pacific on a phone elsewhere', async () => {
+    stubDeviceZone('America/Phoenix')
+    renderFlagged()
+
+    expect(await screen.findByText(/^Thu 2:40/)).toBeVisible()
   })
 
   it('switches to automatic false calls and remembers the tab', async () => {

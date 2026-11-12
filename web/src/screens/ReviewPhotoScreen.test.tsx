@@ -4,6 +4,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getReviewItem, postReview, type ReviewDetail } from '../lib/api'
 import { ReviewPhotoScreen } from './ReviewPhotoScreen'
+import { stubDeviceZone } from '../test/deviceZone'
 import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({
@@ -77,6 +78,13 @@ describe('ReviewPhotoScreen', () => {
       screen.getByText('White lines on the hood may be a reflection.'),
     ).toBeVisible()
     expect(load).toHaveBeenCalledWith('f1')
+  })
+
+  it('shows the photo time in Pacific on a phone elsewhere', async () => {
+    stubDeviceZone('America/Phoenix')
+    renderReview()
+
+    expect(await screen.findByText(/^Thu 2:40/)).toBeVisible()
   })
 
   it('changes a flagged photo to regular, then goes back to the list', async () => {

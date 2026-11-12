@@ -11,6 +11,7 @@ import {
   viewerNote,
   viewerTime,
 } from './sightingsCopy'
+import { PACIFIC } from './zonedTime'
 
 const THU_EVENING = Date.parse('2026-11-13T04:00:00Z')
 
@@ -267,5 +268,22 @@ describe('groupByDay during a challenge', () => {
         }),
       ]),
     ).toEqual(['Today · Fri · Brown Week', 'Mon · Monday Dash'])
+  })
+})
+
+describe('in another zone', () => {
+  const PHOENIX = 'America/Phoenix'
+
+  it('groups by the player calendar day', () => {
+    const now = Date.parse('2026-11-13T07:45:00Z')
+
+    expect(dayHeader('2026-11-13T07:30:00Z', now, PACIFIC)).toBe('Today · Thu')
+    expect(dayHeader('2026-11-13T07:30:00Z', now, PHOENIX)).toBe('Today · Fri')
+  })
+
+  it('shows the photo time in the player zone', () => {
+    expect(timeText('2026-11-12T23:00:00Z', PHOENIX)).toBe(
+      timeText('2026-11-13T00:00:00Z', PACIFIC),
+    )
   })
 })

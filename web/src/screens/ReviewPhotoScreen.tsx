@@ -16,6 +16,7 @@ import {
   reviewChoices,
 } from '../lib/reviewCopy'
 import { viewerTime } from '../lib/sightingsCopy'
+import { PACIFIC } from '../lib/zonedTime'
 import styles from './ReviewPhotoScreen.module.css'
 
 export const ReviewPhotoScreen = () => {
@@ -64,7 +65,9 @@ export const ReviewPhotoScreen = () => {
           </button>
           <div className={styles.who}>
             <span className={styles.name}>{item.display_name}</span>
-            <span className={styles.time}>{viewerTime(item.taken_at)}</span>
+            <span className={styles.time}>
+              {viewerTime(item.taken_at, PACIFIC)}
+            </span>
           </div>
           <section className={styles.card}>
             <h2 className={styles.label}>Player's claim</h2>
