@@ -4,7 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   getPeriod,
   getStanding,
+  getUpcomingChallenges,
   type ApiResult,
+  type Challenge,
   type Me,
   type Period,
   type Standing,
@@ -13,7 +15,11 @@ import { TakePhotoScreen } from './TakePhotoScreen'
 import { queryWrapper } from '../test/queryWrapper'
 import { FOREST, setUpStatusBar, statusBarColor } from '../test/statusBar'
 
-vi.mock('../lib/api', () => ({ getPeriod: vi.fn(), getStanding: vi.fn() }))
+vi.mock('../lib/api', () => ({
+  getPeriod: vi.fn(),
+  getStanding: vi.fn(),
+  getUpcomingChallenges: vi.fn(),
+}))
 
 const ME: Me = {
   id: '1',
@@ -58,6 +64,29 @@ const EMPTY: Standing = {
   last_photo_url: null,
 }
 
+const upcomingChallenge = (
+  name: string,
+  startsAt: string,
+  endsAt: string,
+): Challenge => ({
+  ends_at: endsAt,
+  id: name,
+  name,
+  rules: { categories: [], false_call: -1, regular: 1 },
+  starts_at: startsAt,
+})
+
+const DASH = upcomingChallenge(
+  'Thanksgiving Dash',
+  '2026-11-26T22:00:00Z',
+  '2026-11-27T02:00:00Z',
+)
+const BROWN = upcomingChallenge(
+  'Brown Week',
+  '2026-11-30T08:00:00Z',
+  '2026-12-07T08:00:00Z',
+)
+
 const ok = <T,>(data: T): Promise<ApiResult<T>> =>
   Promise.resolve({ ok: true, data })
 const never = <T,>() => new Promise<ApiResult<T>>(() => {})
@@ -83,6 +112,7 @@ describe('TakePhotoScreen', () => {
     vi.setSystemTime(new Date('2026-11-10T20:00:00Z'))
     vi.mocked(getPeriod).mockReturnValue(ok(WEEK))
     vi.mocked(getStanding).mockReturnValue(ok(STANDING))
+    vi.mocked(getUpcomingChallenges).mockReturnValue(ok([]))
   })
 
   afterEach(() => {
@@ -198,6 +228,56 @@ describe('TakePhotoScreen', () => {
 
     expect(await screen.findByText('Week of Nov 9-15')).toBeInTheDocument()
     expect(screen.queryByRole('region')).not.toBeInTheDocument()
+  })
+
+  it('links to the soonest upcoming challenge during a normal week', async () => {
+    vi.mocked(getUpcomingChallenges).mockReturnValue(ok([DASH, BROWN]))
+    renderHome()
+
+    const row = await screen.findByRole('link', {
+      name: /Upcoming challenge: Thanksgiving Dash/,
+    })
+    expect(row).toHaveAttribute('href', '/upcoming')
+    expect(within(row).getByText('Thu Nov 26, 2:00 pm')).toBeInTheDocument()
+    expect(screen.queryByText(/Brown Week/)).not.toBeInTheDocument()
+  })
+
+  it('hides the upcoming row while a challenge is running', async () => {
+    vi.mocked(getPeriod).mockReturnValue(
+      ok({ ...WEEK, kind: 'challenge', name: 'Brown Week' }),
+    )
+    vi.mocked(getUpcomingChallenges).mockReturnValue(ok([DASH]))
+    renderHome()
+
+    expect(await screen.findAllByText(/Brown Week/)).not.toHaveLength(0)
+    expect(
+      screen.queryByRole('link', { name: /Upcoming challenge/ }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows no upcoming row when nothing is scheduled', async () => {
+    renderHome()
+
+    expect(await screen.findByText('9')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: /Upcoming challenge/ }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('skips a challenge once its start time has passed', async () => {
+    const started = upcomingChallenge(
+      'Started',
+      '2026-11-10T19:00:00Z',
+      '2026-11-10T23:00:00Z',
+    )
+    vi.mocked(getUpcomingChallenges).mockReturnValue(ok([started, DASH]))
+    renderHome()
+
+    expect(
+      await screen.findByRole('link', {
+        name: /Upcoming challenge: Thanksgiving Dash/,
+      }),
+    ).toBeInTheDocument()
   })
 
   it('lets the player try again when scores fail to load', async () => {

@@ -11,6 +11,7 @@ vi.mock('../hooks/useSession', () => ({ useSession: vi.fn() }))
 vi.mock('../lib/api', () => ({
   getLeaderboard: vi.fn(() => new Promise(() => {})),
   getPeriod: vi.fn(() => new Promise(() => {})),
+  getUpcomingChallenges: vi.fn(() => new Promise(() => {})),
   getStanding: vi.fn(() => new Promise(() => {})),
   postSighting: vi.fn(),
   getMe: vi.fn(),
