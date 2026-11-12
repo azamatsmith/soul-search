@@ -14,7 +14,11 @@ import {
   type PointRules,
 } from '../lib/api'
 import { challengeErrorText } from '../lib/challengeCopy'
-import { isoToPacificFields, pacificToIso } from '../lib/challengeTime'
+import {
+  isFullDateTime,
+  isoToPacificFields,
+  pacificToIso,
+} from '../lib/challengeTime'
 import { pacificDay } from '../lib/pacificTime'
 import { useApiResource } from './useApiResource'
 import { useNow } from './useNow'
@@ -82,7 +86,8 @@ const hasAllTimes = ({
   endTime,
   startDate,
   startTime,
-}: ChallengeFields) => Boolean(endDate && endTime && startDate && startTime)
+}: ChallengeFields) =>
+  isFullDateTime(startDate, startTime) && isFullDateTime(endDate, endTime)
 
 const noChallenge = (): Promise<ApiResult<ChallengeDetail | null>> =>
   Promise.resolve({ ok: true, data: null })

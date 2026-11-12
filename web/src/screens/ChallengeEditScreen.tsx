@@ -15,7 +15,11 @@ import type {
   ChallengeRules,
   FinishedChallenge,
 } from '../lib/api'
-import { durationText, pacificToIso } from '../lib/challengeTime'
+import {
+  durationText,
+  isFullDateTime,
+  pacificToIso,
+} from '../lib/challengeTime'
 import type { ChallengeFields } from '../hooks/useChallengeForm'
 import styles from './ChallengeEditScreen.module.css'
 
@@ -26,7 +30,8 @@ const resultText = (winner: FinishedChallenge['winner']) =>
 
 const runText = (fields: ChallengeFields) => {
   const { endDate, endTime, startDate, startTime } = fields
-  if (!startDate || !startTime || !endDate || !endTime) return null
+  if (!isFullDateTime(startDate, startTime)) return null
+  if (!isFullDateTime(endDate, endTime)) return null
   const start = pacificToIso(startDate, startTime)
   const end = pacificToIso(endDate, endTime)
   return Date.parse(end) > Date.parse(start) ? durationText(start, end) : null

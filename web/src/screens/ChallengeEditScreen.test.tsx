@@ -305,6 +305,38 @@ describe('ChallengeEditScreen', () => {
     expect(postChallenge).not.toHaveBeenCalled()
   })
 
+  it.each(['0002-11-26', '20261-11-26'])(
+    'keeps working while a year is half typed (%s)',
+    async (partial) => {
+      renderAt('/admin/challenges/new')
+      await screen.findByLabelText('Starts date')
+
+      change('Starts date', partial)
+      expect(screen.getByLabelText('Starts date')).toHaveValue(partial)
+      click('Save challenge')
+
+      expect(
+        screen.getByText('Pick a start and end date and time.'),
+      ).toBeInTheDocument()
+      expect(postChallenge).not.toHaveBeenCalled()
+    },
+  )
+
+  it('opens the date and time pickers on click', async () => {
+    const showPicker = vi.fn()
+    Object.defineProperty(HTMLInputElement.prototype, 'showPicker', {
+      configurable: true,
+      value: showPicker,
+    })
+    renderAt('/admin/challenges/new')
+
+    fireEvent.click(await screen.findByLabelText('Starts date'))
+    fireEvent.click(screen.getByLabelText('Ends time'))
+
+    expect(showPicker).toHaveBeenCalledTimes(2)
+    Reflect.deleteProperty(HTMLInputElement.prototype, 'showPicker')
+  })
+
   it('sends a running challenge its saved start exactly', async () => {
     vi.mocked(getChallenge).mockReturnValue(
       ok({ ...BROWN, started: true, starts_at: '2026-11-12T17:00:42.500Z' }),
