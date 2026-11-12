@@ -118,3 +118,22 @@ def test_cors_regex_invalid_fails_at_startup(monkeypatch: pytest.MonkeyPatch):
 
     with pytest.raises(RuntimeError, match="CORS_ORIGIN_REGEX"):
         create_app()
+
+
+def test_version_returns_deployed_commit(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("RENDER_GIT_COMMIT", "649ebbe")
+    client = TestClient(create_app())
+
+    response = client.get("/version")
+
+    assert response.status_code == 200
+    assert response.json() == {"commit": "649ebbe"}
+
+
+def test_version_is_unknown_outside_render(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("RENDER_GIT_COMMIT", raising=False)
+    client = TestClient(create_app())
+
+    response = client.get("/version")
+
+    assert response.json() == {"commit": "unknown"}
