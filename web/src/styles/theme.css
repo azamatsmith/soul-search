@@ -141,6 +141,11 @@ body,
   margin: 0;
 }
 
+html,
+body {
+  overscroll-behavior: none;
+}
+
 body {
   background: var(--c-cream);
   color: var(--c-ink);
