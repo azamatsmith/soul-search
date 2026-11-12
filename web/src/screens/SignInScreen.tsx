@@ -5,7 +5,6 @@ import { FormError } from '../components/FormError'
 import { LoadingStatus } from '../components/LoadingStatus'
 import { TextField } from '../components/TextField'
 import type { EmailError } from '../hooks/useSignIn'
-import { CHECK_CONNECTION, UNREACHABLE } from '../lib/errorCopy'
 import styles from './SignInScreen.module.css'
 
 export interface SignInScreenProps {
@@ -21,8 +20,8 @@ const ERRORS: Record<EmailError, { title: string; body?: string }> = {
   },
   invalid_email: { title: "That doesn't look like an email address." },
   unavailable: {
-    title: UNREACHABLE,
-    body: CHECK_CONNECTION,
+    title: "Couldn't send your code.",
+    body: 'Check your Wi-Fi or signal, then try again.',
   },
 }
 

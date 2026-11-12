@@ -60,12 +60,12 @@ describe('SignInScreen', () => {
     )
   })
 
-  it('shows the could-not-reach error', () => {
+  it('shows the could-not-send error', () => {
     render(
       <SignInScreen error="unavailable" onSubmit={vi.fn()} sending={false} />,
     )
     expect(screen.getByRole('alert')).toHaveTextContent(
-      "We couldn't reach Soul Search.Check your connection and try again.",
+      "Couldn't send your code.Check your Wi-Fi or signal, then try again.",
     )
   })
 
