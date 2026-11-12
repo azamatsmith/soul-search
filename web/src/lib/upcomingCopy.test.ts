@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   howSoonText,
   reminderText,
+  startText,
   upcomingRangeText,
   upcomingRulesText,
 } from './upcomingCopy'
@@ -64,5 +65,11 @@ describe('reminderText', () => {
     expect(reminderText('2026-11-26T22:00:00Z', '2026-11-27T02:00:00Z')).toBe(
       'For those 4 hours, new photos count toward the challenge instead of your week.',
     )
+  })
+})
+
+describe('startText', () => {
+  it('shows the Pacific day and start time', () => {
+    expect(startText('2026-11-26T22:00:00Z')).toBe('Thu Nov 26, 2:00 pm')
   })
 })

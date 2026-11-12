@@ -1,5 +1,5 @@
 import type { ChallengeRules } from './api'
-import { dayText, lengthText, rangeText } from './challengeTime'
+import { clockText, dayText, lengthText, rangeText } from './challengeTime'
 import { pacificDay } from './pacificTime'
 import { signedPoints } from './signedPoints'
 
@@ -35,3 +35,8 @@ export const upcomingRulesText = ({ categories, regular }: ChallengeRules) =>
 
 export const reminderText = (startIso: string, endIso: string) =>
   `For those ${lengthText(startIso, endIso)}, new photos count toward the challenge instead of your week.`
+
+export const startText = (startIso: string) => {
+  const start = Date.parse(startIso)
+  return `${dayText(start)}, ${clockText(start)}`
+}

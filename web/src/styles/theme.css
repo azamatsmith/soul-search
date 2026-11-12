@@ -58,6 +58,7 @@
   --thumb: 76px;
   --rank-w: calc(var(--t-h3) * 1.4);
   --camera-button: 250px;
+  --camera-button-compact: 230px;
   --camera-glyph-w: 64px;
   --camera-glyph-h: 48px;
   --camera-lens: 22px;

@@ -4,11 +4,12 @@ import { HomeHeader } from '../components/HomeHeader'
 import { HomeHeaderPlaceholder } from '../components/HomeHeaderPlaceholder'
 import { LoadError } from '../components/LoadError'
 import { SummaryCard } from '../components/SummaryCard'
+import { UpcomingChallengeRow } from '../components/UpcomingChallengeRow'
 import { useApiResource } from '../hooks/useApiResource'
 import { useMeContext } from '../hooks/useMeContext'
 import { useNow } from '../hooks/useNow'
 import { useStatusBarColor } from '../hooks/useStatusBarColor'
-import { getPeriod, getStanding } from '../lib/api'
+import { getPeriod, getStanding, getUpcomingChallenges } from '../lib/api'
 import styles from './TakePhotoScreen.module.css'
 
 export const TakePhotoScreen = () => {
@@ -17,7 +18,14 @@ export const TakePhotoScreen = () => {
   useStatusBarColor('--c-forest')
   const period = useApiResource(['period'], getPeriod)
   const standing = useApiResource(['standing'], getStanding)
+  const upcoming = useApiResource(['upcomingChallenges'], getUpcomingChallenges)
   const failed = period.status === 'error' || standing.status === 'error'
+  const running =
+    period.data?.kind === 'challenge' && Date.parse(period.data.ends_at) > now
+  const next = upcoming.data?.find(
+    (challenge) => Date.parse(challenge.starts_at) > now,
+  )
+  const nextShown = period.data && !running ? next : undefined
 
   const handleRetry = () => {
     if (period.status === 'error') period.retry()
@@ -37,10 +45,14 @@ export const TakePhotoScreen = () => {
       ) : (
         <HomeHeaderPlaceholder name={me.display_name} />
       )}
-      {period.data?.kind === 'challenge' &&
-        Date.parse(period.data.ends_at) > now &&
-        standing.data && <ChallengeBanner now={now} period={period.data} />}
-      <div className={styles.center}>
+      {running && period.data && standing.data && (
+        <ChallengeBanner now={now} period={period.data} />
+      )}
+      <div
+        className={
+          nextShown ? `${styles.center} ${styles.compact}` : styles.center
+        }
+      >
         <CameraButton />
         <p className={styles.helper}>
           Spotted one? Tap the big button, point, and shoot.
@@ -54,6 +66,7 @@ export const TakePhotoScreen = () => {
       {period.data && standing.data && (
         <SummaryCard period={period.data} standing={standing.data} />
       )}
+      {nextShown && <UpcomingChallengeRow challenge={nextShown} />}
     </div>
   )
 }
