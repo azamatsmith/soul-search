@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  clockText,
   dayRangeText,
   endsAtText,
   durationText,
@@ -11,6 +12,7 @@ import {
   startsInText,
   timeLeftText,
 } from './challengeTime'
+import { PACIFIC } from './zonedTime'
 
 const NOW = Date.parse('2026-11-12T20:00:00Z')
 
@@ -181,5 +183,41 @@ describe('endsAtText', () => {
 
   it('drops the weekday when it ends today', () => {
     expect(endsAtText('2026-11-13T02:00:00Z', NOW)).toBe('ends 6:00 pm')
+  })
+})
+
+describe('in another zone', () => {
+  const PHOENIX = 'America/Phoenix'
+  const NEW_YORK = 'America/New_York'
+
+  it('counts down to the end in the player zone', () => {
+    expect(timeLeftText('2026-11-13T02:00:00Z', NOW, PHOENIX)).toBe(
+      'Ends 7:00 pm · 6 hours left',
+    )
+  })
+
+  it('shows an Arizona player the start in their own time', () => {
+    expect(
+      startsInText(
+        '2026-11-12T23:00:00Z',
+        Date.parse('2026-11-12T22:00:00Z'),
+        PHOENIX,
+      ),
+    ).toBe('Starts 4:00 pm · in 1 hour')
+  })
+
+  it('splits a range that crosses midnight in the player zone', () => {
+    expect(
+      rangeText('2026-11-27T04:00:00Z', '2026-11-27T06:00:00Z', NEW_YORK),
+    ).toBe('Thu Nov 26, 11:00 pm – Fri Nov 27, 1:00 am')
+    expect(
+      rangeText('2026-11-27T04:00:00Z', '2026-11-27T06:00:00Z', PACIFIC),
+    ).toBe('Thu Nov 26, 8:00 – 10:00 pm')
+  })
+
+  it('reads the same in Arizona and Pacific in summer', () => {
+    const at = Date.parse('2026-07-01T22:00:00Z')
+    expect(clockText(at, PHOENIX)).toBe('3:00 pm')
+    expect(clockText(at, PACIFIC)).toBe('3:00 pm')
   })
 })

@@ -1,7 +1,7 @@
 import type { CategoryPoints, Period } from './api'
 import { clockText } from './challengeTime'
 import { sortedCategories } from './claim'
-import { pacificDay, weekday } from './pacificTime'
+import { dayIn, deviceZone, formattersFor } from './zonedTime'
 
 const listText = (items: string[]) =>
   items.length === 1
@@ -17,14 +17,14 @@ const categoryClause = (categories: CategoryPoints[]) => {
   ])
 }
 
-export const noteBody = (period: Period, now: number) => {
+export const noteBody = (period: Period, now: number, zone = deviceZone()) => {
   const end = Date.parse(period.ends_at)
   const clause = categoryClause(period.rules.categories)
-  if (pacificDay(end) === pacificDay(now)) {
+  if (dayIn(end, zone) === dayIn(now, zone)) {
     const lead = clause ?? 'Photos count toward the challenge'
-    return `${lead} until ${clockText(end)} today. After that, photos count toward your week again.`
+    return `${lead} until ${clockText(end, zone)} today. After that, photos count toward your week again.`
   }
-  const until = `${weekday.format(end)} ${clockText(end)}`
+  const until = `${formattersFor(zone).weekday.format(end)} ${clockText(end, zone)}`
   const tail = `Photos count toward the challenge until ${until}. Weekly scores pick up again after that.`
   return clause ? `${clause}. ${tail}` : tail
 }

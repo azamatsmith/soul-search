@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 import type { ReviewItem } from '../lib/api'
 import { claimedLine, queueChip } from '../lib/reviewCopy'
 import { viewerTime } from '../lib/sightingsCopy'
+import { PACIFIC } from '../lib/zonedTime'
 import styles from './ReviewCard.module.css'
 
 export interface ReviewCardProps {
@@ -30,7 +31,9 @@ export const ReviewCard = ({ item }: ReviewCardProps) => {
         <span className={styles.body}>
           <span className={styles.top}>
             <span className={styles.name}>{item.display_name}</span>
-            <span className={styles.time}>{viewerTime(item.taken_at)}</span>
+            <span className={styles.time}>
+              {viewerTime(item.taken_at, PACIFIC)}
+            </span>
           </span>
           <span className={styles.claim}>{claimedLine(item)}</span>
           {item.check_note && (

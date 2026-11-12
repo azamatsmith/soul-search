@@ -8,6 +8,7 @@ import {
   type ChallengeList,
 } from '../lib/api'
 import { ChallengesScreen } from './ChallengesScreen'
+import { stubDeviceZone } from '../test/deviceZone'
 import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({ getChallenges: vi.fn() }))
@@ -116,6 +117,20 @@ describe('ChallengesScreen', () => {
     ).toBeInTheDocument()
     expect(
       screen.getByRole('heading', { name: 'Finished' }),
+    ).toBeInTheDocument()
+  })
+
+  it('keeps admin times in Pacific on a phone elsewhere', async () => {
+    stubDeviceZone('America/Phoenix')
+    vi.mocked(getChallenges).mockReturnValue(ok(LIST))
+    renderScreen()
+
+    const live = await screen.findByRole('link', { name: /Thanksgiving Dash/ })
+    expect(
+      within(live).getByText('Thu Nov 26, 2:00 – 6:00 pm'),
+    ).toBeInTheDocument()
+    expect(
+      within(live).getByText('Live · ends 6:00 pm · 3 hours left'),
     ).toBeInTheDocument()
   })
 

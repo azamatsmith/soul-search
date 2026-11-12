@@ -6,6 +6,7 @@ import {
   upcomingRangeText,
   upcomingRulesText,
 } from './upcomingCopy'
+import { PACIFIC } from './zonedTime'
 
 const NOW = Date.parse('2026-11-12T20:00:00Z')
 
@@ -71,5 +72,38 @@ describe('reminderText', () => {
 describe('startText', () => {
   it('shows the Pacific day and start time', () => {
     expect(startText('2026-11-26T22:00:00Z')).toBe('Thu Nov 26, 2:00 pm')
+  })
+})
+
+describe('in another zone', () => {
+  const PHOENIX = 'America/Phoenix'
+  const NEW_YORK = 'America/New_York'
+
+  it('shows an Arizona player the start in their own time', () => {
+    expect(startText('2026-11-12T23:00:00Z', PHOENIX)).toBe(
+      'Thu Nov 12, 4:00 pm',
+    )
+  })
+
+  it('spans two days when the challenge crosses the player midnight', () => {
+    expect(
+      upcomingRangeText(
+        '2026-11-27T04:00:00Z',
+        '2026-11-27T06:00:00Z',
+        NEW_YORK,
+      ),
+    ).toBe('Thu Nov 26 – Fri Nov 27')
+    expect(
+      upcomingRangeText(
+        '2026-11-27T04:00:00Z',
+        '2026-11-27T06:00:00Z',
+        PACIFIC,
+      ),
+    ).toBe('Thu Nov 26, 8:00 – 10:00 pm')
+  })
+
+  it('counts days from the player calendar', () => {
+    expect(howSoonText('2026-11-13T07:30:00Z', NOW, PHOENIX)).toBe('Tomorrow')
+    expect(howSoonText('2026-11-13T07:30:00Z', NOW, PACIFIC)).toBe('Today')
   })
 })

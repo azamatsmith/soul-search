@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { HistoryEntry } from './api'
 import { historyLine, historyTag, historyTime } from './historyCopy'
+import { stubDeviceZone } from '../test/deviceZone'
 
 const entry = (changes: Partial<HistoryEntry>): HistoryEntry => ({
   admin: { display_name: 'Matthew', id: 'm' },
@@ -215,6 +216,14 @@ describe('historyTime', () => {
     expect(historyTime('2026-11-07T05:30:00Z', THU_EVENING)).toBe('Fri 9:30 PM')
     expect(historyTime('2026-11-06T05:30:00Z', THU_EVENING)).toBe(
       'Nov 5 9:30 PM',
+    )
+  })
+
+  it('still shows Pacific time on a phone elsewhere', () => {
+    stubDeviceZone('America/Phoenix')
+
+    expect(historyTime('2026-11-13T00:45:00Z', THU_EVENING)).toBe(
+      'Today 4:45 PM',
     )
   })
 })

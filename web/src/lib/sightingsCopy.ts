@@ -1,5 +1,5 @@
 import type { ClaimType, LoggedSighting } from './api'
-import { clock, dayBefore, pacificDay, weekday } from './pacificTime'
+import { dayBefore, dayIn, deviceZone, formattersFor } from './zonedTime'
 import { signedPoints } from './signedPoints'
 
 export type CardKind =
@@ -77,18 +77,24 @@ export const viewerNote = (card: LogCard) => {
   )
 }
 
-export const timeText = (takenAt: string) => clock.format(new Date(takenAt))
+export const timeText = (takenAt: string, zone = deviceZone()) =>
+  formattersFor(zone).clock.format(new Date(takenAt))
 
-export const viewerTime = (takenAt: string) => {
+export const viewerTime = (takenAt: string, zone = deviceZone()) => {
+  const { clock, weekday } = formattersFor(zone)
   const at = new Date(takenAt)
   return `${weekday.format(at)} ${clock.format(at)}`
 }
 
-export const dayHeader = (takenAt: string, now: number) => {
+export const dayHeader = (
+  takenAt: string,
+  now: number,
+  zone = deviceZone(),
+) => {
   const at = Date.parse(takenAt)
-  const day = pacificDay(at)
-  const today = pacificDay(now)
-  const name = weekday.format(at)
+  const day = dayIn(at, zone)
+  const today = dayIn(now, zone)
+  const name = formattersFor(zone).weekday.format(at)
   if (day === today) return `Today · ${name}`
   if (day === dayBefore(today)) return `Yesterday · ${name}`
   return name
@@ -101,13 +107,17 @@ const challengeSuffix = (cards: LogCard[], weekHasChallenge: boolean) => {
   return weekHasChallenge && !allWaiting ? ' · Weekly' : ''
 }
 
-export const groupByDay = (cards: LogCard[], now: number): DayGroup[] => {
+export const groupByDay = (
+  cards: LogCard[],
+  now: number,
+  zone = deviceZone(),
+): DayGroup[] => {
   const sorted = [...cards].sort(
     (a, b) => Date.parse(b.takenAt) - Date.parse(a.takenAt),
   )
   const days: DayGroup[] = []
   for (const card of sorted) {
-    const header = dayHeader(card.takenAt, now)
+    const header = dayHeader(card.takenAt, now, zone)
     const last = days.at(-1)
     if (last?.header === header) last.cards.push(card)
     else days.push({ cards: [card], header })

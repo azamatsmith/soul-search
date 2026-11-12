@@ -19,7 +19,7 @@ import {
   isoToPacificFields,
   pacificToIso,
 } from '../lib/challengeTime'
-import { pacificDay } from '../lib/pacificTime'
+import { dayIn, PACIFIC } from '../lib/zonedTime'
 import { useApiResource } from './useApiResource'
 import { useNow } from './useNow'
 import { useRefreshAll } from './useRefreshAll'
@@ -43,7 +43,7 @@ const nextDay = (key: string) => {
 }
 
 const newFields = (rules: PointRules, now: number): ChallengeFields => {
-  const tomorrow = nextDay(pacificDay(now))
+  const tomorrow = nextDay(dayIn(now, PACIFIC))
   return {
     endDate: tomorrow,
     endTime: '23:59',

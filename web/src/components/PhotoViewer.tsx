@@ -14,9 +14,10 @@ import { StatusChip } from './StatusChip'
 export interface PhotoViewerProps {
   card: LogCard
   onClose: () => void
+  zone?: string
 }
 
-export const PhotoViewer = ({ card, onClose }: PhotoViewerProps) => {
+export const PhotoViewer = ({ card, onClose, zone }: PhotoViewerProps) => {
   const closeRef = useRef<HTMLButtonElement>(null)
   const nameId = useId()
   const [loadedUrl, setLoadedUrl] = useState<string | null>(null)
@@ -68,7 +69,7 @@ export const PhotoViewer = ({ card, onClose }: PhotoViewerProps) => {
           <span className={styles.name} id={nameId}>
             {card.name}
           </span>
-          <span className={styles.time}>{viewerTime(card.takenAt)}</span>
+          <span className={styles.time}>{viewerTime(card.takenAt, zone)}</span>
         </div>
         <span className={styles.claim}>{viewerClaimLine(card)}</span>
         <StatusChip card={card} />

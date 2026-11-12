@@ -1,9 +1,10 @@
 import { QueryClient } from '@tanstack/react-query'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getReviewItem, postReview, type ReviewDetail } from '../lib/api'
 import { ReviewPhotoScreen } from './ReviewPhotoScreen'
+import { stubDeviceZone } from '../test/deviceZone'
 import { queryWrapper } from '../test/queryWrapper'
 
 vi.mock('../lib/api', () => ({
@@ -79,6 +80,13 @@ describe('ReviewPhotoScreen', () => {
     expect(load).toHaveBeenCalledWith('f1')
   })
 
+  it('shows the photo time in Pacific on a phone elsewhere', async () => {
+    stubDeviceZone('America/Phoenix')
+    renderReview()
+
+    expect(await screen.findByText(/^Thu 2:40/)).toBeVisible()
+  })
+
   it('changes a flagged photo to regular, then goes back to the list', async () => {
     const refreshAll = vi.spyOn(QueryClient.prototype, 'invalidateQueries')
     const router = renderReview()
@@ -130,5 +138,15 @@ describe('ReviewPhotoScreen', () => {
     renderReview()
     await choose(/Enlarge photo from Marcus T\./)
     expect(screen.getByRole('dialog')).toBeVisible()
+  })
+
+  it('shows Pacific time in the enlarged photo on a phone elsewhere', async () => {
+    stubDeviceZone('America/Phoenix')
+    renderReview()
+    await choose(/Enlarge photo from Marcus T\./)
+
+    expect(
+      within(screen.getByRole('dialog')).getByText(/^Thu 2:40/),
+    ).toBeVisible()
   })
 })
