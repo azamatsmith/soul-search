@@ -58,15 +58,15 @@ export const isoToPacificFields = (iso: string) => pacificParts(Date.parse(iso))
 const plural = (count: number, unit: string) =>
   `${count} ${unit}${count === 1 ? '' : 's'}`
 
-export const durationText = (startIso: string, endIso: string) => {
+export const lengthText = (startIso: string, endIso: string) => {
   const minutes = Math.round(
     (Date.parse(endIso) - Date.parse(startIso)) / MINUTE_MS,
   )
-  if (minutes < 60) return `Runs ${plural(minutes, 'minute')}`
+  if (minutes < 60) return plural(minutes, 'minute')
   if (minutes < 24 * 60) {
     const rest = minutes % 60
     const hours = plural(Math.floor(minutes / 60), 'hour')
-    return rest ? `Runs ${hours}, ${plural(rest, 'minute')}` : `Runs ${hours}`
+    return rest ? `${hours}, ${plural(rest, 'minute')}` : hours
   }
   let days = Math.floor(minutes / (24 * 60))
   let hours = Math.round((minutes % (24 * 60)) / 60)
@@ -75,8 +75,11 @@ export const durationText = (startIso: string, endIso: string) => {
     hours = 0
   }
   const dayText = plural(days, 'day')
-  return hours ? `Runs ${dayText}, ${plural(hours, 'hour')}` : `Runs ${dayText}`
+  return hours ? `${dayText}, ${plural(hours, 'hour')}` : dayText
 }
+
+export const durationText = (startIso: string, endIso: string) =>
+  `Runs ${lengthText(startIso, endIso)}`
 
 export const clockText = (at: number) => clock.format(at).toLowerCase()
 
