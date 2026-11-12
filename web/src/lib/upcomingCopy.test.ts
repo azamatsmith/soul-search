@@ -16,7 +16,9 @@ describe('howSoonText', () => {
     ['2026-11-18T22:00:00Z', 'In 6 days'],
     ['2026-11-19T22:00:00Z', 'In 1 week'],
     ['2026-11-22T22:00:00Z', 'In 1 week'],
+    ['2026-11-23T22:00:00Z', 'In 2 weeks'],
     ['2026-11-26T22:00:00Z', 'In 2 weeks'],
+    ['2026-11-30T08:00:00Z', 'In 3 weeks'],
   ])('counts Pacific calendar days to %s', (start, text) => {
     expect(howSoonText(start, NOW)).toBe(text)
   })

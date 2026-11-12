@@ -76,7 +76,7 @@ describe('UpcomingChallengesScreen', () => {
     expect(
       within(soonest).getByText('Regular +1, Alien Green +3'),
     ).toBeInTheDocument()
-    expect(within(later).getByText('In 2 weeks')).toBeInTheDocument()
+    expect(within(later).getByText('In 3 weeks')).toBeInTheDocument()
     expect(
       within(later).getByText('Mon Nov 30 – Sun Dec 6'),
     ).toBeInTheDocument()

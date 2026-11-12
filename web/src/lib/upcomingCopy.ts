@@ -14,7 +14,7 @@ export const howSoonText = (startIso: string, now: number) => {
   if (days <= 0) return 'Today'
   if (days === 1) return 'Tomorrow'
   if (days < 7) return `In ${days} days`
-  const weeks = Math.floor(days / 7)
+  const weeks = Math.round(days / 7)
   return `In ${weeks} ${weeks === 1 ? 'week' : 'weeks'}`
 }
 
