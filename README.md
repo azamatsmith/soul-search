@@ -97,11 +97,12 @@ Check recent calls with `select status_code, content from net._http_response ord
 Each upload is stored three times: the original (used only by the server's photo check), a 256px thumbnail and a 1600px display copy. Phones only ever get the thumbnail or the display copy. To create sizes that are missing for older photos, open the API service's Shell in the Render dashboard and run:
 
 ```sh
+cd /app
 python -m app.sightings.backfill_sizes --dry-run
 python -m app.sightings.backfill_sizes
 ```
 
-The dry run prints how many sizes it would create. Add `--redo-thumbnails` to rewrite every thumbnail, for example after changing the thumbnail size. Running it again only fills in what is still missing, and it exits non-zero if any photo failed (the log names each one).
+The dry run prints how many sizes it would create. Add `--redo-thumbnails` to rewrite every thumbnail, for example after changing the thumbnail size. Running it again only fills in what is still missing. It exits non-zero if any photo failed, a dry run included (the log names each one, usually a missing original).
 
 Production web app: https://soulsearch.cc (the Netlify site is `soulsearchapp`, so pull request previews stay on `netlify.app`).
 
