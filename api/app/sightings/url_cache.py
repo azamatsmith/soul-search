@@ -1,6 +1,12 @@
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from app.sightings.photo_store import PhotoStore, StorageUnavailable
+from app.sightings.photo_store import (
+    PhotoStore,
+    StorageUnavailable,
+    display_path,
+    thumb_path,
+)
 
 REFRESH_MARGIN = timedelta(minutes=10)
 SIGNED_URL_SECONDS = 3600
@@ -38,6 +44,30 @@ def cached_signed_urls(
         if url:
             cache.put(path, url, expires_at, now)
     return urls | {p: url for p, url in fresh.items() if url}
+
+
+@dataclass(frozen=True)
+class PhotoUrls:
+    thumb: str | None
+    display: str | None
+
+
+def photo_urls(
+    store: PhotoStore, cache: SignedUrlCache, paths: list[str], now: datetime
+) -> dict[str, PhotoUrls]:
+    sized = [s for p in paths for s in (thumb_path(p), display_path(p), p)]
+    urls = cached_signed_urls(store, cache, sized, now)
+
+    def first(*candidates: str) -> str | None:
+        return next((urls[c] for c in candidates if urls.get(c)), None)
+
+    return {
+        p: PhotoUrls(
+            thumb=first(thumb_path(p), display_path(p), p),
+            display=first(display_path(p), p),
+        )
+        for p in paths
+    }
 
 
 def _signed_urls(store: PhotoStore, paths: list[str]) -> dict[str, str | None]:

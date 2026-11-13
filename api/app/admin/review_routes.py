@@ -12,10 +12,10 @@ from app.admin.review_repo import ReviewRepo, get_review_repo
 from app.auth.tokens import CurrentUser
 from app.clock import get_now
 from app.errors import ApiError
-from app.sightings.photo_store import PhotoStore, get_photo_store, thumb_path
+from app.sightings.photo_store import PhotoStore, get_photo_store
 from app.sightings.routes import RulesOut, rules_out
 from app.sightings.scoring import InvalidClaim
-from app.sightings.url_cache import SignedUrlCache, cached_signed_urls, get_url_cache
+from app.sightings.url_cache import SignedUrlCache, get_url_cache, photo_urls
 
 router = APIRouter(prefix="/admin/review")
 
@@ -58,8 +58,7 @@ class ReviewBody(BaseModel):
 def items_out(
     items: tuple[ReviewItem, ...], store: PhotoStore, cache: SignedUrlCache, now: datetime
 ) -> list[ReviewItemOut]:
-    paths = [i.photo_path for i in items]
-    urls = cached_signed_urls(store, cache, paths + [thumb_path(p) for p in paths], now)
+    urls = photo_urls(store, cache, [i.photo_path for i in items], now)
     return [
         ReviewItemOut(
             id=i.id,
@@ -71,8 +70,8 @@ def items_out(
             status=i.status,
             check_note=i.check_note,
             verification_notes=i.verification_notes,
-            photo_url=urls.get(i.photo_path),
-            thumb_url=urls.get(thumb_path(i.photo_path)) or urls.get(i.photo_path),
+            photo_url=urls[i.photo_path].display,
+            thumb_url=urls[i.photo_path].thumb,
         )
         for i in items
     ]

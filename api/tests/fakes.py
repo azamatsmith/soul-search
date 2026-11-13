@@ -183,11 +183,6 @@ class FakePhotoStore:
             raise self.fail
         return self.uploads[path]
 
-    def signed_url(self, path: str, expires_in: int) -> str:
-        if self.fail:
-            raise self.fail
-        return f"https://signed.test/{path}?ttl={expires_in}"
-
     def signed_urls(self, paths: list[str], expires_in: int) -> dict[str, str | None]:
         if self.fail:
             raise self.fail

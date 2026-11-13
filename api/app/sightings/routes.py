@@ -25,6 +25,7 @@ from app.sightings.photo_meta import CleanPhoto, InvalidPhoto, clean_photo
 from app.sightings.photo_store import (
     PhotoStore,
     StorageUnavailable,
+    display_path,
     get_photo_store,
     thumb_path,
 )
@@ -38,10 +39,10 @@ from app.sightings.repo import (
 )
 from app.sightings.scoring import InvalidClaim, Rules, points_for
 from app.sightings.url_cache import (
-    SIGNED_URL_SECONDS,
+    PhotoUrls,
     SignedUrlCache,
-    cached_signed_urls,
     get_url_cache,
+    photo_urls,
 )
 from app.verification.runner import get_verification_runner
 
@@ -184,14 +185,10 @@ def get_period(_user: User, repo: Repo, now: Now) -> PeriodOut:
 
 
 @router.get("/me/standing")
-def get_standing(user: User, repo: Repo, store: Store, now: Now) -> StandingOut:
+def get_standing(user: User, repo: Repo, store: Store, cache: UrlCache, now: Now) -> StandingOut:
     standing = repo.standing(user.id, repo.period_at(now))
-    photo_url = None
-    if standing.last_photo_path:
-        try:
-            photo_url = store.signed_url(standing.last_photo_path, SIGNED_URL_SECONDS)
-        except StorageUnavailable:
-            photo_url = None
+    path = standing.last_photo_path
+    photo_url = photo_urls(store, cache, [path], now)[path].thumb if path else None
     return StandingOut(
         points=standing.points,
         count=standing.count,
@@ -249,19 +246,15 @@ def get_sightings(
 ) -> SightingsLogOut:
     week = repo.week_at(now)
     log = repo.week_log(week, user.id if mine else None)
-    paths = [s.photo_path for s in log]
-    urls = cached_signed_urls(store, cache, paths + [thumb_path(p) for p in paths], now)
+    urls = photo_urls(store, cache, [s.photo_path for s in log], now)
     return SightingsLogOut(
         starts_at=week.starts_at,
         ends_at=week.ends_at,
-        sightings=[_logged_out(s, user.id, urls) for s in log],
+        sightings=[_logged_out(s, user.id, urls[s.photo_path]) for s in log],
     )
 
 
-def _logged_out(
-    sighting: LoggedSighting, me: UUID, urls: dict[str, str | None]
-) -> LoggedSightingOut:
-    photo_url = urls.get(sighting.photo_path)
+def _logged_out(sighting: LoggedSighting, me: UUID, urls: PhotoUrls) -> LoggedSightingOut:
     return LoggedSightingOut(
         id=sighting.id,
         player_id=sighting.player_id,
@@ -275,8 +268,8 @@ def _logged_out(
         flagged=sighting.flagged,
         check_note=sighting.check_note,
         challenge_name=sighting.challenge_name,
-        thumb_url=urls.get(thumb_path(sighting.photo_path)) or photo_url,
-        photo_url=photo_url,
+        thumb_url=urls.thumb,
+        photo_url=urls.display,
     )
 
 
@@ -354,6 +347,7 @@ def post_sighting(
     try:
         store.upload(path, cleaned.data)
         store.upload(thumb_path(path), cleaned.thumbnail)
+        store.upload(display_path(path), cleaned.display)
     except StorageUnavailable as error:
         raise ApiError(502, "storage_unavailable") from error
 

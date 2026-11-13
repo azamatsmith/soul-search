@@ -58,7 +58,12 @@ class Harness:
         self.review = FakeReviewRepo([FLAGGED, FALSE_CALL], RULES)
         self.audit = FakeAuditRepo()
         self.store = FakePhotoStore()
-        self.store.uploads = {"b/photo.jpg": b"", "b/photo.thumb.jpg": b"", "b/false.jpg": b""}
+        self.store.uploads = {
+            "b/photo.jpg": b"",
+            "b/photo.thumb.jpg": b"",
+            "b/photo.display.jpg": b"",
+            "b/false.jpg": b"",
+        }
         app = create_app()
         app.dependency_overrides[get_current_user] = lambda: user
         app.dependency_overrides[get_attempts_repo] = lambda: FakeAttemptsRepo(
@@ -112,7 +117,7 @@ def test_queue_splits_flagged_photos_from_false_calls(admin: Harness):
         "status": "counted",
         "check_note": "Color looks closer to light blue.",
         "verification_notes": "Kia Soul, color unclear.",
-        "photo_url": "https://signed.test/b/photo.jpg?ttl=3600",
+        "photo_url": "https://signed.test/b/photo.display.jpg?ttl=3600",
         "thumb_url": "https://signed.test/b/photo.thumb.jpg?ttl=3600",
     }
 
@@ -121,6 +126,7 @@ def test_queue_falls_back_to_the_photo_when_there_is_no_thumb(admin: Harness):
     false_call = admin.client.get("/admin/review").json()["false_calls"][0]
 
     assert false_call["thumb_url"] == "https://signed.test/b/false.jpg?ttl=3600"
+    assert false_call["photo_url"] == "https://signed.test/b/false.jpg?ttl=3600"
 
 
 def test_get_one_returns_the_item_with_its_rules(admin: Harness):

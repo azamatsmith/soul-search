@@ -11,6 +11,10 @@ def thumb_path(photo_path: str) -> str:
     return f"{photo_path.removesuffix('.jpg')}.thumb.jpg"
 
 
+def display_path(photo_path: str) -> str:
+    return f"{photo_path.removesuffix('.jpg')}.display.jpg"
+
+
 class StorageUnavailable(Exception):
     pass
 
@@ -37,12 +41,6 @@ class PhotoStore:
 
     def download(self, path: str) -> bytes:
         return self._send("GET", f"/object/{BUCKET}/{path}").content
-
-    def signed_url(self, path: str, expires_in: int) -> str:
-        response = self._send(
-            "POST", f"/object/sign/{BUCKET}/{path}", json={"expiresIn": expires_in}
-        )
-        return f"{self._storage_url}{response.json()['signedURL']}"
 
     def signed_urls(self, paths: list[str], expires_in: int) -> dict[str, str | None]:
         if not paths:

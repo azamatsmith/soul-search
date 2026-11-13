@@ -5,14 +5,30 @@ from PIL import ExifTags, Image, ImageOps, UnidentifiedImageError
 
 MAX_PIXELS = 50_000_000
 JPEG_QUALITY = 90
-THUMB_SIZE = 480
-THUMB_QUALITY = 80
+THUMB_SIZE = 256
+DISPLAY_SIZE = 1600
+RESIZED_QUALITY = 80
+
+_IMAGE_ERRORS = (
+    Image.DecompressionBombError,
+    UnidentifiedImageError,
+    OSError,
+    SyntaxError,
+    ValueError,
+)
+
+
+@dataclass(frozen=True)
+class Sizes:
+    thumbnail: bytes
+    display: bytes
 
 
 @dataclass(frozen=True)
 class CleanPhoto:
     data: bytes
     thumbnail: bytes
+    display: bytes
     latitude: float | None
     longitude: float | None
 
@@ -33,21 +49,46 @@ def clean_photo(data: bytes, max_pixels: int = MAX_PIXELS) -> CleanPhoto:
         upright = ImageOps.exif_transpose(image).convert("RGB")
         out = io.BytesIO()
         upright.save(out, "JPEG", quality=JPEG_QUALITY)
-        thumb = upright.copy()
-        thumb.thumbnail((THUMB_SIZE, THUMB_SIZE))
-        thumb_out = io.BytesIO()
-        thumb.save(thumb_out, "JPEG", quality=THUMB_QUALITY)
-    except (
-        Image.DecompressionBombError,
-        UnidentifiedImageError,
-        OSError,
-        SyntaxError,
-        ValueError,
-    ) as error:
+        sizes = _sizes(upright)
+    except _IMAGE_ERRORS as error:
         raise InvalidPhoto from error
     return CleanPhoto(
-        data=out.getvalue(), thumbnail=thumb_out.getvalue(), latitude=latitude, longitude=longitude
+        data=out.getvalue(),
+        thumbnail=sizes.thumbnail,
+        display=sizes.display,
+        latitude=latitude,
+        longitude=longitude,
     )
+
+
+def make_sizes(data: bytes, max_pixels: int = MAX_PIXELS) -> Sizes:
+    try:
+        image = Image.open(io.BytesIO(data))
+        width, height = image.size
+        if width * height > max_pixels:
+            raise InvalidPhoto
+        image.draft("RGB", (DISPLAY_SIZE, DISPLAY_SIZE))
+        return _sizes(image.convert("RGB"))
+    except _IMAGE_ERRORS as error:
+        raise InvalidPhoto from error
+
+
+def _sizes(upright: Image.Image) -> Sizes:
+    display = _shrunk(upright, DISPLAY_SIZE)
+    thumbnail = _shrunk(display, THUMB_SIZE)
+    return Sizes(thumbnail=_jpeg(thumbnail), display=_jpeg(display))
+
+
+def _shrunk(image: Image.Image, longest: int) -> Image.Image:
+    copy = image.copy()
+    copy.thumbnail((longest, longest))
+    return copy
+
+
+def _jpeg(image: Image.Image) -> bytes:
+    out = io.BytesIO()
+    image.save(out, "JPEG", quality=RESIZED_QUALITY)
+    return out.getvalue()
 
 
 def _location(gps: dict[int, object]) -> tuple[float | None, float | None]:

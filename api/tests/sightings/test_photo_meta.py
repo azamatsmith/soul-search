@@ -2,8 +2,9 @@ import io
 
 import pytest
 from PIL import Image
+from PIL.JpegImagePlugin import JpegImageFile
 
-from app.sightings.photo_meta import InvalidPhoto, clean_photo
+from app.sightings.photo_meta import InvalidPhoto, clean_photo, make_sizes
 from tests.sightings.photos import SEATTLE, jpeg
 
 
@@ -73,10 +74,48 @@ def test_clean_photo_makes_a_small_upright_thumbnail():
 
     thumb = Image.open(io.BytesIO(cleaned.thumbnail))
     assert thumb.format == "JPEG"
-    assert thumb.size == (360, 480)
+    assert thumb.size == (192, 256)
 
 
-def test_clean_photo_does_not_upscale_small_thumbnails():
-    cleaned = clean_photo(jpeg(size=(300, 200)))
+def test_clean_photo_makes_an_upright_display_copy():
+    cleaned = clean_photo(jpeg(size=(4000, 3000), orientation=6))
 
-    assert Image.open(io.BytesIO(cleaned.thumbnail)).size == (300, 200)
+    display = Image.open(io.BytesIO(cleaned.display))
+    assert display.format == "JPEG"
+    assert display.size == (1200, 1600)
+
+
+def test_clean_photo_does_not_upscale_small_photos():
+    cleaned = clean_photo(jpeg(size=(200, 150)))
+
+    assert Image.open(io.BytesIO(cleaned.thumbnail)).size == (200, 150)
+    assert Image.open(io.BytesIO(cleaned.display)).size == (200, 150)
+
+
+def test_make_sizes_resizes_a_stored_photo():
+    sizes = make_sizes(jpeg(size=(3200, 2400)))
+
+    assert Image.open(io.BytesIO(sizes.thumbnail)).size == (256, 192)
+    assert Image.open(io.BytesIO(sizes.display)).size == (1600, 1200)
+
+
+def test_make_sizes_decodes_large_photos_at_a_reduced_scale(monkeypatch: pytest.MonkeyPatch):
+    drafts: list[tuple[str, tuple[int, int]]] = []
+    real_draft = JpegImageFile.draft
+
+    def recording_draft(self: JpegImageFile, mode: str, size: tuple[int, int]):  # type: ignore[no-untyped-def]
+        drafts.append((mode, size))
+        return real_draft(self, mode, size)
+
+    monkeypatch.setattr(JpegImageFile, "draft", recording_draft)
+
+    sizes = make_sizes(jpeg(size=(6400, 4800)))
+
+    assert drafts[0] == ("RGB", (1600, 1600))
+    assert Image.open(io.BytesIO(sizes.display)).size == (1600, 1200)
+    assert Image.open(io.BytesIO(sizes.thumbnail)).size == (256, 192)
+
+
+def test_make_sizes_rejects_a_broken_photo():
+    with pytest.raises(InvalidPhoto):
+        make_sizes(b"not a photo")

@@ -154,11 +154,22 @@ def test_standing_signs_last_photo(harness: Harness):
         points_behind_next=3,
         last_photo_path=f"{BOB_ID}/s.jpg",
     )
+    harness.store.uploads[f"{BOB_ID}/s.jpg"] = JPEG
+    harness.store.uploads[f"{BOB_ID}/s.thumb.jpg"] = JPEG
 
     body = harness.client.get("/me/standing").json()
 
-    assert body["last_photo_url"] == f"https://signed.test/{BOB_ID}/s.jpg?ttl=3600"
+    assert body["last_photo_url"] == f"https://signed.test/{BOB_ID}/s.thumb.jpg?ttl=3600"
     assert (body["points"], body["rank"], body["points_behind_next"]) == (5, 2, 3)
+
+
+def test_standing_falls_back_to_the_full_photo_without_smaller_sizes(harness: Harness):
+    harness.repo.standings[BOB_ID] = replace(EMPTY_STANDING, rank=1, last_photo_path="p.jpg")
+    harness.store.uploads["p.jpg"] = JPEG
+
+    body = harness.client.get("/me/standing").json()
+
+    assert body["last_photo_url"] == "https://signed.test/p.jpg?ttl=3600"
 
 
 def test_standing_still_loads_when_storage_is_down(harness: Harness):
@@ -192,7 +203,11 @@ def test_post_regular_sighting_uploads_and_scores(harness: Harness):
     assert body["sighting"]["status"] == "waiting_review"
     assert body["period_points"] == 1
     path = f"{BOB_ID}/{sighting_id}.jpg"
-    assert list(harness.store.uploads) == [path, f"{BOB_ID}/{sighting_id}.thumb.jpg"]
+    assert list(harness.store.uploads) == [
+        path,
+        f"{BOB_ID}/{sighting_id}.thumb.jpg",
+        f"{BOB_ID}/{sighting_id}.display.jpg",
+    ]
     (new,) = harness.repo.inserted
     assert (new.photo_path, new.week_id, new.challenge_id) == (path, WEEK.id, None)
     assert (new.latitude, new.longitude) == (47.6, -122.3)
@@ -204,7 +219,7 @@ def test_post_strips_exif_and_keeps_its_location(harness: Harness):
     (new,) = harness.repo.inserted
     assert new.latitude == pytest.approx(47.6)
     assert new.longitude == pytest.approx(-122.33)
-    assert len(harness.store.uploads) == 2
+    assert len(harness.store.uploads) == 3
     for stored in harness.store.uploads.values():
         assert dict(Image.open(io.BytesIO(stored)).getexif()) == {}
 
@@ -549,10 +564,14 @@ def logged(player_id: UUID, name: str, **changes: object) -> LoggedSighting:
     return replace(base, **changes)
 
 
-def store_photo(harness: Harness, sighting: LoggedSighting, *, thumb: bool = True) -> None:
+def store_photo(
+    harness: Harness, sighting: LoggedSighting, *, thumb: bool = True, display: bool = True
+) -> None:
     harness.store.uploads[sighting.photo_path] = JPEG
     if thumb:
         harness.store.uploads[sighting.photo_path.replace(".jpg", ".thumb.jpg")] = JPEG
+    if display:
+        harness.store.uploads[sighting.photo_path.replace(".jpg", ".display.jpg")] = JPEG
 
 
 def test_sightings_lists_the_week_with_thumbnails(harness: Harness):
@@ -571,7 +590,7 @@ def test_sightings_lists_the_week_with_thumbnails(harness: Harness):
     assert first["is_me"] is True
     assert first["display_name"] == "Bob"
     assert first["thumb_url"] == f"https://signed.test/{BOB_ID}/{mine.id}.thumb.jpg?ttl=3600"
-    assert first["photo_url"] == f"https://signed.test/{BOB_ID}/{mine.id}.jpg?ttl=3600"
+    assert first["photo_url"] == f"https://signed.test/{BOB_ID}/{mine.id}.display.jpg?ttl=3600"
     assert second["is_me"] is False
     assert second["status"] == "false_call"
     assert second["check_note"] == "not a Soul"
@@ -596,10 +615,21 @@ def test_sightings_mine_filters_to_the_caller(harness: Harness):
     assert [s["player_id"] for s in body["sightings"]] == [str(BOB_ID)]
 
 
-def test_sightings_falls_back_to_full_photo_without_thumbnail(harness: Harness):
+def test_sightings_falls_back_to_the_display_copy_without_thumbnail(harness: Harness):
     old = logged(BOB_ID, "Bob")
     harness.repo.logs = [old]
     store_photo(harness, old, thumb=False)
+
+    (item,) = harness.client.get("/sightings").json()["sightings"]
+
+    assert item["thumb_url"] == f"https://signed.test/{BOB_ID}/{old.id}.display.jpg?ttl=3600"
+    assert item["photo_url"] == item["thumb_url"]
+
+
+def test_sightings_falls_back_to_full_photo_without_other_sizes(harness: Harness):
+    old = logged(BOB_ID, "Bob")
+    harness.repo.logs = [old]
+    store_photo(harness, old, thumb=False, display=False)
 
     (item,) = harness.client.get("/sightings").json()["sightings"]
 

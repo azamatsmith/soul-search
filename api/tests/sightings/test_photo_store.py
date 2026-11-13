@@ -4,7 +4,12 @@ from collections.abc import Callable
 import httpx
 import pytest
 
-from app.sightings.photo_store import PhotoStore, StorageUnavailable, thumb_path
+from app.sightings.photo_store import (
+    PhotoStore,
+    StorageUnavailable,
+    display_path,
+    thumb_path,
+)
 
 
 def make_store(handler: Callable[[httpx.Request], httpx.Response]) -> PhotoStore:
@@ -30,23 +35,10 @@ def test_upload_puts_jpeg_into_private_bucket_with_upsert():
     assert request.content == b"\xff\xd8jpeg"
 
 
-def test_signed_url_returns_absolute_url():
-    def handler(request: httpx.Request) -> httpx.Response:
-        assert str(request.url) == "http://supabase.test/storage/v1/object/sign/photos/p/s.jpg"
-        assert request.headers["authorization"] == "Bearer secret"
-        assert request.headers["apikey"] == "secret"
-        assert json.loads(request.content) == {"expiresIn": 3600}
-        return httpx.Response(200, json={"signedURL": "/object/sign/photos/p/s.jpg?token=t"})
-
-    url = make_store(handler).signed_url("p/s.jpg", 3600)
-
-    assert url == "http://supabase.test/storage/v1/object/sign/photos/p/s.jpg?token=t"
-
-
 @pytest.mark.parametrize("status", [400, 404, 500])
 def test_error_status_raises_unavailable(status: int):
     with pytest.raises(StorageUnavailable):
-        make_store(lambda _r: httpx.Response(status)).signed_url("p/s.jpg", 60)
+        make_store(lambda _r: httpx.Response(status)).download("p/s.jpg")
 
 
 def test_network_error_raises_unavailable():
@@ -54,7 +46,7 @@ def test_network_error_raises_unavailable():
         raise httpx.ConnectError("down", request=request)
 
     with pytest.raises(StorageUnavailable):
-        make_store(handler).signed_url("p/s.jpg", 60)
+        make_store(handler).download("p/s.jpg")
 
 
 def test_upload_error_raises_unavailable():
@@ -79,6 +71,10 @@ def test_download_error_raises_unavailable():
 
 def test_thumb_path_sits_next_to_the_photo():
     assert thumb_path("p1/abc.jpg") == "p1/abc.thumb.jpg"
+
+
+def test_display_path_sits_next_to_the_photo():
+    assert display_path("p1/abc.jpg") == "p1/abc.display.jpg"
 
 
 def test_signed_urls_signs_many_paths_in_one_call():
