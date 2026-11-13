@@ -67,23 +67,27 @@ def make_sizes(data: bytes, max_pixels: int = MAX_PIXELS) -> Sizes:
         width, height = image.size
         if width * height > max_pixels:
             raise InvalidPhoto
+        image.draft("RGB", (DISPLAY_SIZE, DISPLAY_SIZE))
         return _sizes(image.convert("RGB"))
     except _IMAGE_ERRORS as error:
         raise InvalidPhoto from error
 
 
 def _sizes(upright: Image.Image) -> Sizes:
-    return Sizes(
-        thumbnail=_resized(upright, THUMB_SIZE),
-        display=_resized(upright, DISPLAY_SIZE),
-    )
+    display = _shrunk(upright, DISPLAY_SIZE)
+    thumbnail = _shrunk(display, THUMB_SIZE)
+    return Sizes(thumbnail=_jpeg(thumbnail), display=_jpeg(display))
 
 
-def _resized(image: Image.Image, longest: int) -> bytes:
+def _shrunk(image: Image.Image, longest: int) -> Image.Image:
     copy = image.copy()
     copy.thumbnail((longest, longest))
+    return copy
+
+
+def _jpeg(image: Image.Image) -> bytes:
     out = io.BytesIO()
-    copy.save(out, "JPEG", quality=RESIZED_QUALITY)
+    image.save(out, "JPEG", quality=RESIZED_QUALITY)
     return out.getvalue()
 
 
