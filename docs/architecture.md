@@ -1,8 +1,8 @@
 # Architecture
 
-Soul Search is an installable phone web app (PWA) for iPhone and Android backed by a FastAPI service and Supabase. The PWA talks to FastAPI for everything except keeping its session fresh, which supabase-js does directly with Supabase Auth. FastAPI is the only part that reads and writes data and talks to the Claude vision API.
+Soul Search is an installable phone web app (PWA) for iPhone and Android backed by a FastAPI service and Supabase. The PWA talks to FastAPI for everything except keeping its session fresh, which supabase-js does directly with Supabase Auth, and loading photos, which it fetches straight from Supabase Storage through short-lived signed links that FastAPI hands out. FastAPI is the only part that reads and writes data and talks to the Claude vision API.
 
-Sign-in, the database schema, both deploys, photo capture, scoring, the leaderboard, background photo verification and the weekly close-out are built. Each issue that lands updates this page.
+Built so far: sign-in, both deploys, photo capture with an offline send queue, scoring, the weekly leaderboard and past weeks, the sightings log, background photo verification, the weekly close-out, timed challenges and the upcoming challenges list, and the admin tools (allowed emails, flagged photo review, challenges, point values, score adjustments and change history). Each issue that lands updates this page.
 
 ## System
 
@@ -23,6 +23,7 @@ flowchart TB
 
     phone -- "HTTPS, session token" --> api
     phone -- "check and refresh session" --> auth
+    phone -- "load photos by signed link" --> storage
     api -- "check photo" --> claude
     api -- "codes and tokens" --> auth
     api -- "data" --> db
@@ -83,16 +84,38 @@ sequenceDiagram
     participant storage as Supabase Storage
     participant db as Postgres
 
-    player->>pwa: Take photo, choose Regular or Special, tap Send
+    player->>pwa: Take photo, choose a claim (Regular, Special or a challenge category), tap Send
     pwa->>pwa: Keep the photo queued on the phone
-    pwa->>api: Photo, claim, optional GPS
-    api->>storage: Save photo
-    api->>db: Save sighting with points, tagged to the week or active challenge
-    api-->>pwa: Received, with points and weekly total
+    pwa->>api: POST /sightings with photo, claim, optional GPS
+    api->>api: Turn the photo upright, read GPS, strip all EXIF
+    api->>storage: Save the original, a 256px thumbnail and a 1600px display copy
+    api->>db: Save sighting with points, tagged to the week or the running challenge
+    api-->>pwa: Received, with points and the period total
     pwa->>pwa: Remove the queued copy
-    api->>api: Queue the sighting for verification
-    Note over pwa: If the send fails, the photo stays queued and is retried when the app opens
+    api->>api: Start checking the photo in the background
+    Note over pwa: If the send fails, the photo stays queued and is retried when the app opens or signal returns
+    Note over api,storage: The original is only read by the server (photo check). Phones get the thumbnail or display copy
 ```
+
+### Viewing photos
+
+```mermaid
+sequenceDiagram
+    participant pwa as PWA
+    participant api as FastAPI
+    participant storage as Supabase Storage
+
+    pwa->>api: GET /me/standing, /sightings or /admin/review
+    api->>storage: Sign links for each photo's thumbnail, display copy and original (one batch call)
+    storage-->>api: Signed links, none for files that don't exist
+    api-->>pwa: thumb_url and photo_url (Home's last photo uses the thumbnail)
+    pwa->>storage: Load the image by its signed link
+    Note over api: Links last an hour and are cached in memory, re-signed 10 minutes before they expire
+    Note over api,pwa: A missing size falls back to the next bigger one (thumbnail, display copy, original)
+    Note over pwa: Striped placeholder until the image loads, and it stays if loading fails
+```
+
+The `python -m app.sightings.backfill_sizes` command creates missing sizes for older photos (see the README).
 
 ### Background verification
 
@@ -103,7 +126,7 @@ sequenceDiagram
     participant claude as Claude vision API
     participant db as Postgres
 
-    api->>storage: Fetch photo
+    api->>storage: Fetch the original photo
     api->>claude: Is this a Kia Soul, and do the claimed categories match?
     claude-->>api: Verdict and reasoning
     alt Not a Soul
@@ -114,7 +137,7 @@ sequenceDiagram
         api->>db: Mark as counted
     end
     api->>db: Save the short player note and the full reasoning
-    Note over api,claude: Runs right after each send and every minute. Failed checks retry with backoff (1 min up to 6 h); after 8 tries the photo is counted and flagged for an admin
+    Note over api,claude: Runs right after each send and every minute. Failed checks retry with backoff (1 min up to 6 h). After 8 tries the photo is counted and flagged for an admin
     Note over api,db: A readable license plate is saved for admins only
 ```
 
@@ -140,7 +163,7 @@ sequenceDiagram
 | Environment | Web | API | Supabase |
 | --- | --- | --- | --- |
 | Local | Vite on `localhost:5173` | FastAPI on `localhost:8000` | Supabase CLI stack in Docker, with Mailpit catching sign-in emails |
-| Staging | Netlify branch deploy | Staging service deployed from a `staging` branch | Separate Supabase project with a test email sender |
-| Production | Netlify, deployed from `main` | Render, deployed from `main` once CI passes | Production Supabase project |
+| Pull request previews | Netlify deploy preview for each pull request | Production API (allowed through `CORS_ORIGIN_REGEX`) | Production Supabase project |
+| Production | Netlify (`soulsearch.cc`), deployed from `main` | Render, deployed from `main` once CI passes | Production Supabase project |
 
-Staging is planned in #18. Changes go to staging first, are verified there, then are promoted to `main`.
+On every push to `main`, after the checks pass, the CI `migrate` job applies new migrations to the production database with `supabase db push`; Render waits for it, so the schema is in place before the API code that needs it. A separate staging environment (#18) is postponed and not needed for the MVP.
