@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="1200" height="700" role="img" aria-labelledby="title desc">
+  <title id="title">Soul Search system architecture</title>
+  <desc id="desc">Phone PWA calls FastAPI over HTTPS, refreshes its session with Supabase Auth and loads photos from Supabase Storage. FastAPI uses Supabase Auth, Postgres and Storage, and calls the Claude vision API. pg_cron calls FastAPI hourly for the weekly close-out. Supabase Auth sends sign-in codes through Resend.</desc>
+  <style>
+    text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill: #faf4e8; }
+    .t { font-family: Georgia, "Times New Roman", serif; font-size: 17px; }
+    .k { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; letter-spacing: 0.08em; fill: #c9bea6; }
+    .b { font-size: 12.5px; fill: #c9bea6; }
+    .el { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; fill: #c9bea6; }
+    .el-bg { fill: #1a3726; }
+    .box { fill: #1a3726; stroke-width: 1.6; }
+    .web .box { stroke: #e57a42; } .web .k { fill: #e57a42; }
+    .api .box { stroke: #e6c47a; } .api .k { fill: #e6c47a; }
+    .data .box { stroke: #9bc53d; } .data .k { fill: #9bc53d; }
+    .ext .box { stroke: #d9cbb0; } .ext .k { fill: #d9cbb0; }
+    .group-box { fill: #13291d; stroke: #c9a35a; stroke-width: 1.4; stroke-dasharray: 4 4; }
+    .group-label { font-family: Georgia, "Times New Roman", serif; font-size: 16px; fill: #9bc53d; }
+    .edge path { fill: none; stroke: #c9bea6; stroke-width: 1.6; stroke-dasharray: 6 6; animation: flow 1.2s linear infinite; }
+    .arrow { fill: #c9bea6; }
+    .dot.web { fill: #e57a42; } .dot.api { fill: #e6c47a; } .dot.data { fill: #9bc53d; }
+    .node { transform-box: fill-box; transform-origin: center; animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+    .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.2s; } .d3 { animation-delay: 0.35s; } .d4 { animation-delay: 0.5s; } .d5 { animation-delay: 0.65s; }
+    .legend text { font-size: 13px; fill: #c9bea6; }
+    .legend rect { fill: none; stroke-width: 2; }
+    @keyframes flow { to { stroke-dashoffset: -24; } }
+    @keyframes rise { from { transform: translateY(10px); opacity: 0.2; } to { transform: none; opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) {
+      .edge path, .node { animation: none; }
+      .dot { display: none; }
+    }
+  </style>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0 0 L10 5 L0 10 z"/></marker>
+  </defs>
+
+  <rect width="1200" height="700" rx="12" fill="#1a3726"/>
+
+  <rect class="group-box" x="700" y="60" width="300" height="440" rx="14"/>
+  <text class="group-label" x="720" y="85">Supabase</text>
+
+  <g class="edge"><path id="p-pwa-api" d="M260 285 H408" marker-end="url(#ah)"/><rect class="el-bg" x="272" y="258" width="124" height="16" rx="3"/><text class="el" x="334" y="270" text-anchor="middle">HTTPS · JWT</text></g>
+  <g class="edge"><path id="p-pwa-auth" d="M145 175 V30 H850 V93" marker-end="url(#ah)"/><rect class="el-bg" x="400" y="22" width="230" height="16" rx="3"/><text class="el" x="515" y="34" text-anchor="middle">keep session fresh (supabase-js)</text></g>
+  <g class="edge"><path id="p-pwa-storage" d="M145 395 V515 H680 V350 H718" marker-end="url(#ah)"/><rect class="el-bg" x="190" y="499" width="180" height="16" rx="3"/><text class="el" x="280" y="511" text-anchor="middle">load photos by signed link</text></g>
+  <g class="edge"><path id="p-api-auth" d="M620 135 H718" marker-end="url(#ah)"/><text class="el" x="669" y="127" text-anchor="middle">codes</text></g>
+  <g class="edge"><path id="p-api-db" d="M620 235 H718" marker-end="url(#ah)"/><text class="el" x="669" y="227" text-anchor="middle">psycopg</text></g>
+  <g class="edge"><path id="p-api-storage" d="M620 322 H718" marker-end="url(#ah)"/><text class="el" x="669" y="314" text-anchor="middle">photos</text></g>
+  <g class="edge"><path id="p-cron-api" d="M720 435 H622" marker-end="url(#ah)"/><text class="el" x="669" y="427" text-anchor="middle">hourly</text></g>
+  <g class="edge"><path id="p-api-claude" d="M515 475 V538" marker-end="url(#ah)"/><rect class="el-bg" x="524" y="482" width="96" height="16" rx="3"/><text class="el" x="572" y="494" text-anchor="middle">check photo</text></g>
+  <g class="edge"><path id="p-auth-resend" d="M980 135 H1038" marker-end="url(#ah)"/><text class="el" x="1009" y="127" text-anchor="middle">SMTP</text></g>
+
+  <circle class="dot web" r="4"><animateMotion dur="1.6s" repeatCount="indefinite"><mpath href="#p-pwa-api"/></animateMotion></circle>
+  <circle class="dot web" r="4"><animateMotion dur="4s" begin="0.8s" repeatCount="indefinite"><mpath href="#p-pwa-auth"/></animateMotion></circle>
+  <circle class="dot web" r="4"><animateMotion dur="4s" begin="1.6s" repeatCount="indefinite"><mpath href="#p-pwa-storage"/></animateMotion></circle>
+  <circle class="dot api" r="4"><animateMotion dur="1.4s" begin="0.3s" repeatCount="indefinite"><mpath href="#p-api-db"/></animateMotion></circle>
+  <circle class="dot api" r="4"><animateMotion dur="1.4s" begin="0.9s" repeatCount="indefinite"><mpath href="#p-api-storage"/></animateMotion></circle>
+  <circle class="dot api" r="4"><animateMotion dur="1.4s" begin="1.2s" repeatCount="indefinite"><mpath href="#p-api-auth"/></animateMotion></circle>
+  <circle class="dot api" r="4"><animateMotion dur="1.2s" begin="0.5s" repeatCount="indefinite"><mpath href="#p-api-claude"/></animateMotion></circle>
+  <circle class="dot data" r="4"><animateMotion dur="2.4s" begin="1s" repeatCount="indefinite"><mpath href="#p-cron-api"/></animateMotion></circle>
+  <circle class="dot data" r="4"><animateMotion dur="1.2s" begin="0.4s" repeatCount="indefinite"><mpath href="#p-auth-resend"/></animateMotion></circle>
+
+  <g class="node web d1">
+    <rect class="box" x="30" y="175" width="230" height="220" rx="10"/>
+    <text class="k" x="48" y="200">WEB · NETLIFY</text>
+    <text class="t" x="48" y="224">Phone PWA</text>
+    <text class="b" x="48" y="252">React 19 + Vite 8</text>
+    <text class="b" x="48" y="274">TanStack Query, React Router</text>
+    <text class="b" x="48" y="296">vite-plugin-pwa service worker</text>
+    <text class="b" x="48" y="318">Offline photo send queue</text>
+    <text class="b" x="48" y="340">CSS Modules + design tokens</text>
+    <text class="b" x="48" y="362">iPhone and Android</text>
+  </g>
+
+  <g class="node api d2">
+    <rect class="box" x="410" y="95" width="210" height="380" rx="10"/>
+    <text class="k" x="428" y="120">API · RENDER (DOCKER)</text>
+    <text class="t" x="428" y="144">FastAPI</text>
+    <text class="b" x="428" y="172">Python 3.12</text>
+    <text class="b" x="428" y="198">Email-code sign-in</text>
+    <text class="b" x="428" y="216">+ allowlist, lockouts</text>
+    <text class="b" x="428" y="242">Sightings, standings,</text>
+    <text class="b" x="428" y="260">challenges, admin</text>
+    <text class="b" x="428" y="286">Pillow: rotate, strip</text>
+    <text class="b" x="428" y="304">EXIF, 256 + 1600px</text>
+    <text class="b" x="428" y="330">Signed-link cache (1 h)</text>
+    <text class="b" x="428" y="356">Background verifier,</text>
+    <text class="b" x="428" y="374">retries 1 min to 6 h</text>
+    <text class="b" x="428" y="400">POST /close-out</text>
+    <text class="b" x="428" y="418">(shared secret)</text>
+  </g>
+
+  <g class="node data d3">
+    <rect class="box" x="720" y="95" width="260" height="80" rx="10"/>
+    <text class="t" x="738" y="124">Auth</text>
+    <text class="b" x="738" y="146">Sessions and one-time codes</text>
+    <text class="b" x="738" y="164">Public sign-ups off</text>
+  </g>
+  <g class="node data d3">
+    <rect class="box" x="720" y="195" width="260" height="80" rx="10"/>
+    <text class="t" x="738" y="224">Postgres</text>
+    <text class="b" x="738" y="246">All app data</text>
+    <text class="b" x="738" y="264">Migrations via supabase db push</text>
+  </g>
+  <g class="node data d4">
+    <rect class="box" x="720" y="295" width="260" height="80" rx="10"/>
+    <text class="t" x="738" y="324">Storage</text>
+    <text class="b" x="738" y="346">Private photos bucket</text>
+    <text class="b" x="738" y="364">Original, display, thumbnail</text>
+  </g>
+  <g class="node data d4">
+    <rect class="box" x="720" y="395" width="260" height="80" rx="10"/>
+    <text class="t" x="738" y="424">pg_cron + pg_net</text>
+    <text class="b" x="738" y="446">Hourly at :05</text>
+    <text class="b" x="738" y="464">URL and secret from Vault</text>
+  </g>
+
+  <g class="node ext d5">
+    <rect class="box" x="410" y="540" width="210" height="90" rx="10"/>
+    <text class="k" x="428" y="565">ANTHROPIC</text>
+    <text class="t" x="428" y="589">Claude vision</text>
+    <text class="b" x="428" y="611">Kia Soul? Category? Plate?</text>
+  </g>
+  <g class="node ext d5">
+    <rect class="box" x="1040" y="95" width="140" height="100" rx="10"/>
+    <text class="k" x="1056" y="120">EMAIL</text>
+    <text class="t" x="1056" y="144">Resend</text>
+    <text class="b" x="1056" y="166">6-digit codes</text>
+    <text class="b" x="1056" y="184">Mailpit locally</text>
+  </g>
+
+  <g class="legend">
+    <rect x="30" y="662" width="12" height="12" rx="3" stroke="#e57a42"/><text x="50" y="673">Web client</text>
+    <rect x="150" y="662" width="12" height="12" rx="3" stroke="#e6c47a"/><text x="170" y="673">API</text>
+    <rect x="225" y="662" width="12" height="12" rx="3" stroke="#9bc53d"/><text x="245" y="673">Supabase</text>
+    <rect x="340" y="662" width="12" height="12" rx="3" stroke="#d9cbb0"/><text x="360" y="673">Outside services</text>
+    <text x="1170" y="673" text-anchor="end">Moving dots show which way requests go</text>
+  </g>
+</svg>
