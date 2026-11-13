@@ -6,32 +6,7 @@ Built so far: sign-in, both deploys, photo capture with an offline send queue, s
 
 ## System
 
-```mermaid
-flowchart TB
-    phone["Phone PWA, iPhone and Android<br/>React + Vite<br/>(Netlify)"]
-    api["FastAPI<br/>(Render)"]
-    claude["Claude vision API"]
-    email["Resend<br/>(custom SMTP for Supabase Auth;<br/>Mailpit locally)"]
-    inbox["Player's inbox"]
-
-    subgraph supabase["Supabase"]
-        auth["Auth"]
-        db[("Postgres")]
-        storage[("Storage<br/>private photos bucket")]
-        cron["pg_cron + pg_net<br/>(weekly schedule)"]
-    end
-
-    phone -- "HTTPS, session token" --> api
-    phone -- "check and refresh session" --> auth
-    phone -- "load photos by signed link" --> storage
-    api -- "check photo" --> claude
-    api -- "codes and tokens" --> auth
-    api -- "data" --> db
-    api -- "photos" --> storage
-    cron -- "weekly close-out,<br/>shared secret" --> api
-    auth -- "sign-in codes" --> email
-    email -- "6-digit code" --> inbox
-```
+![Soul Search system architecture](architecture.svg)
 
 ## Flows
 
